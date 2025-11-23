@@ -1,6 +1,6 @@
 import React, { Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Bell, Search, Globe, User, Settings, LogOut, Menu, X } from 'lucide-react';
+import { Bell, Search, Globe, User, Settings, LogOut } from 'lucide-react';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { Popover, Transition, Menu as HeadlessMenu } from '@headlessui/react';
 import { Link, useNavigate } from 'react-router-dom';

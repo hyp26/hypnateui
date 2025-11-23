@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { useIntegrationStore, Platform } from '../../stores/useIntegrationStore';
-import { MessageCircle, Instagram, Facebook, Send, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { MessageCircle, Instagram, Facebook, Send } from 'lucide-react';
 
 interface ConnectModalProps {
   isOpen: boolean;

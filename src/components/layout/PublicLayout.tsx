@@ -129,11 +129,44 @@ export const PublicLayout = () => {
             <p className="mt-6 text-sm text-gray-400 leading-relaxed">
               Empowering Indian SMBs with AI-driven social commerce tools. Sell smarter on WhatsApp, Instagram, and Facebook.
             </p>
+
+            {/* Corrected Social Icons */}
             <div className="flex gap-4 mt-6">
-              <a href="#" className="hover:text-white transition-colors"><Instagram className="w-5 h-5" /></a>
-              <a href="#" className="hover:text-white transition-colors"><Facebook className="w-5 h-5" /></a>
-              <a href="#" className="hover:text-white transition-colors"><Twitter className="w-5 h-5" /></a>
-              <a href="#" className="hover:text-white transition-colors"><Linkedin className="w-5 h-5" /></a>
+              <a
+                href="https://www.instagram.com/hypnate.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition-colors"
+              >
+                <Instagram className="w-5 h-5" />
+              </a>
+
+              <a
+                href="https://www.facebook.com/Hypnate"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition-colors"
+              >
+                <Facebook className="w-5 h-5" />
+              </a>
+
+              <a
+                href="https://x.com/HypnateIndia"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition-colors"
+              >
+                <Twitter className="w-5 h-5" />
+              </a>
+
+              <a
+                href="https://www.linkedin.com/company/hypnate/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition-colors"
+              >
+                <Linkedin className="w-5 h-5" />
+              </a>
             </div>
           </div>
 
@@ -166,6 +199,7 @@ export const PublicLayout = () => {
             </ul>
           </div>
         </div>
+
         <div className="max-w-7xl mx-auto pt-8 border-t border-gray-800 text-sm text-center md:text-left flex flex-col md:flex-row justify-between items-center">
           <p>© 2025 Hypnate Technologies Pvt Ltd. All rights reserved.</p>
           <p className="mt-2 md:mt-0 text-gray-500">Made with ❤️ in India</p>
