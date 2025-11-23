@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
-import { MessageCircle, ShoppingBag, Zap, CreditCard, ArrowRight, CheckCircle2, Star, Instagram, Facebook } from 'lucide-react';
+import { MessageCircle, ShoppingBag, CreditCard, ArrowRight, Star, Instagram } from 'lucide-react';
 
 export const Home = () => {
   return (
