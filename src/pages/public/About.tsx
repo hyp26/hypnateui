@@ -3,10 +3,12 @@ import { Users, Heart, Zap, Shield } from 'lucide-react';
 
 export const About = () => {
   const teamMembers = [
-    { id: 1, name: 'Arjun Mehta', role: 'Co-Founder & CEO', image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&h=400&fit=crop&q=80' },
-    { id: 2, name: 'Sarah Jenkins', role: 'CTO', image: 'https://images.unsplash.com/photo-1573496359-0933d276c273?w=400&h=400&fit=crop&q=80' },
-    { id: 3, name: 'Vikram Singh', role: 'Head of Product', image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&h=400&fit=crop&q=80' },
-    { id: 4, name: 'Priya Patel', role: 'Head of Growth', image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&q=80' },
+    { 
+      id: 1, 
+      name: 'Hamim Quazi Syed Frahuddin', 
+      role: 'Founder & CEO', 
+      image: '/assets/Hamim.jpeg' 
+    },
   ];
 
   return (
@@ -80,10 +82,12 @@ export const About = () => {
       <section className="py-24 px-6">
         <div className="max-w-7xl mx-auto text-center">
           <h2 className="text-3xl font-bold text-gray-900 mb-16">Meet the Team</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          
+          {/* FIXED: Centered */}
+          <div className="grid grid-cols-1 gap-8 place-items-center">
             {teamMembers.map((member) => (
               <div key={member.id} className="group">
-                <div className="w-full aspect-square bg-gray-100 rounded-2xl mb-4 overflow-hidden shadow-sm border border-gray-100">
+                <div className="w-full aspect-square bg-gray-100 rounded-2xl mb-4 overflow-hidden shadow-sm border border-gray-100 max-w-xs mx-auto">
                   <img 
                     src={member.image} 
                     alt={member.name} 

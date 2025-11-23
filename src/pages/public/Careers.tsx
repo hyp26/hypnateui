@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
-import { Rocket, Heart, Coffee, Globe, ArrowRight, Smile } from 'lucide-react';
+import { Rocket, Heart, Coffee, Globe, Smile } from 'lucide-react';
 
 export const Careers = () => {
   return (
@@ -42,9 +42,9 @@ export const Careers = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
-              { icon: Rocket, title: 'High Impact', desc: 'Your code will directly affect the livelihoods of thousands of merchants.' },
+              { icon: Rocket, title: 'High Impact', desc: 'Your work will directly impact thousands of merchants.' },
               { icon: Heart, title: 'Health First', desc: 'Comprehensive health insurance for you and your family.' },
-              { icon: Globe, title: 'Remote Friendly', desc: 'Work from anywhere. We care about output, not hours in a chair.' },
+              { icon: Globe, title: 'Remote Friendly', desc: 'Work from anywhere. We trust you to deliver.' },
               { icon: Coffee, title: 'Learning Budget', desc: 'Annual stipend for courses, books, and conferences.' },
             ].map((item, idx) => (
               <div key={idx} className="p-8 rounded-2xl bg-gray-50 border border-gray-100 hover:shadow-lg transition-all">
@@ -59,38 +59,48 @@ export const Careers = () => {
         </div>
       </section>
 
-      {/* Open Roles */}
-      <section className="py-24 px-6 bg-gray-50">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold text-gray-900 mb-12">Open Positions</h2>
-          
-          <div className="space-y-4">
-            {[
-              { role: 'Senior Frontend Engineer', dept: 'Engineering', loc: 'Remote (India)', type: 'Full-time' },
-              { role: 'Product Designer', dept: 'Design', loc: 'Bengaluru / Remote', type: 'Full-time' },
-              { role: 'Backend Developer (Node.js)', dept: 'Engineering', loc: 'Remote', type: 'Full-time' },
-              { role: 'Customer Success Manager', dept: 'Sales', loc: 'Mumbai', type: 'Full-time' },
-              { role: 'AI/ML Engineer', dept: 'Engineering', loc: 'Bengaluru', type: 'Full-time' },
-            ].map((job, idx) => (
-              <div key={idx} className="bg-white p-6 rounded-xl border border-gray-200 hover:border-primary-300 hover:shadow-md transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 group cursor-pointer">
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900 group-hover:text-primary-600 transition-colors">{job.role}</h3>
-                  <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
-                    <span>{job.dept}</span>
-                    <span>•</span>
-                    <span>{job.loc}</span>
-                    <span>•</span>
-                    <span>{job.type}</span>
-                  </div>
-                </div>
-                <Button variant="outline" className="shrink-0 group-hover:bg-primary-50 group-hover:text-primary-700 group-hover:border-primary-200">
-                  Apply Now
-                </Button>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Open Roles - Updated */}
+      {/* Open Roles - Updated */}
+<section className="py-24 px-6 bg-gray-50">
+  <div className="max-w-5xl mx-auto text-center fade-in-up">
+    <h2 className="text-3xl font-bold text-gray-900 mb-6">Open Positions</h2>
+
+    <p className="text-lg text-gray-600 mb-12 animate-fade">
+      No roles available right now — new openings will be posted soon.
+    </p>
+
+    <div className="flex flex-col items-center gap-6">
+      <Button 
+        variant="outline" 
+        className="rounded-full px-8 py-3 text-primary-700 border-primary-300 
+                   hover:bg-primary-50 transition-all duration-300 hover:scale-105"
+      >
+        Notify Me
+      </Button>
+
+      <a
+        href="https://www.linkedin.com/company/hypnate/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-2 text-primary-700 hover:text-primary-900
+                   transition-all duration-300 hover:scale-105"
+      >
+        <svg 
+          xmlns="http://www.w3.org/2000/svg" 
+          width="20" 
+          height="20" 
+          fill="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path d="M4.98 3.5C4.98 4.88 3.86 6 2.48 6S0 4.88 0 3.5 1.12 1 2.48 1s2.5 1.12 2.5 2.5zM.4 8.98h4.16V24H.4zM8.34 8.98h3.99v2.03h.06c.55-1.04 1.88-2.14 3.86-2.14 4.13 0 4.89 2.72 4.89 6.26V24h-4.16v-7.09c0-1.69-.03-3.87-2.36-3.87-2.36 0-2.72 1.84-2.72 3.74V24H8.34z"/>
+        </svg>
+
+        Follow us on LinkedIn for future roles
+      </a>
+    </div>
+  </div>
+</section>
+
 
       {/* Culture Photos */}
       <section className="py-24 px-6 overflow-hidden">

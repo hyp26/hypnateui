@@ -24,8 +24,8 @@ export const Contact = () => {
                     </div>
                     <div>
                       <p className="font-medium text-gray-900">Email Us</p>
-                      <p className="text-gray-600">support@hypnate.ai</p>
-                      <p className="text-gray-600">sales@hypnate.ai</p>
+                      <p className="text-gray-600">hypnate.2026@gmail.com</p>
+                      {/* <p className="text-gray-600">sales@hypnate.in</p> */}
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
@@ -34,7 +34,7 @@ export const Contact = () => {
                     </div>
                     <div>
                       <p className="font-medium text-gray-900">WhatsApp Support</p>
-                      <p className="text-gray-600">+91 98765 43210</p>
+                      <p className="text-gray-600">+91 7970959155</p>
                       <p className="text-sm text-gray-500 mt-1">Available Mon-Sat, 9am - 7pm IST</p>
                     </div>
                   </div>
@@ -46,12 +46,12 @@ export const Contact = () => {
                       <p className="font-medium text-gray-900">Office</p>
                       <p className="text-gray-600">
                         Hypnate Technologies Pvt Ltd<br />
-                        WeWork Galaxy, Residency Road<br />
-                        Bengaluru, Karnataka 560025
+                        Patna, Bihar 800008<br />
+                        India
                       </p>
                     </div>
                   </div>
-                </div>
+                </div> 
               </div>
 
               {/* Map Placeholder */}
