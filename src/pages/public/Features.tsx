@@ -120,7 +120,7 @@ export const Features = () => {
             </div>
             <div className="order-1 md:order-2 rounded-2xl overflow-hidden shadow-2xl border border-gray-100 aspect-square relative group">
                <img 
-                 src="https://images.unsplash.com/photo-1556742049-0cfed4f7a07d?w=800&q=80" 
+                 src="/assets/payment.jpg" 
                  alt="Payments" 
                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
                />
