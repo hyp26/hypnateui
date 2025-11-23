@@ -15,7 +15,6 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { cn } from '../../lib/utils';
-import { Logo } from '../ui/Logo';
 
 export const Sidebar = () => {
   const { t } = useTranslation();
@@ -28,7 +27,6 @@ export const Sidebar = () => {
     { icon: ShoppingBag, label: t('nav.orders'), path: '/orders' },
     { icon: Users, label: t('nav.customers'), path: '/customers' },
     { icon: Settings, label: t('nav.settings'), path: '/settings' },
-    // New Items added after Settings
     { icon: CreditCard, label: t('nav.payments'), path: '/payments' },
     { icon: BarChart3, label: t('nav.analytics'), path: '/analytics' },
     { icon: Sparkles, label: t('nav.onboarding'), path: '/onboarding' },
@@ -36,11 +34,17 @@ export const Sidebar = () => {
 
   return (
     <div className="h-screen w-64 bg-primary-900 border-r border-primary-800 flex flex-col fixed left-0 top-0 z-10 shadow-xl">
-      <div className="p-6 border-b border-primary-800">
-        {/* Use light theme for logo on dark background */}
-        <Logo variant="full" size="md" theme="light" />
+      
+      {/* Logo Section */}
+      <div className="p-6 border-b border-primary-800 flex justify-center">
+        <img 
+          src="/assets/logo.svg" 
+          alt="Hypnate Logo" 
+          className="h-55 w-150 object-contain"
+        />
       </div>
 
+      {/* Navigation */}
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {navItems.map((item) => (
           <NavLink
@@ -55,12 +59,13 @@ export const Sidebar = () => {
               )
             }
           >
-            <item.icon className={cn("w-5 h-5", ({ isActive }: { isActive: boolean }) => isActive ? "text-white" : "text-primary-300")} />
+            <item.icon className="w-5 h-5" />
             {item.label}
           </NavLink>
         ))}
       </nav>
 
+      {/* Logout */}
       <div className="p-4 border-t border-primary-800">
         <button
           onClick={logout}
