@@ -1,0 +1,54 @@
+{
+  "common": {
+    "welcome": "स्वागत है",
+    "save": "सहेजें",
+    "cancel": "रद्द करें",
+    "loading": "लोड हो रहा है...",
+    "actions": "कार्रवाई",
+    "status": "स्थिति",
+    "date": "दिनांक"
+  },
+  "auth": {
+    "login_title": "Hypnate में लॉग इन करें",
+    "signup_title": "अपना खाता बनाएं",
+    "email": "ईमेल पता",
+    "password": "पासवर्ड",
+    "login_btn": "लॉग इन करें",
+    "signup_btn": "साइन अप करें",
+    "no_account": "खाता नहीं है?",
+    "has_account": "पहले से खाता है?"
+  },
+  "dashboard": {
+    "title": "डैशबोर्ड",
+    "revenue": "आज की कमाई",
+    "orders": "आज के ऑर्डर",
+    "active_chats": "सक्रिय चैट",
+    "setup_checklist": "सेटअप चेकलिस्ट",
+    "recent_orders": "हाल के ऑर्डर"
+  },
+  "nav": {
+    "dashboard": "डैशबोर्ड",
+    "conversations": "बातचीत",
+    "products": "उत्पाद",
+    "orders": "ऑर्डर",
+    "customers": "ग्राहक",
+    "settings": "सेटिंग्स",
+    "payments": "भुगतान",
+    "analytics": "एनालिटिक्स",
+    "onboarding": "ऑनबोर्डिंग विजार्ड",
+    "logout": "लॉग आउट"
+  },
+  "onboarding": {
+    "title": "Hypnate में आपका स्वागत है",
+    "step_business": "व्यवसाय जानकारी",
+    "step_catalog": "कैटलॉग",
+    "step_payment": "भुगतान",
+    "step_channels": "चैनल",
+    "next": "अगला कदम",
+    "finish": "समाप्त करें",
+    "connect_whatsapp": "व्हाट्सएप कनेक्ट करें",
+    "connect_instagram": "इंस्टाग्राम कनेक्ट करें",
+    "connect_facebook": "फेसबुक कनेक्ट करें",
+    "connect_telegram": "टेलीग्राम कनेक्ट करें"
+  }
+}
