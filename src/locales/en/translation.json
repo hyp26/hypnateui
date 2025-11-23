@@ -1,0 +1,54 @@
+{
+  "common": {
+    "welcome": "Welcome",
+    "save": "Save",
+    "cancel": "Cancel",
+    "loading": "Loading...",
+    "actions": "Actions",
+    "status": "Status",
+    "date": "Date"
+  },
+  "auth": {
+    "login_title": "Log in to Hypnate",
+    "signup_title": "Create your account",
+    "email": "Email Address",
+    "password": "Password",
+    "login_btn": "Log In",
+    "signup_btn": "Sign Up",
+    "no_account": "Don't have an account?",
+    "has_account": "Already have an account?"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "revenue": "Today's Revenue",
+    "orders": "Orders Today",
+    "active_chats": "Active Chats",
+    "setup_checklist": "Setup Checklist",
+    "recent_orders": "Recent Orders"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "conversations": "Conversations",
+    "products": "Products",
+    "orders": "Orders",
+    "customers": "Customers",
+    "settings": "Settings",
+    "payments": "Payments",
+    "analytics": "Analytics",
+    "onboarding": "Onboarding Wizard",
+    "logout": "Logout"
+  },
+  "onboarding": {
+    "title": "Welcome to Hypnate",
+    "step_business": "Business Info",
+    "step_catalog": "Catalog",
+    "step_payment": "Payments",
+    "step_channels": "Channels",
+    "next": "Next Step",
+    "finish": "Finish Setup",
+    "connect_whatsapp": "Connect WhatsApp",
+    "connect_instagram": "Connect Instagram",
+    "connect_facebook": "Connect Facebook",
+    "connect_telegram": "Connect Telegram"
+  }
+}

@@ -6,7 +6,7 @@ import {
   Navigate,
 } from 'react-router-dom';
 
-import { Layout } from './components/layout/Layout';
+import { Layout } from './components/layout/layout';
 import { PublicLayout } from './components/layout/PublicLayout';
 
 // Auth & Store
@@ -34,7 +34,7 @@ import { Blog } from './pages/public/Blog';
 import { BlogArticle } from './pages/public/BlogArticle';
 import { Careers } from './pages/public/Careers';
 import { FAQ } from './pages/public/FAQ';
-import { Terms } from './pages/public/Terms';
+import { Terms } from './pages/public/Term';
 import { Privacy } from './pages/public/Privacy';
 import { Refund } from './pages/public/Refund';
 import { Changelog } from './pages/public/Changelog';
