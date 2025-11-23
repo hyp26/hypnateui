@@ -3,7 +3,6 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/useAuthStore';
 import { Button } from '../components/ui/Button';
 import { useTranslation } from 'react-i18next';
-import { Logo } from '../components/ui/Logo';
 import { ShoppingBag, MessageCircle, TrendingUp } from 'lucide-react';
 
 export const Login = () => {
@@ -40,7 +39,12 @@ export const Login = () => {
 
         {/* Logo */}
         <div className="relative z-10">
-           <Logo variant="full" size="md" theme="light" />
+           <img 
+            src="/assets/logo.svg" 
+            alt="Hypnate Logo" 
+            className="h-14 w-auto object-contain"
+            />
+
         </div>
 
         {/* Main Content */}

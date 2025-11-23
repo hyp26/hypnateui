@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Logo } from '../ui/Logo';
 import { Button } from '../ui/Button';
 import { Menu, X, Instagram, Facebook, Twitter, Linkedin } from 'lucide-react';
 import { cn } from '../../lib/utils';
@@ -48,10 +47,14 @@ export const PublicLayout = () => {
             : "bg-transparent border-transparent py-5"
         )}
       >
-        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 flex items-center justify-between">
           <Link to="/" className="relative z-50">
-            <Logo variant="full" size="sm" theme="dark" />
-          </Link>
+            <img 
+                src="/assets/logo.svg" 
+                alt="Hypnate Logo" 
+                className="h-10 w-auto object-contain"
+                />
+            </Link>
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8">
@@ -125,7 +128,12 @@ export const PublicLayout = () => {
       <footer className="bg-gray-900 text-gray-300 py-16 px-6">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           <div className="col-span-1 md:col-span-1">
-            <Logo variant="full" size="sm" theme="light" />
+            <img 
+                src="/assets/logo.svg" 
+                alt="Hypnate Logo" 
+                className="h-30 w-auto mx-auto object-contain"
+            />
+
             <p className="mt-6 text-sm text-gray-400 leading-relaxed">
               Empowering Indian SMBs with AI-driven social commerce tools. Sell smarter on WhatsApp, Instagram, and Facebook.
             </p>
