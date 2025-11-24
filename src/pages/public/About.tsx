@@ -40,7 +40,7 @@ export const About = () => {
             <h2 className="text-3xl font-bold text-gray-900 mb-6">Why we started Hypnate</h2>
             <div className="space-y-4 text-gray-600 text-lg">
               <p>
-                In 2023, we noticed a shift. Small businesses in India weren't building websites; they were building communities on WhatsApp and Instagram.
+                In September 2025, we noticed a shift. Small businesses in India weren't building websites; they were building communities on WhatsApp and Instagram.
               </p>
               <p>
                 But managing hundreds of DMs, tracking orders manually, and collecting payments was a nightmare. They needed a tool that worked where they worked.
