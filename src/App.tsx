@@ -1,4 +1,5 @@
 import React from 'react';
+
 import {
   BrowserRouter as Router,
   Routes,
@@ -6,6 +7,9 @@ import {
   Navigate,
 } from 'react-router-dom';
 
+import { Analytics } from '@vercel/analytics/react';
+
+// Layouts
 import { Layout } from './components/layout/layout';
 import { PublicLayout } from './components/layout/PublicLayout';
 
@@ -22,7 +26,7 @@ import { Conversations } from './pages/Conversations';
 import { Onboarding } from './pages/Onboarding';
 import { Settings } from './pages/Settings';
 import { Payments } from './pages/Payments';
-import { Analytics } from './pages/Analytics';
+import { Analytics as DashboardAnalytics } from './pages/Analytics';
 
 // Public Website Pages
 import { Home } from './pages/public/Home';
@@ -39,7 +43,7 @@ import { Privacy } from './pages/public/Privacy';
 import { Refund } from './pages/public/Refund';
 import { Changelog } from './pages/public/Changelog';
 
-// i18n (keep this if you actually use i18n)
+// i18n
 import './i18n/config';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -108,6 +112,9 @@ function App() {
         {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+
+      {/* Global Vercel Analytics */}
+      <Analytics />
     </Router>
   );
 }
