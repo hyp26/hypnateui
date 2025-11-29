@@ -8,6 +8,7 @@ import {
 } from 'react-router-dom';
 
 import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 // Layouts
 import { Layout } from './components/layout/layout';
@@ -101,7 +102,7 @@ function App() {
           <Route path="/orders/:id" element={<OrderDetail />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/payments" element={<Payments />} />
-          <Route path="/analytics" element={<Analytics />} />
+          <Route path="/analytics" element={<DashboardAnalytics />} />
 
           <Route
             path="/customers"
@@ -115,6 +116,9 @@ function App() {
 
       {/* Global Vercel Analytics */}
       <Analytics />
+
+      {/* Global Vercel Speed Insights */}
+      <SpeedInsights />
     </Router>
   );
 }
