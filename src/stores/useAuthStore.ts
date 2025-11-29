@@ -1,23 +1,26 @@
-import { create } from 'zustand';
-import { persist, PersistOptions } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+
+const API = process.env.REACT_APP_API_URL as string;
 
 interface User {
-  id: string;
+  id: number;
   name: string;
   email: string;
-  role: 'admin' | 'merchant';
+  role: string;
+  seller?: any;
 }
 
 interface AuthState {
   token: string | null;
   user: User | null;
   isAuthenticated: boolean;
-  login: (email: string) => Promise<void>;
-  signup: (email: string) => Promise<void>;
+
+  login: (email: string, password: string) => Promise<void>;
+  signup: (name: string, email: string, password: string, businessName: string, phone: string) => Promise<void>;
+  loadProfile: () => Promise<void>;
   logout: () => void;
 }
-
-type AuthPersist = PersistOptions<AuthState>;
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -26,26 +29,76 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       isAuthenticated: false,
 
-      login: async (email: string) => {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+      login: async (email, password) => {
+        const res = await fetch(`${API}/api/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+
+        if (!res.ok) throw new Error("Invalid email or password");
+
+        const data = await res.json();
+        localStorage.setItem("token", data.token);
+
         set({
-          token: 'mock-jwt-token',
-          user: { id: '1', name: 'Demo Merchant', email, role: 'merchant' },
+          token: data.token,
+          user: data.user,
           isAuthenticated: true,
         });
       },
 
-      signup: async (email: string) => {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+      signup: async (name, email, password, businessName, phone) => {
+        const res = await fetch(`${API}/api/auth/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name,
+            email,
+            password,
+            businessName,
+            phone,
+          }),
+        });
+
+        if (!res.ok) throw new Error("Signup failed");
+
+        const data = await res.json();
+        localStorage.setItem("token", data.token);
+
         set({
-          token: 'mock-jwt-token',
-          user: { id: '1', name: 'New Merchant', email, role: 'merchant' },
+          token: data.token,
+          user: data.user,
           isAuthenticated: true,
         });
       },
 
-      logout: () => set({ token: null, user: null, isAuthenticated: false }),
+      loadProfile: async () => {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        const res = await fetch(`${API}/api/auth/profile`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) {
+          localStorage.removeItem("token");
+          set({ token: null, user: null, isAuthenticated: false });
+          return;
+        }
+
+        const profile = await res.json();
+
+        set({ user: profile, token, isAuthenticated: true });
+      },
+
+      logout: () => {
+        localStorage.removeItem("token");
+        set({ token: null, user: null, isAuthenticated: false });
+      },
     }),
-    { name: 'auth-storage' } as AuthPersist
+    { name: "auth-storage" }
   )
 );
