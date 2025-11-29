@@ -7,6 +7,7 @@ import {
   Navigate,
 } from 'react-router-dom';
 
+// vercel
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 
