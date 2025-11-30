@@ -22,6 +22,7 @@ import { useAuthStore } from './stores/useAuthStore';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { Products } from './pages/Products';
+import { AddProduct } from './pages/AddProduct';
 import { Orders } from './pages/Orders';
 import { OrderDetail } from './pages/OrderDetail';
 import { Conversations } from './pages/Conversations';
@@ -98,6 +99,7 @@ function App() {
         >
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/products" element={<Products />} />
+          <Route path="/products/new" element={<AddProduct />} />
           <Route path="/conversations" element={<Conversations />} />
           <Route path="/orders" element={<Orders />} />
           <Route path="/orders/:id" element={<OrderDetail />} />
