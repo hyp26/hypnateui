@@ -13,60 +13,58 @@ export const AddProduct: React.FC = () => {
   const [stock, setStock] = useState<number | "">("");
   const [imageFile, setImageFile] = useState<File | null>(null);
 
-  const [isUploading, setIsUploading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const CLOUD_NAME = process.env.REACT_APP_CLOUDINARY_CLOUD_NAME!;
-  const UPLOAD_PRESET = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET!;
+  const API = process.env.REACT_APP_API_URL;
 
-  const uploadToCloudinary = async (file: File): Promise<string> => {
-    const url = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
+  // Upload file to backend (not Cloudinary directly)
+  const uploadImageToBackend = async (file: File): Promise<string> => {
+    const form = new FormData();
+    form.append("image", file);
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", UPLOAD_PRESET);
-
-    const res = await fetch(url, {
+    const res = await fetch(`${API}/api/products/upload`, {
       method: "POST",
-      body: formData,
+      body: form,
     });
 
     const data = await res.json();
 
-    if (!data.secure_url) {
+    if (!res.ok || !data.url) {
       throw new Error("Image upload failed");
     }
 
-    return data.secure_url; // This is the final hosted image URL
+    return data.url; // Backend returns Cloudinary URL
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!imageFile) {
-      alert("Please upload an image.");
+      alert("Please upload an image");
       return;
     }
 
     try {
-      setIsUploading(true);
+      setIsLoading(true);
 
-      // Upload the image first
-      const imageUrl = await uploadToCloudinary(imageFile);
+      // 1. Upload image to backend → Cloudinary
+      const imageUrl = await uploadImageToBackend(imageFile);
 
-      // Save product to backend
+      // 2. Save product to DB via Zustand → Backend
       await addProduct({
         name,
         category,
         price: Number(price),
         stock: Number(stock),
-        image: imageUrl,
+        image: imageUrl, // Cloudinary URL
       });
 
       navigate("/products");
     } catch (err) {
       console.error(err);
-      alert("Failed to add product");
+      alert("Product creation failed");
     } finally {
-      setIsUploading(false);
+      setIsLoading(false);
     }
   };
 
@@ -75,6 +73,7 @@ export const AddProduct: React.FC = () => {
       <h1 className="text-2xl font-bold mb-6">Add Product</h1>
 
       <form onSubmit={handleSubmit} className="space-y-5">
+
         <div>
           <label className="block font-medium">Product Name</label>
           <input
@@ -130,8 +129,8 @@ export const AddProduct: React.FC = () => {
           />
         </div>
 
-        <Button type="submit" className="w-full h-12" isLoading={isUploading}>
-          {isUploading ? "Uploading..." : "Add Product"}
+        <Button type="submit" className="w-full h-12" isLoading={isLoading}>
+          {isLoading ? "Saving..." : "Add Product"}
         </Button>
       </form>
     </div>
