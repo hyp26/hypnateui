@@ -2,10 +2,12 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useProductStore } from "../stores/useProductStore";
 import { Button } from "../components/ui/Button";
+import { useAuthStore } from "../stores/useAuthStore";
 
 export const AddProduct: React.FC = () => {
   const navigate = useNavigate();
   const addProduct = useProductStore((s) => s.addProduct);
+  const token = useAuthStore((s) => s.token); // GET TOKEN FROM ZUSTAND
 
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
@@ -17,23 +19,29 @@ export const AddProduct: React.FC = () => {
 
   const API = process.env.REACT_APP_API_URL;
 
-  // Upload file to backend (not Cloudinary directly)
+  // Upload file to backend (secure)
   const uploadImageToBackend = async (file: File): Promise<string> => {
+    if (!token) throw new Error("User not authenticated");
+
     const form = new FormData();
     form.append("image", file);
 
     const res = await fetch(`${API}/api/products/upload`, {
       method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`, // IMPORTANT FIX
+      },
       body: form,
     });
 
     const data = await res.json();
 
     if (!res.ok || !data.url) {
+      console.error("UPLOAD ERROR:", data);
       throw new Error("Image upload failed");
     }
 
-    return data.url; // Backend returns Cloudinary URL
+    return data.url;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -47,16 +55,16 @@ export const AddProduct: React.FC = () => {
     try {
       setIsLoading(true);
 
-      // 1. Upload image to backend → Cloudinary
+      // 1. Upload image → backend → Cloudinary
       const imageUrl = await uploadImageToBackend(imageFile);
 
-      // 2. Save product to DB via Zustand → Backend
+      // 2. Save product to DB via backend
       await addProduct({
         name,
         category,
         price: Number(price),
         stock: Number(stock),
-        image: imageUrl, // Cloudinary URL
+        image: imageUrl,
       });
 
       navigate("/products");
@@ -102,7 +110,9 @@ export const AddProduct: React.FC = () => {
             type="number"
             required
             value={price}
-            onChange={(e) => setPrice(e.target.value === "" ? "" : Number(e.target.value))}
+            onChange={(e) =>
+              setPrice(e.target.value === "" ? "" : Number(e.target.value))
+            }
             className="w-full px-4 py-2 border rounded-lg"
           />
         </div>
@@ -113,7 +123,9 @@ export const AddProduct: React.FC = () => {
             type="number"
             required
             value={stock}
-            onChange={(e) => setStock(e.target.value === "" ? "" : Number(e.target.value))}
+            onChange={(e) =>
+              setStock(e.target.value === "" ? "" : Number(e.target.value))
+            }
             className="w-full px-4 py-2 border rounded-lg"
           />
         </div>
