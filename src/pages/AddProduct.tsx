@@ -24,9 +24,8 @@ export const AddProduct: React.FC = () => {
     if (!token) throw new Error("User not authenticated");
 
     const form = new FormData();
-    form.append("image", file);
-
-    const res = await fetch(`${API}/api/products/upload`, {
+    form.append("file", file);
+    const res = await fetch(`${API}/api/products/upload?mode=cloud`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`, // IMPORTANT FIX
