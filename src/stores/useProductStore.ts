@@ -1,7 +1,10 @@
 import { create } from 'zustand';
+import { useAuthStore } from './useAuthStore';
+
+const API = process.env.REACT_APP_API_URL as string;
 
 export interface Product {
-  id: string;
+  id: string | number;
   name: string;
   price: number;
   stock: number;
@@ -11,20 +14,99 @@ export interface Product {
 
 interface ProductState {
   products: Product[];
+  isLoading: boolean;
+
   fetchProducts: () => Promise<void>;
-  addProduct: (product: Omit<Product, 'id'>) => void;
+  addProduct: (product: Omit<Product, 'id'>) => Promise<void>;
+  deleteProduct: (id: string | number) => Promise<void>;
 }
 
-export const useProductStore = create<ProductState>((set) => ({
-  products: [
-    { id: '1', name: 'Cotton Kurta', price: 1299, stock: 45, category: 'Apparel', image: 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=150&q=80' },
-    { id: '2', name: 'Handmade Soap', price: 250, stock: 100, category: 'Beauty', image: 'https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=150&q=80' },
-    { id: '3', name: 'Ceramic Vase', price: 899, stock: 12, category: 'Home', image: 'https://images.unsplash.com/photo-1612196808214-b7e239e5f6b7?w=150&q=80' },
-  ],
+export const useProductStore = create<ProductState>((set, get) => ({
+  products: [],
+  isLoading: false,
+
+  // FETCH ALL PRODUCTS
   fetchProducts: async () => {
-    // Mock fetch
+    const token = useAuthStore.getState().token;
+    if (!token) return;
+
+    set({ isLoading: true });
+
+    try {
+      const res = await fetch(`${API}/api/products`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        console.error('Failed to fetch products');
+        return;
+      }
+
+      const data = await res.json();
+      set({ products: data });
+    } catch (error) {
+      console.error('Fetch products error:', error);
+    } finally {
+      set({ isLoading: false });
+    }
   },
-  addProduct: (product) => set((state) => ({ 
-    products: [...state.products, { ...product, id: Math.random().toString(36).substr(2, 9) }] 
-  })),
+
+  // ADD PRODUCT
+  addProduct: async (product) => {
+    const token = useAuthStore.getState().token;
+    if (!token) throw new Error('Not authenticated');
+
+    set({ isLoading: true });
+
+    try {
+      const res = await fetch(`${API}/api/products`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(product),
+      });
+
+      if (!res.ok) throw new Error('Failed to add product');
+
+      const newProduct = await res.json();
+
+      set((state) => ({
+        products: [...state.products, newProduct],
+      }));
+    } catch (error) {
+      console.error('Add product error:', error);
+      throw error;
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  // DELETE PRODUCT
+  deleteProduct: async (id) => {
+    const token = useAuthStore.getState().token;
+    if (!token) throw new Error('Not authenticated');
+
+    try {
+      const res = await fetch(`${API}/api/products/${id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) throw new Error('Failed to delete product');
+
+      // Update UI immediately
+      set((state) => ({
+        products: state.products.filter((p) => p.id !== id),
+      }));
+    } catch (error) {
+      console.error('Delete product error:', error);
+      throw error;
+    }
+  },
 }));
