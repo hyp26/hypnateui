@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useProductStore } from '../stores/useProductStore';
 import { Plus, Edit2, Trash2, Search, Filter } from 'lucide-react';
 import { Button } from '../components/ui/Button';
@@ -12,9 +13,11 @@ export const Products = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Products</h1>
-        <Button>
-          <Plus className="w-4 h-4 mr-2" /> Add Product
-        </Button>
+        <Link to="/products/new">
+  `       <Button>
+            <Plus className="w-4 h-4 mr-2" /> Add Product
+          </Button>
+        </Link>
       </div>
 
       <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
