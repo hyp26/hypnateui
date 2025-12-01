@@ -22,15 +22,15 @@ export const Products: React.FC = () => {
   const totalPages = Math.max(1, Math.ceil(total / limit));
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this product? This cannot be undone.")) return;
+    if (!window.confirm("Are you sure you want to delete this product? This cannot be undone.")) return;
     try {
-      await deleteProduct(id);
-      // reload current page
-      fetchProducts({ page: localPage, limit, search: debouncedQ, category, sort });
+        await deleteProduct(id);
+        fetchProducts({ page: localPage, limit, search: debouncedQ, category, sort });
     } catch (err) {
-      alert("Failed to delete product");
+        alert("Failed to delete product");
     }
   };
+
 
   return (
     <div className="space-y-6">
