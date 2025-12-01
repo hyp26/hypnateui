@@ -1,111 +1,87 @@
-import { create } from 'zustand';
-import { useAuthStore } from './useAuthStore';
+import { create } from "zustand";
+import { useAuthStore } from "./useAuthStore";
 
 const API = process.env.REACT_APP_API_URL as string;
 
 export interface Product {
-  id: string | number;
+  id: number;
   name: string;
   price: number;
   stock: number;
-  category: string;
-  image: string;
+  category: string | null;
+  image: string | null;
 }
 
 interface ProductState {
   products: Product[];
-  isLoading: boolean;
-
   fetchProducts: () => Promise<void>;
-  addProduct: (product: Omit<Product, 'id'>) => Promise<void>;
-  deleteProduct: (id: string | number) => Promise<void>;
+  addProduct: (product: Omit<Product, "id">) => Promise<void>;
+  deleteProduct: (id: number) => Promise<void>;
 }
 
 export const useProductStore = create<ProductState>((set, get) => ({
   products: [],
-  isLoading: false,
 
   // FETCH ALL PRODUCTS
   fetchProducts: async () => {
-    const token = useAuthStore.getState().token;
-    if (!token) return;
-
-    set({ isLoading: true });
-
     try {
-      const res = await fetch(`${API}/api/products`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!res.ok) {
-        console.error('Failed to fetch products');
-        return;
-      }
-
+      const res = await fetch(`${API}/api/products`);
       const data = await res.json();
-      set({ products: data });
+
+      set({ products: data.products || [] });
     } catch (error) {
-      console.error('Fetch products error:', error);
-    } finally {
-      set({ isLoading: false });
+      console.error("Fetch products error:", error);
     }
   },
 
   // ADD PRODUCT
   addProduct: async (product) => {
-    const token = useAuthStore.getState().token;
-    if (!token) throw new Error('Not authenticated');
-
-    set({ isLoading: true });
-
     try {
+      const token = useAuthStore.getState().token;
+      if (!token) throw new Error("Not authenticated");
+
       const res = await fetch(`${API}/api/products`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(product),
       });
 
-      if (!res.ok) throw new Error('Failed to add product');
+      const data = await res.json();
 
-      const newProduct = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to add product");
 
       set((state) => ({
-        products: [...state.products, newProduct],
+        products: [...state.products, data.product],
       }));
     } catch (error) {
-      console.error('Add product error:', error);
+      console.error("Add product error:", error);
       throw error;
-    } finally {
-      set({ isLoading: false });
     }
   },
 
   // DELETE PRODUCT
   deleteProduct: async (id) => {
-    const token = useAuthStore.getState().token;
-    if (!token) throw new Error('Not authenticated');
-
     try {
+      const token = useAuthStore.getState().token;
+      if (!token) throw new Error("Not authenticated");
+
       const res = await fetch(`${API}/api/products/${id}`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      if (!res.ok) throw new Error('Failed to delete product');
+      if (!res.ok) throw new Error("Failed to delete product");
 
-      // Update UI immediately
       set((state) => ({
         products: state.products.filter((p) => p.id !== id),
       }));
     } catch (error) {
-      console.error('Delete product error:', error);
+      console.error("Delete product error:", error);
       throw error;
     }
   },
