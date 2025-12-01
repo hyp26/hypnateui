@@ -16,6 +16,7 @@ export const AddProduct: React.FC = () => {
   const [stock, setStock] = useState<number | "">("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const API = process.env.REACT_APP_API_URL;
 
@@ -46,9 +47,25 @@ export const AddProduct: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
 
     if (!imageFile) {
-      alert("Please upload an image");
+      setError("Please upload an image");
+      return;
+    }
+
+    if (!name.trim()) {
+      setError("Product name is required");
+      return;
+    }
+
+    if (price === "" || Number.isNaN(Number(price))) {
+      setError("Price is required");
+      return;
+    }
+
+    if (stock === "" || Number.isNaN(Number(stock))) {
+      setError("Stock is required");
       return;
     }
 
@@ -60,18 +77,18 @@ export const AddProduct: React.FC = () => {
 
       // Create product
       await addProduct({
-        name,
-        category,
-        description,
+        name: name.trim(),
+        category: category || null,
+        description: description || null,
         price: Number(price),
         stock: Number(stock),
-        imageUrl: imageUrl,
+        imageUrl,
       });
 
       navigate("/products");
     } catch (err) {
       console.error(err);
-      alert("Product creation failed");
+      setError((err as Error).message || "Product creation failed");
     } finally {
       setIsLoading(false);
     }
@@ -82,6 +99,10 @@ export const AddProduct: React.FC = () => {
       <h1 className="text-2xl font-bold mb-6">Add Product</h1>
 
       <form onSubmit={handleSubmit} className="space-y-5">
+        {error && (
+          <div className="text-sm text-red-600 bg-red-50 p-2 rounded">{error}</div>
+        )}
+
         <div>
           <label className="block font-medium">Product Name</label>
           <input
@@ -97,10 +118,20 @@ export const AddProduct: React.FC = () => {
           <label className="block font-medium">Category</label>
           <input
             type="text"
-            required
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             className="w-full px-4 py-2 border rounded-lg"
+          />
+        </div>
+
+        <div>
+          <label className="block font-medium">Description (optional)</label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={4}
+            className="w-full px-4 py-2 border rounded-lg"
+            placeholder="Add a short description for this product"
           />
         </div>
 
