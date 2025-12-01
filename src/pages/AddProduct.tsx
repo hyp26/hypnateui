@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useProductStore } from "../stores/useProductStore";
 import { Button } from "../components/ui/Button";
 import { useAuthStore } from "../stores/useAuthStore";
+
+type Category = { id: number; name: string };
 
 export const AddProduct: React.FC = () => {
   const navigate = useNavigate();
@@ -10,15 +12,34 @@ export const AddProduct: React.FC = () => {
   const token = useAuthStore((s) => s.token);
 
   const [name, setName] = useState("");
-  const [category, setCategory] = useState("");
+  const [category, setCategory] = useState<string | null>(null);
+  const [customCategory, setCustomCategory] = useState("");
+  const [categories, setCategories] = useState<Category[]>([]);
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState<number | "">("");
   const [stock, setStock] = useState<number | "">("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   const API = process.env.REACT_APP_API_URL;
+  const DESCRIPTION_LIMIT = 1000; // char limit
+  const EXCERPT_LENGTH = 120;
+
+  useEffect(() => {
+    // load categories
+    const load = async () => {
+      try {
+        const res = await fetch(`${API}/api/categories`);
+        const data = await res.json();
+        if (Array.isArray(data)) setCategories(data);
+      } catch (err) {
+        console.error("Failed to fetch categories", err);
+      }
+    };
+    load();
+  }, [API]);
 
   // Upload image to backend → Cloudinary
   const uploadImageToBackend = async (file: File): Promise<string> => {
@@ -45,6 +66,23 @@ export const AddProduct: React.FC = () => {
     return data.url;
   };
 
+  // Basic sanitized preview renderer for bold/italic (very small subset of markdown)
+  const renderPreviewHtml = (text: string) => {
+    if (!text) return "";
+    // Escape angle brackets
+    const escaped = text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+    // **bold**
+    const bolded = escaped.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+    // _italic_
+    const italic = bolded.replace(/_(.+?)_/g, "<em>$1</em>");
+    // line breaks
+    const withBreaks = italic.replace(/\n/g, "<br/>");
+    return withBreaks;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -53,17 +91,14 @@ export const AddProduct: React.FC = () => {
       setError("Please upload an image");
       return;
     }
-
     if (!name.trim()) {
       setError("Product name is required");
       return;
     }
-
     if (price === "" || Number.isNaN(Number(price))) {
       setError("Price is required");
       return;
     }
-
     if (stock === "" || Number.isNaN(Number(stock))) {
       setError("Stock is required");
       return;
@@ -72,13 +107,14 @@ export const AddProduct: React.FC = () => {
     try {
       setIsLoading(true);
 
-      // Upload image
       const imageUrl = await uploadImageToBackend(imageFile);
 
-      // Create product
+      const finalCategory = category === "custom" ? (customCategory || null) : category;
+      const excerpt = (description || "").slice(0, EXCERPT_LENGTH);
+
       await addProduct({
         name: name.trim(),
-        category: category || null,
+        category: finalCategory ?? null,
         description: description || null,
         price: Number(price),
         stock: Number(stock),
@@ -116,23 +152,71 @@ export const AddProduct: React.FC = () => {
 
         <div>
           <label className="block font-medium">Category</label>
-          <input
-            type="text"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg"
-          />
+
+          <div className="flex gap-2 items-center">
+            <select
+              value={category ?? ""}
+              onChange={(e) => setCategory(e.target.value || null)}
+              className="px-3 py-2 border rounded-lg"
+            >
+              <option value="">Select category</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.name}>
+                  {c.name}
+                </option>
+              ))}
+              <option value="custom">— Add custom category —</option>
+            </select>
+
+            {category === "custom" && (
+              <input
+                type="text"
+                value={customCategory}
+                onChange={(e) => setCustomCategory(e.target.value)}
+                placeholder="Enter category name"
+                className="px-3 py-2 border rounded-lg flex-1"
+              />
+            )}
+          </div>
         </div>
 
         <div>
           <label className="block font-medium">Description (optional)</label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows={4}
-            className="w-full px-4 py-2 border rounded-lg"
-            placeholder="Add a short description for this product"
-          />
+
+          <div className="mt-1">
+            <textarea
+              value={description}
+              onChange={(e) =>
+                setDescription(
+                  e.target.value.slice(0, DESCRIPTION_LIMIT)
+                )
+              }
+              rows={6}
+              className="w-full px-4 py-2 border rounded-lg"
+              placeholder="Write product details. Use **bold** or _italic_ for quick formatting."
+            />
+          </div>
+
+          <div className="flex items-center justify-between text-sm text-gray-500 mt-1">
+            <div>{description.length}/{DESCRIPTION_LIMIT} characters</div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowPreview((s) => !s)}
+                className="text-sm text-primary-600 underline"
+              >
+                {showPreview ? "Hide preview" : "Show preview"}
+              </button>
+            </div>
+          </div>
+
+          {showPreview && (
+            <div
+              className="mt-3 p-3 border rounded bg-gray-50 prose max-w-full"
+              // eslint-disable-next-line react/no-danger
+              dangerouslySetInnerHTML={{ __html: renderPreviewHtml(description) }}
+            />
+          )}
         </div>
 
         <div>
@@ -172,7 +256,7 @@ export const AddProduct: React.FC = () => {
           />
         </div>
 
-        <Button type="submit" className="w-full h-12" isLoading={isLoading}>
+        <Button type="submit" className="w-full h-12" isLoading={isLoading} disabled={isLoading}>
           {isLoading ? "Saving..." : "Add Product"}
         </Button>
       </form>
