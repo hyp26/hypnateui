@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useProductStore } from "../stores/useProductStore";
-import { Plus, Edit2, Trash2, Search, Filter } from "lucide-react";
+import { Plus, Edit2, Trash2, Search, Filter, Eye } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { formatCurrency } from "../lib/utils";
 import { useDebounce } from "../hooks/useDebounce";
@@ -24,7 +24,7 @@ export const Products: React.FC = () => {
 
   const debouncedQ = useDebounce(q, 400);
 
-  // Load products based on filters
+  // Fetch on filters change
   useEffect(() => {
     fetchProducts({
       page: localPage,
@@ -37,7 +37,7 @@ export const Products: React.FC = () => {
 
   const totalPages = Math.max(1, Math.ceil(total / limit));
 
-  // Generate dynamic category list from products
+  // Dynamic categories
   const dynamicCategories = useMemo<string[]>(() => {
     const unique = Array.from(
       new Set(
@@ -46,7 +46,7 @@ export const Products: React.FC = () => {
           .filter((c): c is string => !!c && c.trim() !== "")
       )
     ) as string[];
-    return ["", ...unique]; // "" for All categories
+    return ["", ...unique];
   }, [products]);
 
   const handleDelete = async (id: number) => {
@@ -61,6 +61,7 @@ export const Products: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Products</h1>
@@ -69,8 +70,9 @@ export const Products: React.FC = () => {
         </Link>
       </div>
 
-      {/* Search / Filters */}
+      {/* Search + Filters */}
       <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
+        
         {/* Search */}
         <div className="relative flex-1 max-w-2xl">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -83,7 +85,7 @@ export const Products: React.FC = () => {
           />
         </div>
 
-        {/* Dynamic categories */}
+        {/* Categories */}
         <select
           value={category}
           onChange={(e) => { setCategory(e.target.value); setLocalPage(1); }}
@@ -132,8 +134,11 @@ export const Products: React.FC = () => {
           <tbody className="divide-y divide-gray-100">
             {products.map((product, i) => (
               <tr key={product.id} className="hover:bg-gray-50">
+
+                {/* Serial Number */}
                 <td className="px-6 py-4">{(page - 1) * limit + i + 1}</td>
 
+                {/* Product name + image */}
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
                     <img
@@ -169,8 +174,19 @@ export const Products: React.FC = () => {
                   {product.description || "-"}
                 </td>
 
+                {/* Buttons */}
                 <td className="px-6 py-4 text-right">
                   <div className="flex items-center justify-end gap-2">
+                    
+                    {/* View */}
+                    <Link
+                      to={`/products/${product.id}`}
+                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </Link>
+
+                    {/* Edit */}
                     <Link
                       to={`/products/${product.id}/edit`}
                       className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
@@ -178,6 +194,7 @@ export const Products: React.FC = () => {
                       <Edit2 className="w-4 h-4" />
                     </Link>
 
+                    {/* Delete */}
                     <button
                       onClick={() => handleDelete(product.id)}
                       className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -189,6 +206,7 @@ export const Products: React.FC = () => {
               </tr>
             ))}
 
+            {/* Empty State */}
             {products.length === 0 && (
               <tr>
                 <td colSpan={7} className="text-center py-8 text-gray-500">

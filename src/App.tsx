@@ -49,6 +49,7 @@ import { Changelog } from './pages/public/Changelog';
 // i18n
 import './i18n/config';
 import { EditProduct } from './pages/EditProduct';
+import { ProductView } from './pages/ProductView';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -103,6 +104,7 @@ function App() {
           {/* products routes */}
           <Route path="/products" element={<Products />} />
           <Route path="/products/new" element={<AddProduct />} />
+          <Route path="/products/:id" element={<ProductView />} />
           <Route path="/products/:id/edit" element={<EditProduct />} />
 
           {/* conversations routes */}
