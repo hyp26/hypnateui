@@ -1,25 +1,33 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useProductStore } from '../stores/useProductStore';
-import { Plus, Edit2, Trash2, Search, Filter } from 'lucide-react';
-import { Button } from '../components/ui/Button';
-import { formatCurrency } from '../lib/utils';
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { useProductStore } from "../stores/useProductStore";
+import { Plus, Edit2, Trash2, Search, Filter } from "lucide-react";
+import { Button } from "../components/ui/Button";
+import { formatCurrency } from "../lib/utils";
 
 export const Products = () => {
-  const { products } = useProductStore();
-  const [view, setView] = useState<'grid' | 'table'>('table');
+  const { products, fetchProducts } = useProductStore();
+  const [view, setView] = useState<"grid" | "table">("table");
+
+  // Load products from backend
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Products</h1>
+
         <Link to="/products/new">
-  `       <Button>
+          <Button>
             <Plus className="w-4 h-4 mr-2" /> Add Product
           </Button>
         </Link>
       </div>
 
+      {/* Search / Filters */}
       <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -36,6 +44,7 @@ export const Products = () => {
         </div>
       </div>
 
+      {/* Product Table */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <table className="w-full text-sm text-left">
           <thead className="bg-gray-50 text-gray-500 font-medium">
@@ -47,33 +56,52 @@ export const Products = () => {
               <th className="px-6 py-4 text-right">Actions</th>
             </tr>
           </thead>
+
           <tbody className="divide-y divide-gray-100">
             {products.map((product) => (
               <tr key={product.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
-                    <img 
-                      src={product.image} 
-                      alt={product.name} 
+                    <img
+                      src={
+                        product.image ??
+                        "https://via.placeholder.com/80?text=No+Image"
+                      }
+                      alt={product.name}
                       className="w-10 h-10 rounded-lg object-cover bg-gray-100"
                     />
-                    <span className="font-medium text-gray-900">{product.name}</span>
+                    <span className="font-medium text-gray-900">
+                      {product.name}
+                    </span>
                   </div>
                 </td>
-                <td className="px-6 py-4 text-gray-600">{product.category}</td>
+
+                <td className="px-6 py-4 text-gray-600">
+                  {product.category ?? "-"}
+                </td>
+
                 <td className="px-6 py-4">
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                    product.stock > 10 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                  }`}>
+                  <span
+                    className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                      product.stock > 10
+                        ? "bg-green-100 text-green-700"
+                        : "bg-red-100 text-red-700"
+                    }`}
+                  >
                     {product.stock} in stock
                   </span>
                 </td>
-                <td className="px-6 py-4 font-medium text-gray-900">{formatCurrency(product.price)}</td>
+
+                <td className="px-6 py-4 font-medium text-gray-900">
+                  {formatCurrency(product.price)}
+                </td>
+
                 <td className="px-6 py-4 text-right">
                   <div className="flex items-center justify-end gap-2">
                     <button className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
                       <Edit2 className="w-4 h-4" />
                     </button>
+
                     <button className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -81,6 +109,15 @@ export const Products = () => {
                 </td>
               </tr>
             ))}
+
+            {/* No data */}
+            {products.length === 0 && (
+              <tr>
+                <td colSpan={5} className="text-center py-8 text-gray-500">
+                  No products found
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
