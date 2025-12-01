@@ -46,6 +46,7 @@ export const Products: React.FC = () => {
         <table className="w-full text-sm text-left">
           <thead className="bg-gray-50 text-gray-500 font-medium">
             <tr>
+              <th className="px-6 py-4">#</th> {/* Serial Number Column */}
               <th className="px-6 py-4">Product</th>
               <th className="px-6 py-4">Category</th>
               <th className="px-6 py-4">Stock</th>
@@ -55,8 +56,12 @@ export const Products: React.FC = () => {
           </thead>
 
           <tbody className="divide-y divide-gray-100">
-            {products.map((product) => (
+            {products.map((product, index) => (
               <tr key={product.id} className="hover:bg-gray-50">
+                
+                {/* Serial number */}
+                <td className="px-6 py-4">{index + 1}</td>
+
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
                     <img
@@ -109,7 +114,7 @@ export const Products: React.FC = () => {
 
             {products.length === 0 && (
               <tr>
-                <td colSpan={5} className="text-center py-8 text-gray-500">
+                <td colSpan={6} className="text-center py-8 text-gray-500">
                   No products found
                 </td>
               </tr>
