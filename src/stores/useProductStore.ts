@@ -8,8 +8,9 @@ export interface Product {
   name: string;
   price: number;
   stock: number;
-  category: string | null;
-  image: string | null;
+  category?: string | null;
+  description?: string | null;
+  imageUrl: string | null;
 }
 
 interface ProductState {
@@ -22,24 +23,34 @@ interface ProductState {
 export const useProductStore = create<ProductState>((set, get) => ({
   products: [],
 
-  // FETCH ALL PRODUCTS
   fetchProducts: async () => {
     try {
-      const res = await fetch(`${API}/api/products`);
+      const token = useAuthStore.getState().token;
+
+      const res = await fetch(`${API}/api/products`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       const data = await res.json();
 
-      // Backend returns: array of products
-      set({ products: Array.isArray(data) ? data : data.products || [] });
+      // Backend returns an array
+      if (Array.isArray(data)) {
+        set({ products: data });
+      } else {
+        console.warn("Unexpected response:", data);
+        set({ products: [] });
+      }
+
     } catch (error) {
       console.error("Fetch products error:", error);
     }
   },
 
-  // ADD PRODUCT
   addProduct: async (product) => {
     try {
       const token = useAuthStore.getState().token;
-      if (!token) throw new Error("Not authenticated");
 
       const res = await fetch(`${API}/api/products`, {
         method: "POST",
@@ -54,21 +65,20 @@ export const useProductStore = create<ProductState>((set, get) => ({
 
       if (!res.ok) throw new Error(data.message || "Failed to add product");
 
-      // Backend likely returns: { id, name, ... }
-      set((state) => ({
+      // Optimistic update
+      set(state => ({
         products: [...state.products, data],
       }));
+
     } catch (error) {
       console.error("Add product error:", error);
       throw error;
     }
   },
 
-  // DELETE PRODUCT
   deleteProduct: async (id) => {
     try {
       const token = useAuthStore.getState().token;
-      if (!token) throw new Error("Not authenticated");
 
       const res = await fetch(`${API}/api/products/${id}`, {
         method: "DELETE",
@@ -79,8 +89,8 @@ export const useProductStore = create<ProductState>((set, get) => ({
 
       if (!res.ok) throw new Error("Failed to delete product");
 
-      set((state) => ({
-        products: state.products.filter((p) => p.id !== id),
+      set(state => ({
+        products: state.products.filter(p => p.id !== id),
       }));
     } catch (error) {
       console.error("Delete product error:", error);

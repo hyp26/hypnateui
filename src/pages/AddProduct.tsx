@@ -11,6 +11,7 @@ export const AddProduct: React.FC = () => {
 
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
+  const [description, setDescription] = useState("");
   const [price, setPrice] = useState<number | "">("");
   const [stock, setStock] = useState<number | "">("");
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -61,9 +62,10 @@ export const AddProduct: React.FC = () => {
       await addProduct({
         name,
         category,
+        description,
         price: Number(price),
         stock: Number(stock),
-        image: imageUrl,
+        imageUrl: imageUrl,
       });
 
       navigate("/products");

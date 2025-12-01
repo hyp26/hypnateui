@@ -61,7 +61,7 @@ export const Products: React.FC = () => {
                   <div className="flex items-center gap-3">
                     <img
                       src={
-                        product.image ||
+                        product.imageUrl ||
                         "https://via.placeholder.com/80?text=No+Image"
                       }
                       alt={product.name}
