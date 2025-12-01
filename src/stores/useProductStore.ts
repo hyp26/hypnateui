@@ -28,7 +28,8 @@ export const useProductStore = create<ProductState>((set, get) => ({
       const res = await fetch(`${API}/api/products`);
       const data = await res.json();
 
-      set({ products: data.products || [] });
+      // Backend returns: array of products
+      set({ products: Array.isArray(data) ? data : data.products || [] });
     } catch (error) {
       console.error("Fetch products error:", error);
     }
@@ -53,8 +54,9 @@ export const useProductStore = create<ProductState>((set, get) => ({
 
       if (!res.ok) throw new Error(data.message || "Failed to add product");
 
+      // Backend likely returns: { id, name, ... }
       set((state) => ({
-        products: [...state.products, data.product],
+        products: [...state.products, data],
       }));
     } catch (error) {
       console.error("Add product error:", error);

@@ -1,18 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useProductStore } from "../stores/useProductStore";
 import { Plus, Edit2, Trash2, Search, Filter } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { formatCurrency } from "../lib/utils";
 
-export const Products = () => {
+export const Products: React.FC = () => {
   const { products, fetchProducts } = useProductStore();
-  const [view, setView] = useState<"grid" | "table">("table");
 
-  // Load products from backend
+  // Load products one time
   useEffect(() => {
     fetchProducts();
-  }, [fetchProducts]);
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -37,11 +36,9 @@ export const Products = () => {
             className="w-full pl-9 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-sm"
           />
         </div>
-        <div className="flex items-center gap-2 ml-auto">
-          <Button variant="outline" size="sm">
-            <Filter className="w-4 h-4 mr-2" /> Filter
-          </Button>
-        </div>
+        <Button variant="outline" size="sm">
+          <Filter className="w-4 h-4 mr-2" /> Filter
+        </Button>
       </div>
 
       {/* Product Table */}
@@ -64,7 +61,7 @@ export const Products = () => {
                   <div className="flex items-center gap-3">
                     <img
                       src={
-                        product.image ??
+                        product.image ||
                         "https://via.placeholder.com/80?text=No+Image"
                       }
                       alt={product.name}
@@ -110,7 +107,6 @@ export const Products = () => {
               </tr>
             ))}
 
-            {/* No data */}
             {products.length === 0 && (
               <tr>
                 <td colSpan={5} className="text-center py-8 text-gray-500">
