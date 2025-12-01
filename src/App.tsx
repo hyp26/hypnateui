@@ -48,6 +48,7 @@ import { Changelog } from './pages/public/Changelog';
 
 // i18n
 import './i18n/config';
+import { EditProduct } from './pages/EditProduct';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -98,15 +99,29 @@ function App() {
           }
         >
           <Route path="/dashboard" element={<Dashboard />} />
+
+          {/* products routes */}
           <Route path="/products" element={<Products />} />
           <Route path="/products/new" element={<AddProduct />} />
+          <Route path="/products/:id/edit" element={<EditProduct />} />
+
+          {/* conversations routes */}
           <Route path="/conversations" element={<Conversations />} />
+
+          {/* orders routes */}
           <Route path="/orders" element={<Orders />} />
           <Route path="/orders/:id" element={<OrderDetail />} />
+
+          {/* settings routes */}
           <Route path="/settings" element={<Settings />} />
+
+          {/* payments routes */}
           <Route path="/payments" element={<Payments />} />
+
+          {/* analytics routes */}
           <Route path="/analytics" element={<DashboardAnalytics />} />
 
+          {/* customers routes */}
           <Route
             path="/customers"
             element={<div className="p-4">Customers Page (Coming Soon)</div>}
