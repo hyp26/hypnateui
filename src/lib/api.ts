@@ -1,17 +1,17 @@
 import axios from "axios";
 
-// For CRA / Webpack apps, environment vars use process.env.REACT_APP_*
-const API_BASE = process.env.REACT_APP_API_URL || "/api";
+// SAME as product store
+const API = process.env.REACT_APP_API_URL || "";
 
 const api = axios.create({
-  baseURL: API_BASE,
+  baseURL: API, // base backend URL WITHOUT /api
   headers: {
     "Content-Type": "application/json",
   },
   timeout: 15000,
 });
 
-// Attach JWT automatically
+// Attach JWT from localStorage
 api.interceptors.request.use((config) => {
   const token =
     localStorage.getItem("token") ||
@@ -29,22 +29,22 @@ api.interceptors.request.use((config) => {
 // -----------------------------
 export const ordersApi = {
   list: async () => {
-    const res = await api.get("/orders");
+    const res = await api.get("/api/orders");
     return res.data;
   },
 
   get: async (id: string) => {
-    const res = await api.get(`/orders/${id}`);
+    const res = await api.get(`/api/orders/${id}`);
     return res.data;
   },
 
   updateStatus: async (id: string, status: string, note?: string) => {
-    const res = await api.patch(`/orders/${id}/status`, { status, note });
+    const res = await api.patch(`/api/orders/${id}/status`, { status, note });
     return res.data;
   },
 
   updatePayment: async (id: string, status: string, method?: string) => {
-    const res = await api.patch(`/orders/${id}/payment`, {
+    const res = await api.patch(`/api/orders/${id}/payment`, {
       status,
       method,
     });
@@ -52,7 +52,7 @@ export const ordersApi = {
   },
 
   addTracking: async (id: string, trackingNumber: string) => {
-    const res = await api.post(`/orders/${id}/track`, {
+    const res = await api.post(`/api/orders/${id}/track`, {
       trackingNumber,
     });
     return res.data;
