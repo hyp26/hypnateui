@@ -7,16 +7,18 @@ import {
   MapPin,
   Phone,
   Mail,
-  CreditCard,
-  Truck,
-  CheckCircle2,
   Clock,
   Package,
   Send,
-  Printer
+  Printer,
+  CheckCircle2,
+  Truck
 } from 'lucide-react';
 import { formatCurrency, cn } from '../lib/utils';
 import { format } from 'date-fns';
+
+// IMPORTANT: Same API base as your useProductStore
+const API = process.env.REACT_APP_API_URL || "";
 
 export const OrderDetail = () => {
   const { id } = useParams();
@@ -51,9 +53,16 @@ export const OrderDetail = () => {
     }
   };
 
-  // -----------------------------
-  // TIMELINE STEPS
-  // -----------------------------
+  // PRINT INVOICE HANDLER
+  const handlePrintInvoice = () => {
+    // Opens new tab and downloads PDF
+    window.open(
+      `${API}/api/orders/${order.id}/invoice`,
+      "_blank"
+    );
+  };
+
+  // Timeline steps
   const steps = [
     { id: 'pending', label: 'Order Placed', icon: Clock },
     { id: 'confirmed', label: 'Confirmed', icon: CheckCircle2 },
@@ -72,9 +81,8 @@ export const OrderDetail = () => {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* -------------------------------------- */}
+      
       {/* HEADER */}
-      {/* -------------------------------------- */}
       <div className="flex items-center gap-4">
         <button
           onClick={() => navigate('/orders')}
@@ -99,6 +107,7 @@ export const OrderDetail = () => {
               {order.status.toUpperCase().replace('_', ' ')}
             </span>
           </h1>
+
           <p className="text-sm text-gray-500 mt-1">
             Placed on {format(order.createdAt, 'MMMM dd, yyyy @ hh:mm a')}
           </p>
@@ -106,7 +115,9 @@ export const OrderDetail = () => {
 
         {/* ACTION BUTTONS */}
         <div className="ml-auto flex gap-3">
-          <Button variant="outline">
+
+          {/* PRINT INVOICE (NEW HANDLER) */}
+          <Button variant="outline" onClick={handlePrintInvoice}>
             <Printer className="w-4 h-4 mr-2" /> Print Invoice
           </Button>
 
@@ -130,21 +141,20 @@ export const OrderDetail = () => {
         </div>
       </div>
 
-      {/* -------------------------------------- */}
       {/* MAIN CONTENT */}
-      {/* -------------------------------------- */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
         {/* LEFT COLUMN */}
         <div className="lg:col-span-2 space-y-6">
+          
           {/* STATUS TRACK BAR */}
           <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
             <h3 className="font-bold text-gray-900 mb-6">Order Status</h3>
 
             <div className="relative flex justify-between items-center">
-              {/* Background Line */}
+
               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-gray-100 -z-10" />
 
-              {/* Active Bar */}
               <div
                 className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-green-500 transition-all duration-500 -z-10"
                 style={{
@@ -242,10 +252,9 @@ export const OrderDetail = () => {
           </div>
         </div>
 
-        {/* -------------------------------------- */}
         {/* RIGHT COLUMN */}
-        {/* -------------------------------------- */}
         <div className="space-y-6">
+          
           {/* CUSTOMER DETAILS */}
           <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
             <h3 className="font-bold text-gray-900 mb-4">Customer</h3>
@@ -257,7 +266,6 @@ export const OrderDetail = () => {
                 </div>
                 <div>
                   <p className="font-medium text-gray-900">{order.customerName}</p>
-                  <p className="text-xs text-gray-500">Customer since 2023</p>
                 </div>
               </div>
 
@@ -266,10 +274,12 @@ export const OrderDetail = () => {
                   <Mail className="w-4 h-4 text-gray-400" />
                   {order.customerEmail}
                 </div>
+
                 <div className="flex items-center gap-3 text-sm text-gray-600">
                   <Phone className="w-4 h-4 text-gray-400" />
                   {order.customerPhone}
                 </div>
+
                 <div className="flex items-start gap-3 text-sm text-gray-600">
                   <MapPin className="w-4 h-4 text-gray-400 mt-0.5" />
                   {order.shippingAddress}
@@ -281,6 +291,7 @@ export const OrderDetail = () => {
           {/* PAYMENT DETAILS */}
           <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
             <h3 className="font-bold text-gray-900 mb-4">Payment</h3>
+
             <div className="flex items-center justify-between mb-4">
               <span className="text-sm text-gray-600">Status</span>
               <span
@@ -334,6 +345,7 @@ export const OrderDetail = () => {
               ))}
             </div>
           </div>
+
         </div>
       </div>
     </div>
