@@ -17,7 +17,7 @@ import {
 import { formatCurrency, cn } from '../lib/utils';
 import { format } from 'date-fns';
 
-// IMPORTANT: Same API base as your useProductStore
+// Same base URL used by product store
 const API = process.env.REACT_APP_API_URL || "";
 
 export const OrderDetail = () => {
@@ -45,6 +45,9 @@ export const OrderDetail = () => {
     return <div className="p-8 text-center">Loading Order...</div>;
   }
 
+  // -------------------------------
+  // Save & Ship with Tracking
+  // -------------------------------
   const handleTrackingSubmit = async () => {
     if (trackingInput.trim()) {
       await addTracking(order.id, trackingInput);
@@ -53,11 +56,21 @@ export const OrderDetail = () => {
     }
   };
 
-  // PRINT INVOICE HANDLER
+  // -------------------------------
+  // PRINT INVOICE WITH TOKEN
+  // -------------------------------
   const handlePrintInvoice = () => {
-    // Opens new tab and downloads PDF
+    const token =
+      localStorage.getItem("token") ||
+      localStorage.getItem("auth_token");
+
+    if (!token) {
+      alert("Authentication token missing. Please login again.");
+      return;
+    }
+
     window.open(
-      `${API}/api/orders/${order.id}/invoice`,
+      `${API}/api/orders/${order.id}/invoice?token=${token}`,
       "_blank"
     );
   };
@@ -79,6 +92,9 @@ export const OrderDetail = () => {
       ? 0
       : 4;
 
+  // -------------------------------
+  // UI Starts Here
+  // -------------------------------
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       
@@ -116,7 +132,7 @@ export const OrderDetail = () => {
         {/* ACTION BUTTONS */}
         <div className="ml-auto flex gap-3">
 
-          {/* PRINT INVOICE (NEW HANDLER) */}
+          {/* PRINT INVOICE */}
           <Button variant="outline" onClick={handlePrintInvoice}>
             <Printer className="w-4 h-4 mr-2" /> Print Invoice
           </Button>
@@ -334,7 +350,7 @@ export const OrderDetail = () => {
           <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
             <h3 className="font-bold text-gray-900 mb-4">Timeline</h3>
             <div className="relative space-y-6 pl-4 border-l-2 border-gray-100">
-              {order.timeline.map((event, idx) => (
+              {order.timeline.map((event: any, idx: number) => (
                 <div key={idx} className="relative">
                   <div className="absolute -left-[21px] top-1 w-3 h-3 rounded-full bg-gray-300 border-2 border-white ring-1 ring-gray-100" />
                   <p className="text-sm font-medium text-gray-900">{event.note}</p>
