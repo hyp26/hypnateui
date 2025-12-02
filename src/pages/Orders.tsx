@@ -6,6 +6,9 @@ import { Button } from '../components/ui/Button';
 import { formatCurrency, cn } from '../lib/utils';
 import { format } from 'date-fns';
 
+// SAME API base as product store
+const API = process.env.REACT_APP_API_URL || "";
+
 export const Orders = () => {
   const { orders, fetchOrders, loading, error } = useOrderStore();
   const navigate = useNavigate();
@@ -13,21 +16,47 @@ export const Orders = () => {
   const [filterStatus, setFilterStatus] = useState<OrderStatus | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Fetch orders on mount
   useEffect(() => {
     fetchOrders();
   }, []);
 
-  // Filter logic (matches backend-normalized statuses)
+  /** ----------------------------------------------------
+   * EXPORT ORDERS HANDLER
+   * ---------------------------------------------------- */
+  const handleExportOrders = () => {
+    const token =
+      localStorage.getItem("token") ||
+      localStorage.getItem("auth_token");
+
+    if (!token) {
+      alert("You must be logged in to export orders.");
+      return;
+    }
+
+    // Opens a CSV directly in new tab — no headers allowed
+    window.open(
+      `${API}/api/orders/export/all?token=${token}`,
+      "_blank"
+    );
+  };
+
+  /** ----------------------------------------------------
+   * FILTERED ORDERS (Frontend Filtering)
+   * ---------------------------------------------------- */
   const filteredOrders = orders.filter((order) => {
-    const matchesStatus = filterStatus === 'all' || order.status === filterStatus;
+    const matchesStatus =
+      filterStatus === 'all' || order.status === filterStatus;
+
     const matchesSearch =
       order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       order.customerName.toLowerCase().includes(searchQuery.toLowerCase());
+
     return matchesStatus && matchesSearch;
   });
 
-  // Badge styles for statuses
+  /** ----------------------------------------------------
+   * STATUS BADGE
+   * ---------------------------------------------------- */
   const getStatusBadge = (status: OrderStatus) => {
     const styles: Record<OrderStatus, string> = {
       pending: 'bg-yellow-100 text-yellow-700',
@@ -50,12 +79,7 @@ export const Orders = () => {
     };
 
     return (
-      <span
-        className={cn(
-          'px-2.5 py-0.5 rounded-full text-xs font-medium',
-          styles[status]
-        )}
-      >
+      <span className={cn('px-2.5 py-0.5 rounded-full text-xs font-medium', styles[status])}>
         {labels[status]}
       </span>
     );
@@ -63,13 +87,17 @@ export const Orders = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* HEADER */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Orders</h1>
-        <Button>Export Orders</Button>
+
+        {/* EXPORT BUTTON */}
+        <Button onClick={handleExportOrders}>
+          Export Orders
+        </Button>
       </div>
 
-      {/* Filters & Search */}
+      {/* FILTERS + SEARCH */}
       <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col md:flex-row items-center gap-4">
         <div className="relative flex-1 w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -100,7 +128,7 @@ export const Orders = () => {
         </div>
       </div>
 
-      {/* Orders List */}
+      {/* ORDERS TABLE */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <table className="w-full text-sm text-left">
           <thead className="bg-gray-50 text-gray-500 font-medium border-b border-gray-100">
@@ -116,7 +144,6 @@ export const Orders = () => {
           </thead>
 
           <tbody className="divide-y divide-gray-100">
-            {/* Loading */}
             {loading && (
               <tr>
                 <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
@@ -125,7 +152,6 @@ export const Orders = () => {
               </tr>
             )}
 
-            {/* Error */}
             {error && !loading && (
               <tr>
                 <td colSpan={7} className="px-6 py-12 text-center text-red-500">
@@ -134,7 +160,6 @@ export const Orders = () => {
               </tr>
             )}
 
-            {/* Data */}
             {!loading && !error && filteredOrders.length > 0 ? (
               filteredOrders.map((order) => (
                 <tr
