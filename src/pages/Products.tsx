@@ -24,7 +24,9 @@ export const Products: React.FC = () => {
 
   const debouncedQ = useDebounce(q, 400);
 
-  // Fetch on filters change
+  /* --------------------------------------------------
+   * FETCH PRODUCTS (CI-SAFE)
+   * -------------------------------------------------- */
   useEffect(() => {
     fetchProducts({
       page: localPage,
@@ -33,11 +35,20 @@ export const Products: React.FC = () => {
       category,
       sort,
     });
-  }, [localPage, debouncedQ, category, sort]);
+  }, [
+    fetchProducts,
+    localPage,
+    limit,
+    debouncedQ,
+    category,
+    sort,
+  ]);
 
   const totalPages = Math.max(1, Math.ceil(total / limit));
 
-  // Dynamic categories
+  /* --------------------------------------------------
+   * DYNAMIC CATEGORIES
+   * -------------------------------------------------- */
   const dynamicCategories = useMemo<string[]>(() => {
     const unique = Array.from(
       new Set(
@@ -45,15 +56,30 @@ export const Products: React.FC = () => {
           .map((p) => p.category)
           .filter((c): c is string => !!c && c.trim() !== "")
       )
-    ) as string[];
+    );
     return ["", ...unique];
   }, [products]);
 
+  /* --------------------------------------------------
+   * DELETE
+   * -------------------------------------------------- */
   const handleDelete = async (id: number) => {
-    if (!window.confirm("Are you sure you want to delete this product? This cannot be undone.")) return;
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this product? This cannot be undone."
+      )
+    )
+      return;
+
     try {
       await deleteProduct(id);
-      fetchProducts({ page: localPage, limit, search: debouncedQ, category, sort });
+      fetchProducts({
+        page: localPage,
+        limit,
+        search: debouncedQ,
+        category,
+        sort,
+      });
     } catch {
       alert("Failed to delete product");
     }
@@ -61,24 +87,27 @@ export const Products: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Products</h1>
         <Link to="/products/new">
-          <Button><Plus className="w-4 h-4 mr-2" /> Add Product</Button>
+          <Button>
+            <Plus className="w-4 h-4 mr-2" /> Add Product
+          </Button>
         </Link>
       </div>
 
       {/* Search + Filters */}
       <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
-        
         {/* Search */}
         <div className="relative flex-1 max-w-2xl">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             value={q}
-            onChange={(e) => { setQ(e.target.value); setLocalPage(1); }}
+            onChange={(e) => {
+              setQ(e.target.value);
+              setLocalPage(1);
+            }}
             type="text"
             placeholder="Search products..."
             className="w-full pl-9 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none"
@@ -88,12 +117,19 @@ export const Products: React.FC = () => {
         {/* Categories */}
         <select
           value={category}
-          onChange={(e) => { setCategory(e.target.value); setLocalPage(1); }}
+          onChange={(e) => {
+            setCategory(e.target.value);
+            setLocalPage(1);
+          }}
           className="px-3 py-2 border rounded"
         >
           <option value="">All categories</option>
           {dynamicCategories.map((cat) =>
-            cat !== "" ? <option key={cat} value={cat}>{cat}</option> : null
+            cat ? (
+              <option key={cat} value={cat}>
+                {cat}
+              </option>
+            ) : null
           )}
         </select>
 
@@ -134,11 +170,10 @@ export const Products: React.FC = () => {
           <tbody className="divide-y divide-gray-100">
             {products.map((product, i) => (
               <tr key={product.id} className="hover:bg-gray-50">
+                <td className="px-6 py-4">
+                  {(page - 1) * limit + i + 1}
+                </td>
 
-                {/* Serial Number */}
-                <td className="px-6 py-4">{(page - 1) * limit + i + 1}</td>
-
-                {/* Product name + image */}
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
                     <img
@@ -146,7 +181,9 @@ export const Products: React.FC = () => {
                       alt={product.name}
                       className="w-10 h-10 rounded-lg object-cover bg-gray-100"
                     />
-                    <span className="font-medium text-gray-900">{product.name}</span>
+                    <span className="font-medium text-gray-900">
+                      {product.name}
+                    </span>
                   </div>
                 </td>
 
@@ -174,30 +211,25 @@ export const Products: React.FC = () => {
                   {product.description || "-"}
                 </td>
 
-                {/* Buttons */}
                 <td className="px-6 py-4 text-right">
                   <div className="flex items-center justify-end gap-2">
-                    
-                    {/* View */}
                     <Link
                       to={`/products/${product.id}`}
-                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
                     >
                       <Eye className="w-4 h-4" />
                     </Link>
 
-                    {/* Edit */}
                     <Link
                       to={`/products/${product.id}/edit`}
-                      className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                      className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg"
                     >
                       <Edit2 className="w-4 h-4" />
                     </Link>
 
-                    {/* Delete */}
                     <button
                       onClick={() => handleDelete(product.id)}
-                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -206,7 +238,6 @@ export const Products: React.FC = () => {
               </tr>
             ))}
 
-            {/* Empty State */}
             {products.length === 0 && (
               <tr>
                 <td colSpan={7} className="text-center py-8 text-gray-500">
@@ -226,17 +257,25 @@ export const Products: React.FC = () => {
 
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setLocalPage((p) => Math.max(1, p - 1))}
+            onClick={() =>
+              setLocalPage((p) => Math.max(1, p - 1))
+            }
             disabled={localPage <= 1}
             className="px-3 py-2 border rounded"
           >
             Prev
           </button>
 
-          <span className="px-3 py-2 border rounded bg-white">{localPage}</span>
+          <span className="px-3 py-2 border rounded bg-white">
+            {localPage}
+          </span>
 
           <button
-            onClick={() => setLocalPage((p) => Math.min(totalPages, p + 1))}
+            onClick={() =>
+              setLocalPage((p) =>
+                Math.min(totalPages, p + 1)
+              )
+            }
             disabled={localPage >= totalPages}
             className="px-3 py-2 border rounded"
           >

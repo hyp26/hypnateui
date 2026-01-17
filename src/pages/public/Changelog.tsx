@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Tag, Sparkles, Wrench, Bug } from 'lucide-react';
+import { Tag, Sparkles, Wrench, Bug } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 const CHANGES = [

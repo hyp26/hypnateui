@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { Rocket, Heart, Coffee, Globe, Smile } from 'lucide-react';
 

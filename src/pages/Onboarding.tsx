@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, ChevronRight, Building2, Upload, CreditCard, Share2, MessageCircle, Instagram, Facebook, Send, Loader2, Sparkles, Bot, Lock, CheckCircle2 } from 'lucide-react';
+import { Check, ChevronRight, Building2, Upload, CreditCard, Share2, MessageCircle, Instagram, Facebook, Send, Loader2, Sparkles, Bot, Lock } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { cn } from '../lib/utils';
 import { useTranslation } from 'react-i18next';

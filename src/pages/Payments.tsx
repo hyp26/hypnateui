@@ -1,5 +1,5 @@
 import React from 'react';
-import { CreditCard, Download, Filter, Search, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
+import { CreditCard, Download, Filter, Search, ArrowUpRight } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { formatCurrency } from '../lib/utils';
 

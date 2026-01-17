@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useChatStore } from '../stores/useChatStore';
-import { Search, Send, Paperclip, MoreVertical, Phone, Video, Image as ImageIcon, CreditCard, ShoppingBag, MessageCircle, Instagram, Facebook, Sparkles, Globe } from 'lucide-react';
+import { Search, Send, Paperclip, MoreVertical, Phone, Video, Image as ImageIcon, CreditCard, ShoppingBag, MessageCircle, Instagram, Facebook, Sparkles } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { format } from 'date-fns';
 import { useTranslation } from 'react-i18next';

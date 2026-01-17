@@ -15,18 +15,31 @@ export const ProductView: React.FC = () => {
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  /* --------------------------------------------------
+   * LOAD PRODUCT (CI-SAFE)
+   * -------------------------------------------------- */
   useEffect(() => {
-    (async () => {
+    if (!API || !token || !productId) return;
+
+    const fetchProduct = async () => {
       try {
-        const res = await fetch(`${API}/api/products/${productId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await fetch(
+          `${API}/api/products/${productId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         const data = await res.json();
+
         if (!res.ok) {
           alert("Failed to load product");
-          return navigate("/products");
+          navigate("/products");
+          return;
         }
+
         setProduct(data);
       } catch (err) {
         console.error(err);
@@ -34,15 +47,20 @@ export const ProductView: React.FC = () => {
       } finally {
         setLoading(false);
       }
-    })();
-  }, [productId]);
+    };
+
+    fetchProduct();
+  }, [API, token, productId, navigate]);
 
   if (loading) return <div className="p-10">Loading...</div>;
   if (!product) return <div className="p-10">Product not found</div>;
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <Link to="/products" className="text-blue-600 hover:underline mb-4 block">
+      <Link
+        to="/products"
+        className="text-blue-600 hover:underline mb-4 block"
+      >
         ← Back to Products
       </Link>
 
@@ -51,7 +69,10 @@ export const ProductView: React.FC = () => {
           {/* Product Image */}
           <div>
             <img
-              src={product.imageUrl || "https://via.placeholder.com/300?text=No+Image"}
+              src={
+                product.imageUrl ||
+                "https://via.placeholder.com/300?text=No+Image"
+              }
               alt={product.name}
               className="w-64 h-64 object-cover rounded-lg border"
             />
@@ -62,16 +83,18 @@ export const ProductView: React.FC = () => {
             <h1 className="text-3xl font-bold">{product.name}</h1>
 
             <p className="text-gray-700">
-              <strong>Category:</strong> {product.category || "—"}
+              <strong>Category:</strong>{" "}
+              {product.category || "—"}
             </p>
 
             <p className="text-gray-700">
               <strong>Description:</strong>{" "}
-              {product.description ? product.description : "No description"}
+              {product.description || "No description"}
             </p>
 
             <p className="text-gray-900 text-xl">
-              <strong>Price:</strong> {formatCurrency(product.price)}
+              <strong>Price:</strong>{" "}
+              {formatCurrency(product.price)}
             </p>
 
             <p>
@@ -88,7 +111,8 @@ export const ProductView: React.FC = () => {
             </p>
 
             <p className="text-gray-500 text-sm">
-              Created on: {new Date(product.createdAt).toLocaleString()}
+              Created on:{" "}
+              {new Date(product.createdAt).toLocaleString()}
             </p>
 
             {/* Buttons */}
@@ -97,7 +121,10 @@ export const ProductView: React.FC = () => {
                 <Button>Edit Product</Button>
               </Link>
 
-              <Button variant="outline" onClick={() => navigate("/products")}>
+              <Button
+                variant="outline"
+                onClick={() => navigate("/products")}
+              >
                 Close
               </Button>
             </div>

@@ -3,7 +3,7 @@ import { useAuthStore } from '../stores/useAuthStore';
 import { useIntegrationStore, Platform } from '../stores/useIntegrationStore';
 import { Button } from '../components/ui/Button';
 import { ConnectModal } from '../components/integrations/ConnectModal';
-import { User, Building2, Lock, Bell, Share2, Save, MessageCircle, Instagram, Facebook, Send, CheckCircle2, AlertCircle, Trash2 } from 'lucide-react';
+import { User, Building2, Lock, Bell, Share2, Save, MessageCircle, Instagram, Facebook, Send, CheckCircle2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 export const Settings = () => {

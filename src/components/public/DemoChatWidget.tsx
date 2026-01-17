@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, ShoppingBag, ChevronRight, Sparkles } from 'lucide-react';
-import { Button } from '../ui/Button';
+import { MessageCircle, X, Send,ChevronRight, Sparkles } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 interface Message {
