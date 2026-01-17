@@ -1,6 +1,9 @@
 import { create } from 'zustand';
 import { ordersApi } from '../lib/api';
 
+/* ----------------------------------------------------
+ * TYPES
+ * ---------------------------------------------------- */
 export type OrderStatus =
   | 'pending'
   | 'payment_pending'
@@ -10,7 +13,11 @@ export type OrderStatus =
   | 'delivered'
   | 'cancelled';
 
-export type PaymentStatus = 'unpaid' | 'pending' | 'paid' | 'refunded';
+export type PaymentStatus =
+  | 'unpaid'
+  | 'pending'
+  | 'paid'
+  | 'refunded';
 
 export interface OrderItem {
   id: string;
@@ -22,7 +29,7 @@ export interface OrderItem {
 }
 
 export interface OrderTimeline {
-  status: OrderStatus | string;
+  status: OrderStatus;
   timestamp: Date;
   note?: string;
 }
@@ -33,62 +40,84 @@ export interface Order {
   customerName: string;
   customerPhone?: string;
   customerEmail?: string;
+  shippingAddress?: string;
+
   items: OrderItem[];
+
   subtotal: number;
   tax: number;
   total: number;
+
   status: OrderStatus;
   paymentStatus: PaymentStatus;
   paymentMethod?: string;
+
   timeline: OrderTimeline[];
-  createdAt: Date;
   trackingNumber?: string;
-  shippingAddress?: string;
+
+  createdAt: Date;
 }
 
-interface OrderState {
-  orders: Order[];
-  activeOrder: Order | null;
-  loading: boolean;
-  error: string | null;
-  fetchOrders: () => Promise<void>;
-  fetchOrder: (id: string) => Promise<void>;
-  getOrder: (id: string) => Order | undefined;
-  updateOrderStatus: (
-    id: string,
-    status: OrderStatus,
-    note?: string
-  ) => Promise<void>;
-  updatePaymentStatus: (
-    id: string,
-    status: PaymentStatus,
-    method?: string
-  ) => Promise<void>;
-  addTracking: (id: string, trackingNumber: string) => Promise<void>;
-}
+/* ----------------------------------------------------
+ * SAFE CAST HELPERS
+ * ---------------------------------------------------- */
+const ORDER_STATUSES: OrderStatus[] = [
+  'pending',
+  'payment_pending',
+  'paid',
+  'confirmed',
+  'shipped',
+  'delivered',
+  'cancelled',
+];
 
-// ------------------------------------------------------------------
-// NORMALIZATION: maps backend → frontend model
-// ------------------------------------------------------------------
+const PAYMENT_STATUSES: PaymentStatus[] = [
+  'unpaid',
+  'pending',
+  'paid',
+  'refunded',
+];
+
+const castOrderStatus = (value: any): OrderStatus =>
+  ORDER_STATUSES.includes(value) ? value : 'pending';
+
+const castPaymentStatus = (value: any): PaymentStatus =>
+  PAYMENT_STATUSES.includes(value) ? value : 'unpaid';
+
+/* ----------------------------------------------------
+ * NORMALIZATION (Backend → Frontend)
+ * ---------------------------------------------------- */
 const normalizeOrder = (raw: any): Order => {
   return {
     id: String(raw.id),
-    customerName: raw.customerName,
+
+    customerName: raw.customerName ?? '',
     customerPhone: raw.customerPhone ?? '',
     customerEmail: raw.customerEmail ?? '',
     shippingAddress: raw.shippingAddress ?? '',
-    subtotal: raw.subtotal ?? 0,
-    tax: raw.tax ?? 0,
-    total: raw.totalAmount ?? 0,
-    status: (raw.status ?? 'pending').toLowerCase(),
-    paymentStatus: (raw.paymentStatus ?? 'unpaid').toLowerCase(),
+
+    subtotal: Number(raw.subtotal ?? 0),
+    tax: Number(raw.tax ?? 0),
+    total: Number(raw.totalAmount ?? raw.total ?? 0),
+
+    status: castOrderStatus(
+      String(raw.status ?? 'pending').toLowerCase()
+    ),
+
+    paymentStatus: castPaymentStatus(
+      String(raw.paymentStatus ?? 'unpaid').toLowerCase()
+    ),
+
     paymentMethod: raw.paymentMethod ?? undefined,
     trackingNumber: raw.trackingNumber ?? undefined,
+
     createdAt: new Date(raw.createdAt),
 
     timeline: Array.isArray(raw.timeline)
       ? raw.timeline.map((t: any) => ({
-          status: t.status.toLowerCase(),
+          status: castOrderStatus(
+            String(t.status ?? 'pending').toLowerCase()
+          ),
           timestamp: new Date(t.timestamp),
           note: t.note,
         }))
@@ -99,45 +128,71 @@ const normalizeOrder = (raw: any): Order => {
           id: String(p.id),
           productId: String(p.productId),
           name: p.Product?.name ?? '',
-          quantity: p.quantity,
-          price: p.priceAtPurchase ?? p.Product?.price ?? 0,
+          quantity: Number(p.quantity ?? 0),
+          price: Number(
+            p.priceAtPurchase ??
+              p.Product?.price ??
+              0
+          ),
           image: p.Product?.imageUrl ?? '',
         }))
       : [],
   };
 };
 
-// ------------------------------------------------------------------
-// STORE IMPLEMENTATION
-// ------------------------------------------------------------------
+/* ----------------------------------------------------
+ * STORE
+ * ---------------------------------------------------- */
+interface OrderState {
+  orders: Order[];
+  activeOrder: Order | null;
+  loading: boolean;
+  error: string | null;
+
+  fetchOrders: () => Promise<void>;
+  fetchOrder: (id: string) => Promise<void>;
+  getOrder: (id: string) => Order | undefined;
+
+  updateOrderStatus: (
+    id: string,
+    status: OrderStatus,
+    note?: string
+  ) => Promise<void>;
+
+  updatePaymentStatus: (
+    id: string,
+    status: PaymentStatus,
+    method?: string
+  ) => Promise<void>;
+
+  addTracking: (id: string, trackingNumber: string) => Promise<void>;
+}
+
 export const useOrderStore = create<OrderState>((set, get) => ({
   orders: [],
   activeOrder: null,
   loading: false,
   error: null,
 
-  // --------------------------------------------------------------
-  // FETCH ALL
-  // --------------------------------------------------------------
+  /* ---------------- FETCH ALL ---------------- */
   fetchOrders: async () => {
     try {
       set({ loading: true, error: null });
       const data = await ordersApi.list();
-
       const normalized = Array.isArray(data)
         ? data.map(normalizeOrder)
         : [];
-
       set({ orders: normalized, loading: false });
     } catch (err: any) {
       console.error('fetchOrders error:', err);
-      set({ loading: false, error: err?.message || 'Failed to load orders' });
+      set({
+        loading: false,
+        error: err?.message || 'Failed to load orders',
+      });
     }
   },
 
-  // --------------------------------------------------------------
-  // FETCH SINGLE ORDER
-  // --------------------------------------------------------------
+  /* ---------------- FETCH ONE ---------------- */
   fetchOrder: async (id: string) => {
     try {
       set({ loading: true, error: null });
@@ -150,66 +205,66 @@ export const useOrderStore = create<OrderState>((set, get) => ({
         activeOrder: normalized,
         orders: [
           normalized,
-          ...state.orders.filter((o) => o.id !== normalized.id),
+          ...state.orders.filter((o) => o.id !== id),
         ],
         loading: false,
       }));
     } catch (err: any) {
       console.error('fetchOrder error:', err);
-      set({ loading: false, error: err?.message || 'Failed to load order' });
+      set({
+        loading: false,
+        error: err?.message || 'Failed to load order',
+      });
     }
   },
 
-  getOrder: (id: string) => get().orders.find((o) => o.id === id),
+  getOrder: (id) => get().orders.find((o) => o.id === id),
 
-  // --------------------------------------------------------------
-  // UPDATE STATUS
-  // --------------------------------------------------------------
+  /* ---------------- UPDATE STATUS ---------------- */
   updateOrderStatus: async (id, status, note) => {
-    try {
-      const data = await ordersApi.updateStatus(id, status, note);
-      const normalized = normalizeOrder(data);
+    const data = await ordersApi.updateStatus(id, status, note);
+    const normalized = normalizeOrder(data);
 
-      set((state) => ({
-        orders: state.orders.map((o) => (o.id === id ? normalized : o)),
-        activeOrder: state.activeOrder?.id === id ? normalized : state.activeOrder,
-      }));
-    } catch (err) {
-      console.error('updateOrderStatus error: ', err);
-    }
+    set((state) => ({
+      orders: state.orders.map((o) =>
+        o.id === id ? normalized : o
+      ),
+      activeOrder:
+        state.activeOrder?.id === id
+          ? normalized
+          : state.activeOrder,
+    }));
   },
 
-  // --------------------------------------------------------------
-  // UPDATE PAYMENT
-  // --------------------------------------------------------------
+  /* ---------------- UPDATE PAYMENT ---------------- */
   updatePaymentStatus: async (id, status, method) => {
-    try {
-      const data = await ordersApi.updatePayment(id, status, method);
-      const normalized = normalizeOrder(data);
+    const data = await ordersApi.updatePayment(id, status, method);
+    const normalized = normalizeOrder(data);
 
-      set((state) => ({
-        orders: state.orders.map((o) => (o.id === id ? normalized : o)),
-        activeOrder: state.activeOrder?.id === id ? normalized : state.activeOrder,
-      }));
-    } catch (err) {
-      console.error('updatePaymentStatus error: ', err);
-    }
+    set((state) => ({
+      orders: state.orders.map((o) =>
+        o.id === id ? normalized : o
+      ),
+      activeOrder:
+        state.activeOrder?.id === id
+          ? normalized
+          : state.activeOrder,
+    }));
   },
 
-  // --------------------------------------------------------------
-  // ADD TRACKING
-  // --------------------------------------------------------------
+  /* ---------------- ADD TRACKING ---------------- */
   addTracking: async (id, trackingNumber) => {
-    try {
-      const data = await ordersApi.addTracking(id, trackingNumber);
-      const normalized = normalizeOrder(data);
+    const data = await ordersApi.addTracking(id, trackingNumber);
+    const normalized = normalizeOrder(data);
 
-      set((state) => ({
-        orders: state.orders.map((o) => (o.id === id ? normalized : o)),
-        activeOrder: state.activeOrder?.id === id ? normalized : state.activeOrder,
-      }));
-    } catch (err) {
-      console.error('addTracking error: ', err);
-    }
+    set((state) => ({
+      orders: state.orders.map((o) =>
+        o.id === id ? normalized : o
+      ),
+      activeOrder:
+        state.activeOrder?.id === id
+          ? normalized
+          : state.activeOrder,
+    }));
   },
 }));
