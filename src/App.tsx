@@ -1,5 +1,4 @@
 import React from 'react';
-
 import {
   BrowserRouter as Router,
   Routes,
@@ -7,7 +6,7 @@ import {
   Navigate,
 } from 'react-router-dom';
 
-// vercel
+// Vercel
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 
@@ -18,8 +17,11 @@ import { PublicLayout } from './components/layout/PublicLayout';
 // Auth & Store
 import { useAuthStore } from './stores/useAuthStore';
 
-// Dashboard Pages
+// Auth Pages
 import { Login } from './pages/Login';
+import { ForgotPassword } from './pages/ForgotPassword';
+
+// Dashboard Pages
 import { Dashboard } from './pages/Dashboard';
 import { Products } from './pages/Products';
 import { AddProduct } from './pages/AddProduct';
@@ -30,6 +32,8 @@ import { Onboarding } from './pages/Onboarding';
 import { Settings } from './pages/Settings';
 import { Payments } from './pages/Payments';
 import { Analytics as DashboardAnalytics } from './pages/Analytics';
+import { EditProduct } from './pages/EditProduct';
+import { ProductView } from './pages/ProductView';
 
 // Public Website Pages
 import { Home } from './pages/public/Home';
@@ -48,9 +52,10 @@ import { Changelog } from './pages/public/Changelog';
 
 // i18n
 import './i18n/config';
-import { EditProduct } from './pages/EditProduct';
-import { ProductView } from './pages/ProductView';
 
+/* --------------------------------------------------
+ * PROTECTED ROUTE
+ * -------------------------------------------------- */
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   if (!isAuthenticated) return <Navigate to="/login" replace />;
@@ -61,7 +66,8 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Public Marketing Website */}
+
+        {/* ---------------- PUBLIC MARKETING SITE ---------------- */}
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
@@ -69,7 +75,7 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/features" element={<Features />} />
 
-          {/* Content / Blog */}
+          {/* Blog */}
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogArticle />} />
 
@@ -84,14 +90,15 @@ function App() {
           <Route path="/refund" element={<Refund />} />
         </Route>
 
-        {/* Auth */}
+        {/* ---------------- AUTH (NO LAYOUT) ---------------- */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
 
-        {/* Onboarding */}
+        {/* ---------------- ONBOARDING ---------------- */}
         <Route path="/onboarding" element={<Onboarding />} />
 
-        {/* Protected Dashboard */}
+        {/* ---------------- PROTECTED DASHBOARD ---------------- */}
         <Route
           element={
             <ProtectedRoute>
@@ -101,43 +108,41 @@ function App() {
         >
           <Route path="/dashboard" element={<Dashboard />} />
 
-          {/* products routes */}
+          {/* Products */}
           <Route path="/products" element={<Products />} />
           <Route path="/products/new" element={<AddProduct />} />
           <Route path="/products/:id" element={<ProductView />} />
           <Route path="/products/:id/edit" element={<EditProduct />} />
 
-          {/* conversations routes */}
+          {/* Conversations */}
           <Route path="/conversations" element={<Conversations />} />
 
-          {/* orders routes */}
+          {/* Orders */}
           <Route path="/orders" element={<Orders />} />
           <Route path="/orders/:id" element={<OrderDetail />} />
 
-          {/* settings routes */}
+          {/* Settings */}
           <Route path="/settings" element={<Settings />} />
 
-          {/* payments routes */}
+          {/* Payments */}
           <Route path="/payments" element={<Payments />} />
 
-          {/* analytics routes */}
+          {/* Analytics */}
           <Route path="/analytics" element={<DashboardAnalytics />} />
 
-          {/* customers routes */}
+          {/* Customers (placeholder) */}
           <Route
             path="/customers"
             element={<div className="p-4">Customers Page (Coming Soon)</div>}
           />
         </Route>
 
-        {/* Catch-all */}
+        {/* ---------------- FALLBACK ---------------- */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
       {/* Global Vercel Analytics */}
       <Analytics />
-
-      {/* Global Vercel Speed Insights */}
       <SpeedInsights />
     </Router>
   );
