@@ -14,7 +14,7 @@ import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Layout } from './components/layout/layout';
 import { PublicLayout } from './components/layout/PublicLayout';
 
-// Auth & Store
+// Auth Store
 import { useAuthStore } from './stores/useAuthStore';
 
 // Auth Pages
@@ -34,6 +34,7 @@ import { Payments } from './pages/Payments';
 import { Analytics as DashboardAnalytics } from './pages/Analytics';
 import { EditProduct } from './pages/EditProduct';
 import { ProductView } from './pages/ProductView';
+import Customers from './pages/Customers'; // ✅ ADD THIS
 
 // Public Website Pages
 import { Home } from './pages/public/Home';
@@ -90,7 +91,7 @@ function App() {
           <Route path="/refund" element={<Refund />} />
         </Route>
 
-        {/* ---------------- AUTH (NO LAYOUT) ---------------- */}
+        {/* ---------------- AUTH ---------------- */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -114,12 +115,15 @@ function App() {
           <Route path="/products/:id" element={<ProductView />} />
           <Route path="/products/:id/edit" element={<EditProduct />} />
 
-          {/* Conversations */}
-          <Route path="/conversations" element={<Conversations />} />
-
           {/* Orders */}
           <Route path="/orders" element={<Orders />} />
           <Route path="/orders/:id" element={<OrderDetail />} />
+
+          {/* Customers ✅ */}
+          <Route path="/customers" element={<Customers />} />
+
+          {/* Conversations */}
+          <Route path="/conversations" element={<Conversations />} />
 
           {/* Settings */}
           <Route path="/settings" element={<Settings />} />
@@ -129,12 +133,6 @@ function App() {
 
           {/* Analytics */}
           <Route path="/analytics" element={<DashboardAnalytics />} />
-
-          {/* Customers (placeholder) */}
-          <Route
-            path="/customers"
-            element={<div className="p-4">Customers Page (Coming Soon)</div>}
-          />
         </Route>
 
         {/* ---------------- FALLBACK ---------------- */}
