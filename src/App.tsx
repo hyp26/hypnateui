@@ -34,7 +34,7 @@ import { Payments } from './pages/Payments';
 import { Analytics as DashboardAnalytics } from './pages/Analytics';
 import { EditProduct } from './pages/EditProduct';
 import { ProductView } from './pages/ProductView';
-import Customers from './pages/Customers'; // ✅ ADD THIS
+import Customers from './pages/Customers';
 
 // Public Website Pages
 import { Home } from './pages/public/Home';
@@ -119,7 +119,7 @@ function App() {
           <Route path="/orders" element={<Orders />} />
           <Route path="/orders/:id" element={<OrderDetail />} />
 
-          {/* Customers ✅ */}
+          {/* Customers */}
           <Route path="/customers" element={<Customers />} />
 
           {/* Conversations */}

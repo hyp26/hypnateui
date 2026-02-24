@@ -22,20 +22,32 @@ export const Orders = () => {
   /* ----------------------------------------
    * EXPORT ORDERS
    * ---------------------------------------- */
-  const handleExportOrders = () => {
-    const token =
-      localStorage.getItem('token') ||
-      localStorage.getItem('auth_token');
+  const handleExport = async () => {
+    const token = localStorage.getItem("token");
 
-    if (!token) {
-      alert('You must be logged in to export orders.');
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/orders/export/all`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      alert("Export failed");
       return;
     }
 
-    window.open(
-      `${API}/api/orders/export/all?token=${token}`,
-      '_blank'
-    );
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "orders.csv"; // or .xlsx
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
   };
 
   /* ----------------------------------------
@@ -96,7 +108,7 @@ export const Orders = () => {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Orders</h1>
 
-        <Button onClick={handleExportOrders}>
+        <Button onClick={handleExport}>
           Export Orders
         </Button>
       </div>
