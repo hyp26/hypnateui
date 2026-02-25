@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:4000/api";
+const API = process.env.REACT_APP_API_URL || '';
 
 type Customer = {
   id: number;
@@ -47,8 +47,8 @@ const Customers = () => {
       };
 
       const [customersRes, statsRes] = await Promise.all([
-        axios.get(`${API_URL}/customers`, { headers }),
-        axios.get(`${API_URL}/customers/stats`, { headers }),
+        axios.get(`${API}/customers`, { headers }),
+        axios.get(`${API}/customers/stats`, { headers }),
       ]);
 
       setCustomers(customersRes.data);
