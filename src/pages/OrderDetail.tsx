@@ -55,20 +55,32 @@ export const OrderDetail = () => {
   /* ----------------------------------------
    * PRINT INVOICE
    * ---------------------------------------- */
-  const handlePrintInvoice = () => {
-    const token =
-      localStorage.getItem('token') ||
-      localStorage.getItem('auth_token');
+  const handlePrintInvoice = async (orderId: number) => {
+    const token = localStorage.getItem("token");
 
-    if (!token) {
-      alert('Authentication token missing.');
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/orders/${orderId}/invoice`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      alert("Failed to generate invoice");
       return;
     }
 
-    window.open(
-      `${API}/api/orders/${order.id}/invoice?token=${token}`,
-      '_blank'
-    );
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `invoice-${orderId}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
   };
 
   /* ----------------------------------------
@@ -124,7 +136,7 @@ export const OrderDetail = () => {
 
         {/* ACTIONS */}
         <div className="ml-auto flex gap-3">
-          <Button variant="outline" onClick={handlePrintInvoice}>
+          <Button variant="outline" onClick={() => handlePrintInvoice(Number(order.id))}>
             <Printer className="w-4 h-4 mr-2" /> Invoice
           </Button>
 
