@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-const API = process.env.REACT_APP_API_URL || '';
+const API_URL = process.env.REACT_APP_API_URL || "https://hypnate-backend-staging.onrender.com/api";
 
 type Customer = {
   id: number;
@@ -47,8 +47,8 @@ const Customers = () => {
       };
 
       const [customersRes, statsRes] = await Promise.all([
-        axios.get(`${API}/customers`, { headers }),
-        axios.get(`${API}/customers/stats`, { headers }),
+        axios.get(`${API_URL}/customers`, { headers }),
+        axios.get(`${API_URL}/customers/stats`, { headers }),
       ]);
 
       setCustomers(customersRes.data);

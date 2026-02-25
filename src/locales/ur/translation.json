@@ -1,0 +1,54 @@
+{
+  "common": {
+    "welcome": "خوش آمدید",
+    "save": "محفوظ کریں",
+    "cancel": "منسوخ کریں",
+    "loading": "لوڈ ہو رہا ہے...",
+    "actions": "کارروائیاں",
+    "status": "حیثیت",
+    "date": "تاریخ"
+  },
+  "auth": {
+    "login_title": "Hypnate میں لاگ ان کریں",
+    "signup_title": "اپنا اکاؤنٹ بنائیں",
+    "email": "ای میل ایڈریس",
+    "password": "پاس ورڈ",
+    "login_btn": "لاگ ان",
+    "signup_btn": "سائن اپ",
+    "no_account": "اکاؤنٹ نہیں ہے؟",
+    "has_account": "پہلے سے اکاؤنٹ ہے؟"
+  },
+  "dashboard": {
+    "title": "ڈیش بورڈ",
+    "revenue": "آج کی آمدنی",
+    "orders": "آج کے آرڈرز",
+    "active_chats": "فعال چیٹس",
+    "setup_checklist": "سیٹ اپ چیک لسٹ",
+    "recent_orders": "حالیہ آرڈرز"
+  },
+  "nav": {
+    "dashboard": "ڈیش بورڈ",
+    "conversations": "گفتگو",
+    "products": "پروڈکٹس",
+    "orders": "آرڈرز",
+    "customers": "کسٹمرز",
+    "settings": "سیٹنگز",
+    "payments": "ادائیگیاں",
+    "analytics": "تجزیات",
+    "onboarding": "آن بورڈنگ وزارڈ",
+    "logout": "لاگ آؤٹ"
+  },
+  "onboarding": {
+    "title": "Hypnate میں خوش آمدید",
+    "step_business": "کاروباری معلومات",
+    "step_catalog": "کیٹلاگ",
+    "step_payment": "ادائیگیاں",
+    "step_channels": "چینلز",
+    "next": "اگلا مرحلہ",
+    "finish": "سیٹ اپ مکمل کریں",
+    "connect_whatsapp": "واٹس ایپ کنیکٹ کریں",
+    "connect_instagram": "انسٹاگرام کنیکٹ کریں",
+    "connect_facebook": "فیس بک کنیکٹ کریں",
+    "connect_telegram": "ٹیلیگرام کنیکٹ کریں"
+  }
+}
