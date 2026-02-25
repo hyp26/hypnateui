@@ -9,6 +9,13 @@ export const About = () => {
       role: 'Founder & CEO', 
       image: '/assets/Hamim.jpeg' 
     },
+
+    { 
+      id: 2, 
+      name: 'Syed Md Farhat Ali Nizami', 
+      role: 'Co-Founder & COO', 
+      image: '/assets/Farhat.jpeg' 
+    },
   ];
 
   return (
@@ -84,20 +91,27 @@ export const About = () => {
           <h2 className="text-3xl font-bold text-gray-900 mb-16">Meet the Team</h2>
           
           {/* FIXED: Centered */}
-          <div className="grid grid-cols-1 gap-8 place-items-center">
-            {teamMembers.map((member) => (
-              <div key={member.id} className="group">
-                <div className="w-full aspect-square bg-gray-100 rounded-2xl mb-4 overflow-hidden shadow-sm border border-gray-100 max-w-xs mx-auto">
-                  <img 
-                    src={member.image} 
-                    alt={member.name} 
-                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
-                  />
+          <div className="flex justify-center">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-16">
+              {teamMembers.map((member) => (
+                <div key={member.id} className="group text-center">
+                  <div className="w-80 aspect-square bg-gray-100 rounded-2xl mb-4 overflow-hidden shadow-sm border border-gray-100">
+                    <img
+                      src={member.image}
+                      alt={member.name}
+                      className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
+                    />
+                  </div>
+
+                  <h3 className="text-lg font-bold text-gray-900">
+                    {member.name}
+                  </h3>
+                  <p className="text-gray-500">
+                    {member.role}
+                  </p>
                 </div>
-                <h3 className="text-lg font-bold text-gray-900">{member.name}</h3>
-                <p className="text-gray-500">{member.role}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
           
           <div className="mt-20">
