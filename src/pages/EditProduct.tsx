@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useProductStore } from "../stores/useProductStore";
-import { useAuthStore } from "../stores/useAuthStore";
 import { Button } from "../components/ui/Button";
+import api from "../lib/api";
 
 export const EditProduct: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -10,10 +10,10 @@ export const EditProduct: React.FC = () => {
   const navigate = useNavigate();
 
   const { updateProduct } = useProductStore();
-  const token = useAuthStore((s) => s.token);
-  const API = process.env.REACT_APP_API_URL;
 
   const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState<any>({
     name: "",
     category: "",
@@ -23,79 +23,53 @@ export const EditProduct: React.FC = () => {
     imageUrl: "",
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
 
   /* --------------------------------------------------
    * LOAD PRODUCT
    * -------------------------------------------------- */
   useEffect(() => {
-    if (!API || !token || !productId) return;
+    if (!productId) return;
 
     const fetchProduct = async () => {
       try {
-        const res = await fetch(
-          `${API}/api/products/${productId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        const data = await res.json();
-
-        if (res.ok) {
-          setForm(data);
-        } else {
-          alert("Failed to load product");
-        }
-      } catch (err) {
-        console.error(err);
+        const res = await api.get(`/api/products/${productId}`);
+        setForm(res.data);
+      } catch (err: any) {
+        setError(err?.response?.data?.message || "Failed to load product");
       } finally {
         setLoading(false);
       }
     };
 
     fetchProduct();
-  }, [API, token, productId]);
+  }, [productId]);
 
   /* --------------------------------------------------
    * IMAGE UPLOAD
    * -------------------------------------------------- */
-  const uploadImageToBackend = async (file: File) => {
-    if (!API || !token) throw new Error("Missing API or token");
+  const uploadImage = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("file", file);
 
-    const formd = new FormData();
-    formd.append("file", file);
+    const res = await api.post("/api/products/upload?mode=cloud", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
 
-    const res = await fetch(
-      `${API}/api/products/upload?mode=cloud`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formd,
-      }
-    );
-
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || "Image upload failed");
-
-    return data.url;
+    if (!res.data?.url) throw new Error("Image upload failed");
+    return res.data.url;
   };
 
   /* --------------------------------------------------
    * SAVE
    * -------------------------------------------------- */
   const handleSave = async () => {
+    setError(null);
+
     try {
       setIsSaving(true);
 
       let imageUrl = form.imageUrl;
-      if (imageFile) {
-        imageUrl = await uploadImageToBackend(imageFile);
-      }
+      if (imageFile) imageUrl = await uploadImage(imageFile);
 
       await updateProduct(productId, {
         name: form.name,
@@ -107,28 +81,32 @@ export const EditProduct: React.FC = () => {
       });
 
       navigate("/products");
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert("Failed to update product");
+      setError(err?.response?.data?.message || err.message || "Failed to update product");
     } finally {
       setIsSaving(false);
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div className="p-10">Loading...</div>;
 
   return (
     <div className="max-w-xl mx-auto bg-white p-6 rounded-xl shadow-sm border">
       <h1 className="text-2xl font-bold mb-6">Edit Product</h1>
+
+      {error && (
+        <div className="mb-4 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+          {error}
+        </div>
+      )}
 
       <div className="space-y-5">
         <div>
           <label className="block font-medium">Product Name</label>
           <input
             value={form.name}
-            onChange={(e) =>
-              setForm({ ...form, name: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
             className="w-full px-4 py-2 border rounded-lg"
           />
         </div>
@@ -137,9 +115,7 @@ export const EditProduct: React.FC = () => {
           <label className="block font-medium">Category</label>
           <input
             value={form.category || ""}
-            onChange={(e) =>
-              setForm({ ...form, category: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, category: e.target.value })}
             className="w-full px-4 py-2 border rounded-lg"
           />
         </div>
@@ -148,9 +124,7 @@ export const EditProduct: React.FC = () => {
           <label className="block font-medium">Description</label>
           <textarea
             value={form.description || ""}
-            onChange={(e) =>
-              setForm({ ...form, description: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
             className="w-full px-4 py-2 border rounded-lg"
           />
         </div>
@@ -160,9 +134,7 @@ export const EditProduct: React.FC = () => {
           <input
             type="number"
             value={form.price}
-            onChange={(e) =>
-              setForm({ ...form, price: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, price: e.target.value })}
             className="w-full px-4 py-2 border rounded-lg"
           />
         </div>
@@ -172,9 +144,7 @@ export const EditProduct: React.FC = () => {
           <input
             type="number"
             value={form.stock}
-            onChange={(e) =>
-              setForm({ ...form, stock: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, stock: e.target.value })}
             className="w-full px-4 py-2 border rounded-lg"
           />
         </div>
@@ -184,12 +154,9 @@ export const EditProduct: React.FC = () => {
           <input
             type="file"
             accept="image/*"
-            onChange={(e) =>
-              setImageFile(e.target.files?.[0] || null)
-            }
+            onChange={(e) => setImageFile(e.target.files?.[0] || null)}
             className="w-full"
           />
-
           {form.imageUrl && (
             <img
               src={form.imageUrl}
@@ -199,11 +166,7 @@ export const EditProduct: React.FC = () => {
           )}
         </div>
 
-        <Button
-          onClick={handleSave}
-          disabled={isSaving}
-          className="w-full h-12"
-        >
+        <Button onClick={handleSave} disabled={isSaving} className="w-full h-12">
           {isSaving ? "Saving..." : "Save Changes"}
         </Button>
       </div>
