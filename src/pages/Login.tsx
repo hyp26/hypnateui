@@ -11,7 +11,6 @@ import {
   EyeOff,
   ArrowLeft,
   Chrome,
-  Facebook,
 } from "lucide-react";
 
 export const Login: React.FC = () => {
@@ -20,9 +19,9 @@ export const Login: React.FC = () => {
   const [name, setName] = useState("");
   const [businessName, setBusinessName] = useState("");
   const [phone, setPhone] = useState("");
-
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null); // ✅ proper error state
 
   const login = useAuthStore((s) => s.login);
   const signup = useAuthStore((s) => s.signup);
@@ -39,6 +38,7 @@ export const Login: React.FC = () => {
    * -------------------------------------------------- */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     setIsLoading(true);
 
     try {
@@ -48,9 +48,9 @@ export const Login: React.FC = () => {
         await login(email, password);
       }
       navigate("/dashboard");
-    } catch (err) {
-      alert("Invalid credentials or something went wrong.");
-      console.error(err);
+    } catch (err: any) {
+      // ✅ Show actual error message from backend instead of generic alert
+      setError(err.message || "Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -60,7 +60,10 @@ export const Login: React.FC = () => {
    * SOCIAL LOGIN (OAUTH REDIRECT)
    * -------------------------------------------------- */
   const handleGoogleLogin = () => {
-    if (!API) return alert("API not configured");
+    if (!API) {
+      setError("API not configured");
+      return;
+    }
     window.location.href = `${API}/auth/google`;
   };
 
@@ -128,14 +131,19 @@ export const Login: React.FC = () => {
                 <Chrome className="w-5 h-5 text-gray-700" />
                 <span className="font-medium">Continue with Google</span>
               </button>
-
               <Divider />
+            </div>
+          )}
+
+          {/* ✅ ERROR BANNER — replaces alert() */}
+          {error && (
+            <div className="mb-4 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+              {error}
             </div>
           )}
 
           {/* FORM */}
           <form onSubmit={handleSubmit} className="space-y-6">
-
             {isSignup && (
               <>
                 <Input label="Full Name" value={name} onChange={setName} />
@@ -162,16 +170,24 @@ export const Login: React.FC = () => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 pr-12"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 pr-12 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((s) => !s)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
+
+              {/* ✅ Password hint on signup */}
+              {isSignup && (
+                <p className="text-xs text-gray-400 mt-1.5">
+                  Min 8 chars with uppercase, number & special character
+                </p>
+              )}
             </div>
 
             {!isSignup && (
@@ -185,7 +201,12 @@ export const Login: React.FC = () => {
               </div>
             )}
 
-            <Button type="submit" className="w-full h-12" isLoading={isLoading}>
+            <Button
+              type="submit"
+              className="w-full h-12"
+              isLoading={isLoading}
+              disabled={isLoading}
+            >
               {isSignup ? t("auth.signup_btn") : t("auth.login_btn")}
             </Button>
           </form>
@@ -244,7 +265,7 @@ const Input = ({
       required
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full px-4 py-3 rounded-lg border border-gray-300"
+      className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500"
     />
   </div>
 );
