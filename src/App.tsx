@@ -35,6 +35,7 @@ import { Analytics as DashboardAnalytics } from './pages/Analytics';
 import { EditProduct } from './pages/EditProduct';
 import { ProductView } from './pages/ProductView';
 import Customers from './pages/Customers';
+import { HypnateX } from './pages/HypnateX'; // ✅ added
 
 // Public Website Pages
 import { Home } from './pages/public/Home';
@@ -133,6 +134,9 @@ function App() {
 
           {/* Analytics */}
           <Route path="/analytics" element={<DashboardAnalytics />} />
+
+          {/* Hypnate X — AI website builder */}
+          <Route path="/hypnate-x" element={<HypnateX />} />
         </Route>
 
         {/* ---------------- FALLBACK ---------------- */}
