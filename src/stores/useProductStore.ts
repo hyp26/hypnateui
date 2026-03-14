@@ -1,7 +1,5 @@
 import { create } from "zustand";
-import { useAuthStore } from "./useAuthStore";
-
-const API = process.env.REACT_APP_API_URL as string;
+import api from "../lib/api";
 
 export interface Product {
   id: number;
@@ -39,13 +37,16 @@ export const useProductStore = create<ProductState>((set, get) => ({
   limit: 20,
   loading: false,
 
+  /* --------------------------------------------------
+   * FETCH PRODUCTS
+   * -------------------------------------------------- */
   fetchProducts: async (opts = {}) => {
     try {
       set({ loading: true });
-      const token = useAuthStore.getState().token;
 
       const page = opts.page ?? get().page ?? 1;
       const limit = opts.limit ?? get().limit ?? 20;
+
       const params = new URLSearchParams();
       params.set("page", String(page));
       params.set("limit", String(limit));
@@ -53,87 +54,72 @@ export const useProductStore = create<ProductState>((set, get) => ({
       if (opts.category) params.set("category", opts.category);
       if (opts.sort) params.set("sort", opts.sort);
 
-      const res = await fetch(`${API}/api/products?${params.toString()}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        console.warn("fetchProducts failed", data);
-        set({ products: [], total: 0, loading: false });
-        return;
-      }
+      const res = await api.get(`/api/products?${params.toString()}`);
 
       set({
-        products: data.products || [],
-        total: data.total || 0,
-        page: data.page || page,
-        limit: data.limit || limit,
+        products: res.data.products || [],
+        total: res.data.total || 0,
+        page: res.data.page || page,
+        limit: res.data.limit || limit,
         loading: false,
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error("fetchProducts error:", err);
-      set({ loading: false });
+      set({ products: [], total: 0, loading: false });
     }
   },
 
+  /* --------------------------------------------------
+   * ADD PRODUCT
+   * -------------------------------------------------- */
   addProduct: async (product) => {
     try {
-      const token = useAuthStore.getState().token;
-      const res = await fetch(`${API}/api/products`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify(product),
-      });
+      const res = await api.post("/api/products", product);
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to add product");
+      set((state) => ({
+        products: [res.data, ...state.products],
+        total: state.total + 1,
+      }));
 
-      // Add product to current page state (optimistic)
-      set((state) => ({ products: [data, ...state.products], total: state.total + 1 }));
-      return data;
-    } catch (err) {
+      return res.data;
+    } catch (err: any) {
       console.error("addProduct error:", err);
-      throw err;
+      throw new Error(err?.response?.data?.message || "Failed to add product");
     }
   },
 
+  /* --------------------------------------------------
+   * UPDATE PRODUCT
+   * -------------------------------------------------- */
   updateProduct: async (id, partial) => {
     try {
-      const token = useAuthStore.getState().token;
-      const res = await fetch(`${API}/api/products/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify(partial),
-      });
+      const res = await api.put(`/api/products/${id}`, partial);
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to update product");
+      set((state) => ({
+        products: state.products.map((p) => (p.id === id ? res.data : p)),
+      }));
 
-      set((state) => ({ products: state.products.map((p) => (p.id === id ? data : p)) }));
-      return data;
-    } catch (err) {
+      return res.data;
+    } catch (err: any) {
       console.error("updateProduct error:", err);
-      throw err;
+      throw new Error(err?.response?.data?.message || "Failed to update product");
     }
   },
 
+  /* --------------------------------------------------
+   * DELETE PRODUCT
+   * -------------------------------------------------- */
   deleteProduct: async (id) => {
     try {
-      const token = useAuthStore.getState().token;
-      const res = await fetch(`${API}/api/products/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.delete(`/api/products/${id}`);
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to delete product");
-
-      set((state) => ({ products: state.products.filter((p) => p.id !== id), total: Math.max(0, state.total - 1) }));
-    } catch (err) {
+      set((state) => ({
+        products: state.products.filter((p) => p.id !== id),
+        total: Math.max(0, state.total - 1),
+      }));
+    } catch (err: any) {
       console.error("deleteProduct error:", err);
-      throw err;
+      throw new Error(err?.response?.data?.message || "Failed to delete product");
     }
   },
 }));
