@@ -35,7 +35,7 @@ import { Analytics as DashboardAnalytics } from './pages/Analytics';
 import { EditProduct } from './pages/EditProduct';
 import { ProductView } from './pages/ProductView';
 import Customers from './pages/Customers';
-import { HypnateX } from './pages/HypnateX'; // AI website builder
+import { HypnateX } from './pages/HypnateX'; // ✅ added
 
 // Public Website Pages
 import { Home } from './pages/public/Home';
@@ -97,8 +97,15 @@ function App() {
         <Route path="/signup" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
 
-        {/* ---------------- ONBOARDING ---------------- */}
-        <Route path="/onboarding" element={<Onboarding />} />
+        {/* ---------------- ONBOARDING (protected, no sidebar) ---------------- */}
+        <Route
+          path="/onboarding"
+          element={
+            <ProtectedRoute>
+              <Onboarding />
+            </ProtectedRoute>
+          }
+        />
 
         {/* ---------------- PROTECTED DASHBOARD ---------------- */}
         <Route
