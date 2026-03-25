@@ -762,15 +762,39 @@ export const Onboarding: React.FC = () => {
 
   useEffect(() => {
     if (currentStep !== 5) return;
-    const prog  = setInterval(() => setAutoProgress((p) => p >= 100 ? (clearInterval(prog), 100) : p + 1), 50);
-    const tasks = setInterval(() => {
+
+    let prog: ReturnType<typeof setInterval>;
+    let tasks: ReturnType<typeof setInterval>;
+
+    prog = setInterval(() => {
+      setAutoProgress((p) => {
+        if (p >= 100) {
+          clearInterval(prog);
+          return 100;
+        }
+        return p + 1;
+      });
+    }, 50);
+
+    tasks = setInterval(() => {
       setAutoTasks((prev) => {
         const i = prev.findIndex((t) => !t.done);
-        if (i === -1) { clearInterval(tasks); return prev; }
-        const next = [...prev]; next[i] = { ...next[i], done: true }; return next;
+
+        if (i === -1) {
+          clearInterval(tasks);
+          return prev;
+        }
+
+        const next = [...prev];
+        next[i] = { ...next[i], done: true };
+        return next;
       });
     }, 1200);
-    return () => { clearInterval(prog); clearInterval(tasks); };
+
+    return () => {
+      clearInterval(prog);
+      clearInterval(tasks);
+    };
   }, [currentStep]);
 
   const handleNext = async () => {
