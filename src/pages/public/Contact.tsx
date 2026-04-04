@@ -45,25 +45,26 @@ export const Contact = () => {
                     <div>
                       <p className="font-medium text-gray-900">Office</p>
                       <p className="text-gray-600">
-                        Hypnate Technologies Pvt Ltd<br />
+                        Hypnate Solutions Pvt Ltd<br />
+                        Bait-ul-Faizan, S.M. Reza Street, Kangahia Tola <br />
                         Patna, Bihar 800008<br />
                         India
                       </p>
                     </div>
                   </div>
-                </div> 
+                </div>
               </div>
 
               {/* Map Placeholder */}
               <div className="h-64 bg-gray-200 rounded-2xl overflow-hidden relative">
-                <img 
-                  src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=800&q=80" 
-                  alt="Map Location" 
+                <img
+                  src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=800&q=80"
+                  alt="Map Location"
                   className="w-full h-full object-cover opacity-60"
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="bg-white px-4 py-2 rounded-lg shadow-lg font-medium text-gray-900 flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-red-500" /> Bengaluru HQ
+                    <MapPin className="w-4 h-4 text-red-500" /> Patna HQ
                   </div>
                 </div>
               </div>
