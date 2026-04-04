@@ -1,6 +1,9 @@
 import axios, { AxiosError } from "axios";
 
-const API = process.env.REACT_APP_API_URL || "";
+let API = process.env.REACT_APP_API_URL || "";
+if (API && !API.endsWith('/api')) {
+  API += '/api';
+}
 
 const api = axios.create({
   baseURL: API,
@@ -60,7 +63,7 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        await api.post("/api/auth/refresh"); // ✅ refresh cookie silently
+        await api.post("/auth/refresh"); // ✅ refresh cookie silently
         processQueue(null);
         return api(originalRequest); // ✅ retry original request
       } catch (refreshError) {
@@ -83,27 +86,27 @@ api.interceptors.response.use(
  * -------------------------------------------------- */
 export const ordersApi = {
   list: async () => {
-    const res = await api.get("/api/orders");
+    const res = await api.get("/orders");
     return res.data;
   },
 
   get: async (id: string) => {
-    const res = await api.get(`/api/orders/${id}`);
+    const res = await api.get(`/orders/${id}`);
     return res.data;
   },
 
   updateStatus: async (id: string, status: string, note?: string) => {
-    const res = await api.patch(`/api/orders/${id}/status`, { status, note });
+    const res = await api.patch(`/orders/${id}/status`, { status, note });
     return res.data;
   },
 
   updatePayment: async (id: string, status: string, method?: string) => {
-    const res = await api.patch(`/api/orders/${id}/payment`, { status, method });
+    const res = await api.patch(`/orders/${id}/payment`, { status, method });
     return res.data;
   },
 
   addTracking: async (id: string, trackingNumber: string) => {
-    const res = await api.post(`/api/orders/${id}/track`, { trackingNumber });
+    const res = await api.post(`/orders/${id}/track`, { trackingNumber });
     return res.data;
   },
 };

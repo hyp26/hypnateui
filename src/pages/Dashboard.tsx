@@ -12,10 +12,7 @@ import {
   Tooltip, ResponsiveContainer, BarChart, Bar,
 } from "recharts";
 import { useAuthStore } from "../stores/useAuthStore";
-import axios from "axios";
-
-const API_URL = process.env.REACT_APP_API_URL || "https://hypnate-backend-staging.onrender.com/api";
-const api = axios.create({ baseURL: API_URL, withCredentials: true });
+import api from "../lib/api";
 const POLL_INTERVAL = 30_000; // 30 seconds
 
 /* ─── TYPES ──────────────────────────────────────────────────────────────── */

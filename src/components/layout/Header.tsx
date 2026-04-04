@@ -9,10 +9,7 @@ import { useAuthStore } from '../../stores/useAuthStore';
 import { Transition, Menu as HeadlessMenu } from '@headlessui/react';
 import { Link, useNavigate } from 'react-router-dom';
 import { cn } from '../../lib/utils';
-import axios from 'axios';
-
-const API_URL = process.env.REACT_APP_API_URL || 'https://hypnate-backend-staging.onrender.com/api';
-const api = axios.create({ baseURL: API_URL, withCredentials: true });
+import api from '../../lib/api';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 interface Notification {

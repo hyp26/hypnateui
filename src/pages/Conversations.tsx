@@ -1,14 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import axios from "axios";
+import api from "../lib/api";
 import {
   Search, Send, Paperclip, MoreVertical, Phone, Video,
   Image as ImageIcon, CreditCard, ShoppingBag, MessageCircle,
   Instagram, Facebook, CheckCheck, Check, Wifi, WifiOff,
   RefreshCw, X, ChevronDown, Circle,
 } from "lucide-react";
-
-const API_URL = process.env.REACT_APP_API_URL || "https://hypnate-backend-staging.onrender.com/api";
-const api = axios.create({ baseURL: API_URL, withCredentials: true });
 
 // ── Types ──────────────────────────────────────────────────────────────────
 type Platform = "WHATSAPP" | "INSTAGRAM" | "FACEBOOK" | "TELEGRAM";

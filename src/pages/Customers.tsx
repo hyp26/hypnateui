@@ -1,11 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import axios from "axios";
-
-const API_URL =
-  process.env.REACT_APP_API_URL ||
-  "https://hypnate-backend-staging.onrender.com/api";
-
-const api = axios.create({ baseURL: API_URL, withCredentials: true });
+import api from '../lib/api';
 
 type Customer = {
   id: number;
