@@ -5,6 +5,8 @@ const API_URL =
   process.env.REACT_APP_API_URL ||
   "https://hypnate-backend-staging.onrender.com/api";
 
+const api = axios.create({ baseURL: API_URL, withCredentials: true });
+
 type Customer = {
   id: number;
   name: string;
@@ -69,14 +71,9 @@ const Customers = () => {
       setLoading(true);
       setError("");
 
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("Not authenticated");
-
-      const headers = { Authorization: `Bearer ${token}` };
-
       const [customersResult, statsResult] = await Promise.allSettled([
-        axios.get(`${API_URL}/customers`, { headers }),
-        axios.get(`${API_URL}/customers/stats`, { headers }),
+        api.get("/customers"),
+        api.get("/customers/stats"),
       ]);
 
       if (customersResult.status === "fulfilled") {

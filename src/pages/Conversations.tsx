@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 
 const API_URL = process.env.REACT_APP_API_URL || "https://hypnate-backend-staging.onrender.com/api";
+const api = axios.create({ baseURL: API_URL, withCredentials: true });
 
 // ── Types ──────────────────────────────────────────────────────────────────
 type Platform = "WHATSAPP" | "INSTAGRAM" | "FACEBOOK" | "TELEGRAM";
@@ -80,11 +81,6 @@ export const Conversations: React.FC = () => {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const headers = useCallback(() => {
-    const token = localStorage.getItem("token");
-    return { Authorization: `Bearer ${token}` };
-  }, []);
-
   // ── Fetch conversations ────────────────────────────────────────────────
   const fetchConversations = useCallback(async (silent = false) => {
     try {
@@ -93,7 +89,7 @@ export const Conversations: React.FC = () => {
       if (filter !== "all") params.platform = filter;
       if (search) params.search = search;
 
-      const res = await axios.get(`${API_URL}/conversations`, { headers: headers(), params });
+      const res = await api.get("/conversations", { params });
       setConversations(res.data);
       setOnline(true);
       setLastPoll(new Date());
@@ -102,15 +98,14 @@ export const Conversations: React.FC = () => {
     } finally {
       if (!silent) setLoading(false);
     }
-  }, [filter, search, headers]);
+  }, [filter, search]);
 
   // ── Fetch messages for active chat ────────────────────────────────────
   const fetchMessages = useCallback(async (id: number, silent = false) => {
     try {
       if (!silent) setMsgLoading(true);
-      const res = await axios.get(`${API_URL}/conversations/${id}/messages`, { headers: headers() });
+      const res = await api.get(`/conversations/${id}/messages`);
       setMessages(res.data);
-      // Reset unread in local state
       setConversations(prev =>
         prev.map(c => c.id === id ? { ...c, unreadCount: 0 } : c)
       );
@@ -119,7 +114,7 @@ export const Conversations: React.FC = () => {
     } finally {
       if (!silent) setMsgLoading(false);
     }
-  }, [headers]);
+  }, []);
 
   // ── Polling ────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -171,7 +166,7 @@ export const Conversations: React.FC = () => {
     );
 
     try {
-      await axios.post(`${API_URL}/conversations/${activeChatId}/messages`, { text }, { headers: headers() });
+      await api.post(`/conversations/${activeChatId}/messages`, { text });
       await fetchMessages(activeChatId, true);
     } catch {
       // Remove optimistic message on fail

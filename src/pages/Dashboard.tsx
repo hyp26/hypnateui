@@ -15,6 +15,7 @@ import { useAuthStore } from "../stores/useAuthStore";
 import axios from "axios";
 
 const API_URL = process.env.REACT_APP_API_URL || "https://hypnate-backend-staging.onrender.com/api";
+const api = axios.create({ baseURL: API_URL, withCredentials: true });
 const POLL_INTERVAL = 30_000; // 30 seconds
 
 /* ─── TYPES ──────────────────────────────────────────────────────────────── */
@@ -170,16 +171,12 @@ export const Dashboard: React.FC = () => {
   const [chartType, setChartType] = useState<"revenue" | "orders">("revenue");
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const headers = useCallback(() => ({
-    Authorization: `Bearer ${localStorage.getItem("token")}`,
-  }), []);
-
   const fetchDashboard = useCallback(async (silent = false) => {
     try {
       if (!silent) setLoading(true);
       else setRefreshing(true);
 
-      const res = await axios.get(`${API_URL}/dashboard`, { headers: headers() });
+      const res = await api.get("/dashboard");
       setData(res.data);
       setError(null);
       setOnline(true);
@@ -192,7 +189,7 @@ export const Dashboard: React.FC = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [headers]);
+  }, []);
 
   // Initial load + polling
   useEffect(() => {

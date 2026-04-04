@@ -12,6 +12,7 @@ import { cn } from '../../lib/utils';
 import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_API_URL || 'https://hypnate-backend-staging.onrender.com/api';
+const api = axios.create({ baseURL: API_URL, withCredentials: true });
 
 // ── Types ──────────────────────────────────────────────────────────────────
 interface Notification {
@@ -75,18 +76,14 @@ export const Header = () => {
   const searchRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const headers = useCallback(() => ({
-    Authorization: `Bearer ${localStorage.getItem('token')}`,
-  }), []);
-
   // ── Fetch notifications ────────────────────────────────────────────────
   const fetchNotifs = useCallback(async (silent = false) => {
     try {
-      const res = await axios.get(`${API_URL}/notifications`, { headers: headers() });
+      const res = await api.get('/notifications');
       setNotifs(res.data.notifications);
       setUnread(res.data.unreadCount);
     } catch { /* silent fail */ }
-  }, [headers]);
+  }, []);
 
   // Poll every 15s
   useEffect(() => {
@@ -111,7 +108,7 @@ export const Header = () => {
     setNotifs(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
     setUnread(prev => Math.max(0, prev - 1));
     try {
-      await axios.patch(`${API_URL}/notifications/${id}/read`, {}, { headers: headers() });
+      await api.patch(`/notifications/${id}/read`);
     } catch { await fetchNotifs(true); }
   };
 
@@ -120,7 +117,7 @@ export const Header = () => {
     setNotifs(prev => prev.map(n => ({ ...n, isRead: true })));
     setUnread(0);
     try {
-      await axios.patch(`${API_URL}/notifications/read-all`, {}, { headers: headers() });
+      await api.patch('/notifications/read-all');
     } catch { await fetchNotifs(true); }
   };
 
@@ -129,7 +126,7 @@ export const Header = () => {
     e.stopPropagation();
     setNotifs(prev => prev.filter(n => n.id !== id));
     try {
-      await axios.delete(`${API_URL}/notifications/${id}`, { headers: headers() });
+      await api.delete(`/notifications/${id}`);
     } catch { await fetchNotifs(true); }
   };
 
@@ -145,10 +142,7 @@ export const Header = () => {
     debounceRef.current = setTimeout(async () => {
       try {
         setSearching(true);
-        const res = await axios.get(`${API_URL}/search`, {
-          headers: headers(),
-          params: { q: val.trim() },
-        });
+        const res = await api.get('/search', { params: { q: val.trim() } });
         setResults(res.data);
         setSearchOpen(true);
       } catch { /* silent */ } finally {
