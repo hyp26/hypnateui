@@ -32,20 +32,11 @@ export const Sidebar = () => {
     <div className="h-screen w-64 bg-primary-900 border-r border-primary-800 flex flex-col fixed left-0 top-0 z-10 shadow-xl">
 
       {/* ── Logo ── */}
-      <div className="px-5 py-5 border-b border-primary-800 flex items-center justify-center" style={{ minHeight: 76 }}>
+      <div className="p-6 border-b border-primary-800 flex justify-center">
         <img
           src="/assets/logo.svg"
-          alt="Hypnate"
-          style={{
-            height: 44,
-            width: 'auto',
-            maxWidth: '100%',
-            objectFit: 'contain',
-            /* Force the SVG to render white/light so it's visible on dark bg.
-               If your logo already has light colours this is a no-op;
-               if it's a dark logo, swap filter to: brightness(0) invert(1)  */
-            filter: 'brightness(0) invert(1)',
-          }}
+          alt="Hypnate Logo"
+          className="h-55 w-150 object-contain"
         />
       </div>
 
