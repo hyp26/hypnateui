@@ -1,9 +1,6 @@
 import axios, { AxiosError } from "axios";
 
 let API = process.env.REACT_APP_API_URL || "";
-if (API && !API.endsWith('/api')) {
-  API += '/api';
-}
 
 const api = axios.create({
   baseURL: API,
