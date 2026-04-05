@@ -222,49 +222,67 @@ export const useOrderStore = create<OrderState>((set, get) => ({
 
   /* ---------------- UPDATE STATUS ---------------- */
   updateOrderStatus: async (id, status, note) => {
-    const data = await ordersApi.updateStatus(id, status, note);
-    const normalized = normalizeOrder(data);
+    try {
+      const data = await ordersApi.updateStatus(id, status, note);
+      const normalized = normalizeOrder(data);
 
-    set((state) => ({
-      orders: state.orders.map((o) =>
-        o.id === id ? normalized : o
-      ),
-      activeOrder:
-        state.activeOrder?.id === id
-          ? normalized
-          : state.activeOrder,
-    }));
+      set((state) => ({
+        orders: state.orders.map((o) =>
+          o.id === id ? normalized : o
+        ),
+        activeOrder:
+          state.activeOrder?.id === id
+            ? normalized
+            : state.activeOrder,
+        error: null,
+      }));
+    } catch (err: any) {
+      console.error('updateOrderStatus error:', err);
+      set({ error: err?.message || 'Failed to update order status' });
+    }
   },
 
   /* ---------------- UPDATE PAYMENT ---------------- */
   updatePaymentStatus: async (id, status, method) => {
-    const data = await ordersApi.updatePayment(id, status, method);
-    const normalized = normalizeOrder(data);
+    try {
+      const data = await ordersApi.updatePayment(id, status, method);
+      const normalized = normalizeOrder(data);
 
-    set((state) => ({
-      orders: state.orders.map((o) =>
-        o.id === id ? normalized : o
-      ),
-      activeOrder:
-        state.activeOrder?.id === id
-          ? normalized
-          : state.activeOrder,
-    }));
+      set((state) => ({
+        orders: state.orders.map((o) =>
+          o.id === id ? normalized : o
+        ),
+        activeOrder:
+          state.activeOrder?.id === id
+            ? normalized
+            : state.activeOrder,
+        error: null,
+      }));
+    } catch (err: any) {
+      console.error('updatePaymentStatus error:', err);
+      set({ error: err?.message || 'Failed to update payment status' });
+    }
   },
 
   /* ---------------- ADD TRACKING ---------------- */
   addTracking: async (id, trackingNumber) => {
-    const data = await ordersApi.addTracking(id, trackingNumber);
-    const normalized = normalizeOrder(data);
+    try {
+      const data = await ordersApi.addTracking(id, trackingNumber);
+      const normalized = normalizeOrder(data);
 
-    set((state) => ({
-      orders: state.orders.map((o) =>
-        o.id === id ? normalized : o
-      ),
-      activeOrder:
-        state.activeOrder?.id === id
-          ? normalized
-          : state.activeOrder,
-    }));
+      set((state) => ({
+        orders: state.orders.map((o) =>
+          o.id === id ? normalized : o
+        ),
+        activeOrder:
+          state.activeOrder?.id === id
+            ? normalized
+            : state.activeOrder,
+        error: null,
+      }));
+    } catch (err: any) {
+      console.error('addTracking error:', err);
+      set({ error: err?.message || 'Failed to add tracking number' });
+    }
   },
 }));
