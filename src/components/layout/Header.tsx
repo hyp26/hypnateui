@@ -76,7 +76,7 @@ export const Header = () => {
   // ── Fetch notifications ────────────────────────────────────────────────
   const fetchNotifs = useCallback(async (silent = false) => {
     try {
-      const res = await api.get('/notifications');
+      const res = await api.get('/api/notifications');
       setNotifs(res.data.notifications);
       setUnread(res.data.unreadCount);
     } catch { /* silent fail */ }
@@ -105,7 +105,7 @@ export const Header = () => {
     setNotifs(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
     setUnread(prev => Math.max(0, prev - 1));
     try {
-      await api.patch(`/notifications/${id}/read`);
+      await api.patch(`/api/notifications/${id}/read`);
     } catch { await fetchNotifs(true); }
   };
 
@@ -114,7 +114,7 @@ export const Header = () => {
     setNotifs(prev => prev.map(n => ({ ...n, isRead: true })));
     setUnread(0);
     try {
-      await api.patch('/notifications/read-all');
+      await api.patch('/api/notifications/read-all');
     } catch { await fetchNotifs(true); }
   };
 
@@ -123,7 +123,7 @@ export const Header = () => {
     e.stopPropagation();
     setNotifs(prev => prev.filter(n => n.id !== id));
     try {
-      await api.delete(`/notifications/${id}`);
+      await api.delete(`/api/notifications/${id}`);
     } catch { await fetchNotifs(true); }
   };
 
@@ -139,7 +139,7 @@ export const Header = () => {
     debounceRef.current = setTimeout(async () => {
       try {
         setSearching(true);
-        const res = await api.get('/search', { params: { q: val.trim() } });
+        const res = await api.get('/api/search', { params: { q: val.trim() } });
         setResults(res.data);
         setSearchOpen(true);
       } catch { /* silent */ } finally {

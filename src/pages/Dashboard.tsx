@@ -173,7 +173,7 @@ export const Dashboard: React.FC = () => {
       if (!silent) setLoading(true);
       else setRefreshing(true);
 
-      const res = await api.get("/dashboard");
+      const res = await api.get("/api/dashboard");
       setData(res.data);
       setError(null);
       setOnline(true);

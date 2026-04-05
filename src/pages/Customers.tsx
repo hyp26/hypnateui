@@ -66,8 +66,8 @@ const Customers = () => {
       setError("");
 
       const [customersResult, statsResult] = await Promise.allSettled([
-        api.get("/customers"),
-        api.get("/customers/stats"),
+        api.get("/api/customers"),
+        api.get("/api/customers/stats"),
       ]);
 
       if (customersResult.status === "fulfilled") {

@@ -86,7 +86,7 @@ export const Conversations: React.FC = () => {
       if (filter !== "all") params.platform = filter;
       if (search) params.search = search;
 
-      const res = await api.get("/conversations", { params });
+      const res = await api.get("/api/conversations", { params });
       setConversations(res.data);
       setOnline(true);
       setLastPoll(new Date());
@@ -101,7 +101,7 @@ export const Conversations: React.FC = () => {
   const fetchMessages = useCallback(async (id: number, silent = false) => {
     try {
       if (!silent) setMsgLoading(true);
-      const res = await api.get(`/conversations/${id}/messages`);
+      const res = await api.get(`/api/conversations/${id}/messages`);
       setMessages(res.data);
       setConversations(prev =>
         prev.map(c => c.id === id ? { ...c, unreadCount: 0 } : c)
@@ -163,7 +163,7 @@ export const Conversations: React.FC = () => {
     );
 
     try {
-      await api.post(`/conversations/${activeChatId}/messages`, { text });
+      await api.post(`/api/conversations/${activeChatId}/messages`, { text });
       await fetchMessages(activeChatId, true);
     } catch {
       // Remove optimistic message on fail
