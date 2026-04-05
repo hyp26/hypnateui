@@ -10,6 +10,8 @@ export interface Product {
   description?: string | null;
   imageUrl?: string | null;
   createdAt?: string;
+  mrp?: number | null;
+  sizes?: string[];
 }
 
 interface ProductState {
