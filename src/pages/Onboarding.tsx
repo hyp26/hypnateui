@@ -206,7 +206,7 @@ const BusinessStep = ({ form, onChange, error, onClear }: { form: BusinessForm; 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="col-span-2">
           <label className="block text-sm font-semibold text-gray-700 mb-1.5">Business Name <span className="text-red-500">*</span></label>
-          <input value={form.businessName} onChange={set("businessName")} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary-500 focus:ring-0 outline-none transition-colors text-gray-900" placeholder="e.g. Sameer CS Associates" />
+          <input value={form.businessName} onChange={set("businessName")} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary-500 focus:ring-0 outline-none transition-colors text-gray-900" placeholder="e.g. Rahul Fashion House…" />
         </div>
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-1.5">Industry</label>
@@ -222,11 +222,11 @@ const BusinessStep = ({ form, onChange, error, onClear }: { form: BusinessForm; 
         </div>
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-1.5">Phone Number</label>
-          <input value={form.phone} onChange={set("phone")} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary-500 outline-none transition-colors" placeholder="+91 98765 43210" />
+          <input value={form.phone} onChange={set("phone")} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary-500 outline-none transition-colors" placeholder="+91 98XXX XXXXX" />
         </div>
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-1.5">GST Number <span className="text-gray-400 font-normal text-xs">(optional)</span></label>
-          <input value={form.gstNumber} onChange={set("gstNumber")} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary-500 outline-none font-mono uppercase tracking-wider transition-colors" placeholder="22AAAAA0000A1Z5" maxLength={15} />
+          <input value={form.gstNumber} onChange={set("gstNumber")} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary-500 outline-none font-mono uppercase tracking-wider transition-colors" placeholder="27AAPFU0939F1ZV" maxLength={15} />
         </div>
       </div>
     </div>
@@ -483,7 +483,7 @@ const ChannelModal = ({ type, onClose, onConnect }: { type: ModalType; onClose: 
         {type === "whatsapp" && (
           <div className="space-y-4">
             <div className="bg-green-50 border border-green-200 text-green-800 text-sm p-4 rounded-xl">You need a Facebook Business Manager account and a number not already on WhatsApp personal.</div>
-            <div><label className="block text-sm font-semibold text-gray-700 mb-1.5">Phone Number</label><input value={phone} onChange={e => setPhone(e.target.value)} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-green-500 outline-none transition-colors" placeholder="+91 98765 43210" /></div>
+            <div><label className="block text-sm font-semibold text-gray-700 mb-1.5">Phone Number</label><input value={phone} onChange={e => setPhone(e.target.value)} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-green-500 outline-none transition-colors" placeholder="+91 98XXX XXXXX" /></div>
             <div><label className="block text-sm font-semibold text-gray-700 mb-1.5">WhatsApp Business API Key</label><input value={apiKey} onChange={e => setApiKey(e.target.value)} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-green-500 outline-none font-mono transition-colors" placeholder="EAAG..." /><p className="text-xs text-gray-400 mt-1">Found in your Meta Developer Portal.</p></div>
           </div>
         )}
@@ -597,16 +597,11 @@ export const Onboarding: React.FC = () => {
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
         .ob-root * { font-family: 'Outfit', sans-serif; }
       `}</style>
-      <div className="ob-root" style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc' }}>
+      <div className="ob-root" style={{ background: '#f8fafc', minHeight: '100vh' }}>
 
-        {/* ── SIDEBAR ── */}
-        <div style={{ width: 280, background: '#0f172a', display: 'flex', flexDirection: 'column', position: 'sticky', top: 0, height: '100vh', overflowY: 'auto' }}>
-          <Sidebar current={currentStep} completed={completed} />
-        </div>
-
-        {/* ── MAIN ── */}
-        <div style={{ flex: 1, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '40px 24px', minHeight: '100vh' }}>
-          <div style={{ width: '100%', maxWidth: 680 }}>
+        {/* Sits inside the app shell which already has the global Sidebar */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '40px 32px', minHeight: '100vh' }}>
+          <div style={{ width: '100%', maxWidth: 720 }}>
 
             {/* Step badge */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
