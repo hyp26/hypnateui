@@ -9,7 +9,6 @@ import {
   Users,
   CreditCard,
   BarChart3,
-  Sparkles,
   Wand2,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
@@ -25,7 +24,6 @@ export const Sidebar = () => {
     { icon: Users, label: t('nav.customers'), path: '/customers' },
     { icon: CreditCard, label: t('nav.payments'), path: '/payments' },
     { icon: BarChart3, label: t('nav.analytics'), path: '/analytics' },
-    { icon: Sparkles, label: t('nav.onboarding'), path: '/onboarding' },
   ];
 
   return (
