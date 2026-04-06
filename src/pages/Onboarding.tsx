@@ -595,24 +595,54 @@ export const Onboarding: React.FC = () => {
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
-        .ob-root * { font-family: 'Outfit', sans-serif; }
+        .ob-root { font-family: 'Outfit', sans-serif; }
       `}</style>
-      <div className="ob-root" style={{ background: '#f8fafc', minHeight: '100vh' }}>
+      <div className="ob-root" style={{ background: '#f8fafc' }}>
 
         {/* Sits inside the app shell which already has the global Sidebar */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '40px 32px', minHeight: '100vh' }}>
-          <div style={{ width: '100%', maxWidth: 720 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '32px 32px 48px' }}>
+          <div style={{ width: '100%', maxWidth: 740 }}>
 
-            {/* Step badge */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
-              <span style={{ fontSize: 12, fontWeight: 700, color: '#0d9488', background: '#f0fdfa', border: '1px solid #ccfbf1', padding: '3px 10px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Step {currentStep} of 5
-              </span>
-              <span style={{ fontSize: 13, color: '#94a3b8' }}>{STEPS_CONFIG[currentStep - 1]?.desc}</span>
+            {/* ── Page header ── */}
+            <div style={{ marginBottom: 28 }}>
+              <h1 style={{ fontSize: 26, fontWeight: 800, color: '#0f172a', margin: '0 0 4px', letterSpacing: '-0.5px' }}>
+                Store Setup
+              </h1>
+              <p style={{ fontSize: 14, color: '#94a3b8', margin: 0 }}>
+                Complete all steps to launch your Hypnate store
+              </p>
+            </div>
+
+            {/* ── Inline step progress bar ── */}
+            <div style={{ background: '#fff', borderRadius: 16, padding: '16px 24px', border: '1px solid #f1f5f9', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', marginBottom: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative' }}>
+                <div style={{ position: 'absolute', top: 16, left: '10%', right: '10%', height: 2, background: '#f1f5f9', zIndex: 0 }} />
+                <div style={{ position: 'absolute', top: 16, left: '10%', height: 2, background: '#0d9488', zIndex: 0, transition: 'width 0.4s ease', width: `${Math.max(0, ((currentStep - 1) / 4) * 80)}%` }} />
+                {STEPS_CONFIG.map((step) => {
+                  const done = completed.has(step.id);
+                  const active = currentStep === step.id;
+                  const Icon = step.icon;
+                  return (
+                    <div key={step.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, zIndex: 1, flex: 1 }}>
+                      <div style={{
+                        width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        background: done ? '#0d9488' : active ? '#f0fdfa' : '#f8fafc',
+                        border: `2px solid ${done ? '#0d9488' : active ? '#0d9488' : '#e2e8f0'}`,
+                        transition: 'all 0.3s',
+                      }}>
+                        {done ? <Check size={14} color="#fff" /> : <Icon size={14} color={active ? '#0d9488' : '#94a3b8'} />}
+                      </div>
+                      <span style={{ fontSize: 11, fontWeight: active ? 700 : 500, color: done ? '#0d9488' : active ? '#0f172a' : '#94a3b8', whiteSpace: 'nowrap' }}>
+                        {step.title}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Content card */}
-            <div style={{ background: '#fff', borderRadius: 20, padding: 32, border: '1px solid #f1f5f9', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
+            <div style={{ background: '#fff', borderRadius: 20, padding: '32px 36px', border: '1px solid #f1f5f9', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
 
               {currentStep === 1 && <BusinessStep form={businessForm} onChange={setBusinessForm} error={error} onClear={() => setError("")} />}
               {currentStep === 2 && <CatalogStep preview={csvPreview} onFile={(rows, preview, raw) => { setCatalogRows(rows); setCsvPreview(preview); setCsvText(raw); }} onClear={() => { setCatalogRows([]); setCsvPreview(null); setCsvText(""); }} error={error} onErrorClear={() => setError("")} />}
