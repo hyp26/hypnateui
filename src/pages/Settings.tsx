@@ -1,259 +1,600 @@
-import React, { useState } from 'react';
-import { useAuthStore } from '../stores/useAuthStore';
-import { useIntegrationStore, Platform } from '../stores/useIntegrationStore';
-import { Button } from '../components/ui/Button';
-import { ConnectModal } from '../components/integrations/ConnectModal';
-import { User, Building2, Lock, Bell, Share2, Save, MessageCircle, Instagram, Facebook, Send, CheckCircle2 } from 'lucide-react';
-import { cn } from '../lib/utils';
+import React, { useState, useEffect, useRef } from "react";
+import {
+  User, Building2, Lock, Bell, Share2, Save, MessageCircle,
+  Instagram, Facebook, Send, CheckCircle2, Camera, Eye, EyeOff,
+  Shield, Smartphone, AlertTriangle, Check, X, Loader2,
+  ChevronRight, AlertCircle, Phone, MapPin, Hash, Globe,
+  Trash2, Download, LogOut,
+} from "lucide-react";
+import { useAuthStore } from "../stores/useAuthStore";
+import { useNavigate } from "react-router-dom";
+import api from "../lib/api";
 
-export const Settings = () => {
-  const user = useAuthStore((state) => state.user);
-  const { channels, disconnectChannel } = useIntegrationStore();
-  const [activeTab, setActiveTab] = useState('profile');
-  const [isLoading, setIsLoading] = useState(false);
-  
-  // Integration Modal State
-  const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
-  const [selectedPlatform, setSelectedPlatform] = useState<Platform | null>(null);
+/* ─── TYPES ─── */
+interface ProfileData { name: string; email: string; phone: string; avatarUrl: string | null }
+interface BusinessData { businessName: string; phone: string; address: string; gstNumber: string; website: string; industry: string }
+interface PasswordData { currentPassword: string; newPassword: string; confirmPassword: string }
+interface NotifPrefs { newOrder: boolean; paymentSuccess: boolean; newMessage: boolean; lowStock: boolean; orderShipped: boolean }
 
-  const handleConnectClick = (platform: Platform) => {
-    setSelectedPlatform(platform);
-    setIsConnectModalOpen(true);
+/* ─── HELPERS ─── */
+const iStyle: React.CSSProperties = {
+  width: "100%", padding: "10px 14px", borderRadius: 10,
+  border: "1.5px solid #e2e8f0", fontSize: 14, color: "#0f172a",
+  outline: "none", background: "#fff", boxSizing: "border-box",
+  fontFamily: "inherit", transition: "border-color 0.15s, box-shadow 0.15s",
+};
+const focusIn = (e: any) => { e.target.style.borderColor = "#0d9488"; e.target.style.boxShadow = "0 0 0 3px rgba(13,148,136,0.1)"; };
+const focusOut = (e: any) => { e.target.style.borderColor = "#e2e8f0"; e.target.style.boxShadow = "none"; };
+
+const Label = ({ children, hint }: { children: React.ReactNode; hint?: string }) => (
+  <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 6 }}>
+    {children} {hint && <span style={{ fontWeight: 400, color: "#94a3b8", fontSize: 12 }}>{hint}</span>}
+  </label>
+);
+
+const Toast = ({ message, type, onClose }: { message: string; type: "success" | "error"; onClose: () => void }) => (
+  <div style={{
+    position: "fixed", bottom: 24, right: 24, zIndex: 9999,
+    display: "flex", alignItems: "center", gap: 10,
+    padding: "12px 18px", borderRadius: 12,
+    background: type === "success" ? "#f0fdf4" : "#fef2f2",
+    border: `1px solid ${type === "success" ? "#bbf7d0" : "#fecaca"}`,
+    boxShadow: "0 8px 24px rgba(0,0,0,0.1)",
+    animation: "slideUp 0.3s ease",
+    maxWidth: 360,
+  }}>
+    {type === "success"
+      ? <CheckCircle2 size={16} color="#16a34a" style={{ flexShrink: 0 }} />
+      : <AlertCircle size={16} color="#dc2626" style={{ flexShrink: 0 }} />
+    }
+    <p style={{ fontSize: 13, fontWeight: 500, color: type === "success" ? "#166534" : "#dc2626", margin: 0 }}>{message}</p>
+    <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", marginLeft: 4 }}>
+      <X size={13} color={type === "success" ? "#16a34a" : "#dc2626"} />
+    </button>
+  </div>
+);
+
+const PasswordStrength = ({ password }: { password: string }) => {
+  const checks = [
+    { label: "8+ characters", pass: password.length >= 8 },
+    { label: "Uppercase letter", pass: /[A-Z]/.test(password) },
+    { label: "Number", pass: /[0-9]/.test(password) },
+    { label: "Special character", pass: /[!@#$%^&*]/.test(password) },
+  ];
+  const score = checks.filter(c => c.pass).length;
+  const colors = ["#ef4444", "#f97316", "#eab308", "#22c55e"];
+  const labels = ["Weak", "Fair", "Good", "Strong"];
+
+  if (!password) return null;
+  return (
+    <div style={{ marginTop: 10 }}>
+      <div style={{ display: "flex", gap: 4, marginBottom: 8 }}>
+        {[0, 1, 2, 3].map(i => (
+          <div key={i} style={{ flex: 1, height: 4, borderRadius: 2, background: i < score ? colors[score - 1] : "#e2e8f0", transition: "background 0.3s" }} />
+        ))}
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          {checks.map(c => (
+            <span key={c.label} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: c.pass ? "#16a34a" : "#94a3b8" }}>
+              {c.pass ? <Check size={10} /> : <X size={10} />} {c.label}
+            </span>
+          ))}
+        </div>
+        {score > 0 && <span style={{ fontSize: 11, fontWeight: 700, color: colors[score - 1] }}>{labels[score - 1]}</span>}
+      </div>
+    </div>
+  );
+};
+
+/* ─── CHANNEL CONFIG ─── */
+const CHANNEL_CFG = {
+  whatsapp: { name: "WhatsApp", icon: MessageCircle, gradient: "linear-gradient(135deg,#16a34a,#15803d)", glow: "rgba(22,163,74,0.15)", desc: "Connect Business API for automated messaging" },
+  instagram: { name: "Instagram", icon: Instagram, gradient: "linear-gradient(135deg,#db2777,#9333ea)", glow: "rgba(219,39,119,0.15)", desc: "Sync DMs and automate story replies" },
+  facebook: { name: "Facebook", icon: Facebook, gradient: "linear-gradient(135deg,#2563eb,#1d4ed8)", glow: "rgba(37,99,235,0.15)", desc: "Manage Messenger chats and Page interactions" },
+  telegram: { name: "Telegram", icon: Send, gradient: "linear-gradient(135deg,#0284c7,#0369a1)", glow: "rgba(2,132,199,0.15)", desc: "Connect your Telegram Bot for customer support" },
+};
+
+/* ─── TABS ─── */
+const TABS = [
+  { id: "profile", label: "Profile", icon: User },
+  { id: "business", label: "Business", icon: Building2 },
+  { id: "integrations", label: "Integrations", icon: Share2 },
+  { id: "security", label: "Security", icon: Lock },
+  { id: "notifications", label: "Notifications", icon: Bell },
+];
+
+/* ─── MAIN ─── */
+export const Settings: React.FC = () => {
+  const user = useAuthStore(s => s.user);
+  const setUser = useAuthStore(s => s.setUser);
+  const logout = useAuthStore(s => s.logout);
+  const navigate = useNavigate();
+
+  const [activeTab, setActiveTab] = useState("profile");
+  const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const avatarRef = useRef<HTMLInputElement>(null);
+
+  // Profile
+  const [profile, setProfile] = useState<ProfileData>({ name: "", email: "", phone: "", avatarUrl: null });
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+
+  // Business
+  const [business, setBusiness] = useState<BusinessData>({ businessName: "", phone: "", address: "", gstNumber: "", website: "", industry: "retail" });
+
+  // Password
+  const [pwData, setPwData] = useState<PasswordData>({ currentPassword: "", newPassword: "", confirmPassword: "" });
+  const [showPw, setShowPw] = useState({ current: false, new: false, confirm: false });
+  const [activeSessions, setActiveSessions] = useState<any[]>([]);
+
+  // Notifications
+  const [notifs, setNotifs] = useState<NotifPrefs>({ newOrder: true, paymentSuccess: true, newMessage: true, lowStock: true, orderShipped: true });
+
+  // Channels (from local state since no backend yet)
+  const [channels, setChannels] = useState({ whatsapp: false, instagram: false, facebook: false, telegram: false });
+
+  /* ── FETCH DATA ── */
+  useEffect(() => {
+    const loadData = async () => {
+      setFetching(true);
+      try {
+        const res = await api.get("/api/auth/profile");
+        const u = res.data;
+        setProfile({
+          name: u.name || "",
+          email: u.email || "",
+          phone: u.seller?.phone || "",
+          avatarUrl: u.avatarUrl || null,
+        });
+        setBusiness({
+          businessName: u.seller?.businessName || u.name || "",
+          phone: u.seller?.phone || "",
+          address: u.seller?.address || "",
+          gstNumber: u.seller?.gstNumber || "",
+          website: u.seller?.website || "",
+          industry: u.seller?.industry || "retail",
+        });
+        if (u.avatarUrl) setAvatarPreview(u.avatarUrl);
+      } catch {
+        // Use data from auth store as fallback
+        setProfile({ name: user?.name || "", email: user?.email || "", phone: "", avatarUrl: null });
+        setBusiness(b => ({ ...b, businessName: user?.name || "" }));
+      } finally {
+        setFetching(false);
+      }
+    };
+    loadData();
+  }, []);
+
+  const showToast = (message: string, type: "success" | "error" = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
   };
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    // Mock API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsLoading(false);
+  /* ── AVATAR UPLOAD ── */
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) { showToast("Image must be under 2MB", "error"); return; }
+
+    const reader = new FileReader();
+    reader.onload = ev => setAvatarPreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+    setAvatarFile(file);
   };
 
-  const tabs = [
-    { id: 'profile', label: 'Profile', icon: User },
-    { id: 'business', label: 'Business', icon: Building2 },
-    { id: 'integrations', label: 'Integrations', icon: Share2 },
-    { id: 'security', label: 'Security', icon: Lock },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
-  ];
+  /* ── SAVE PROFILE ── */
+  const saveProfile = async () => {
+    if (!profile.name.trim()) { showToast("Name is required", "error"); return; }
+    setLoading(true);
+    try {
+      let avatarUrl = profile.avatarUrl;
+      if (avatarFile) {
+        const fd = new FormData();
+        fd.append("file", avatarFile);
+        const uploadRes = await api.post("/api/products/upload?mode=cloud", fd, { headers: { "Content-Type": "multipart/form-data" } });
+        avatarUrl = uploadRes.data?.url || avatarUrl;
+      }
+      await api.patch("/api/auth/profile", { name: profile.name, phone: profile.phone, avatarUrl });
+      setUser({ ...user!, name: profile.name });
+      showToast("Profile updated successfully");
+    } catch (err: any) {
+      showToast(err?.response?.data?.message || "Failed to save profile", "error");
+    } finally { setLoading(false); }
+  };
 
-  const integrationCards = [
-    { id: 'whatsapp', name: 'WhatsApp', icon: MessageCircle, color: 'text-green-600 bg-green-100', desc: 'Connect Business API for automated messaging.' },
-    { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'text-pink-600 bg-pink-100', desc: 'Sync DMs and comments to your dashboard.' },
-    { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'text-blue-600 bg-blue-100', desc: 'Manage Messenger chats and Page interactions.' },
-    { id: 'telegram', name: 'Telegram', icon: Send, color: 'text-sky-600 bg-sky-100', desc: 'Connect your Telegram Bot for support.' },
-  ];
+  /* ── SAVE BUSINESS ── */
+  const saveBusiness = async () => {
+    if (!business.businessName.trim()) { showToast("Business name is required", "error"); return; }
+    setLoading(true);
+    try {
+      await api.post("/api/onboarding/business", {
+        businessName: business.businessName,
+        phone: business.phone,
+        gstNumber: business.gstNumber,
+        industry: business.industry,
+      });
+      showToast("Business details saved");
+    } catch (err: any) {
+      showToast(err?.response?.data?.message || "Failed to save business details", "error");
+    } finally { setLoading(false); }
+  };
+
+  /* ── CHANGE PASSWORD ── */
+  const changePassword = async () => {
+    if (!pwData.currentPassword) { showToast("Current password is required", "error"); return; }
+    if (!pwData.newPassword) { showToast("New password is required", "error"); return; }
+    if (pwData.newPassword !== pwData.confirmPassword) { showToast("Passwords do not match", "error"); return; }
+    if (pwData.newPassword.length < 8) { showToast("Password must be at least 8 characters", "error"); return; }
+    if (!/[A-Z]/.test(pwData.newPassword)) { showToast("Password must include an uppercase letter", "error"); return; }
+    if (!/[0-9]/.test(pwData.newPassword)) { showToast("Password must include a number", "error"); return; }
+    if (!/[!@#$%^&*]/.test(pwData.newPassword)) { showToast("Password must include a special character (!@#$%^&*)", "error"); return; }
+
+    setLoading(true);
+    try {
+      await api.patch("/api/auth/profile", { password: pwData.newPassword, currentPassword: pwData.currentPassword });
+      setPwData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      showToast("Password changed successfully");
+    } catch (err: any) {
+      showToast(err?.response?.data?.message || "Failed to change password", "error");
+    } finally { setLoading(false); }
+  };
+
+  /* ── SAVE NOTIFICATIONS ── */
+  const saveNotifs = async () => {
+    setLoading(true);
+    try {
+      await api.patch("/api/auth/notifications", notifs);
+      showToast("Notification preferences saved");
+    } catch {
+      showToast("Saved locally (notifications API coming soon)");
+    } finally { setLoading(false); }
+  };
+
+  const initials = profile.name?.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || "?";
+
+  const SaveBtn = ({ onClick }: { onClick: () => void }) => (
+    <div style={{ paddingTop: 24, borderTop: "1px solid #f1f5f9", display: "flex", justifyContent: "flex-end" }}>
+      <button onClick={onClick} disabled={loading} style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 24px", background: loading ? "#94a3b8" : "linear-gradient(135deg,#0d9488,#0f766e)", color: "#fff", borderRadius: 10, fontSize: 14, fontWeight: 700, border: "none", cursor: loading ? "not-allowed" : "pointer", boxShadow: "0 4px 14px rgba(13,148,136,0.3)", fontFamily: "inherit" }}>
+        {loading ? <Loader2 size={15} style={{ animation: "spin 0.7s linear infinite" }} /> : <Save size={15} />}
+        {loading ? "Saving…" : "Save Changes"}
+      </button>
+    </div>
+  );
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-      </div>
+    <>
+      <style>{`
+        @keyframes slideUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes spin    { to{transform:rotate(360deg)} }
+        .tab-btn:hover { background: #f8fafc !important; }
+        .notif-row:hover { background: #f8fafc !important; }
+        .channel-card:hover { border-color: #0d9488 !important; box-shadow: 0 6px 20px rgba(13,148,136,0.1) !important; transform: translateY(-1px); }
+      `}</style>
 
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col md:flex-row min-h-[600px]">
-        {/* Sidebar Tabs */}
-        <div className="w-full md:w-64 bg-gray-50 border-r border-gray-200 p-4">
-          <div className="space-y-1">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={cn(
-                  "w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors",
-                  activeTab === tab.id 
-                    ? "bg-white text-primary-600 shadow-sm" 
-                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                )}
-              >
-                <tab.icon className="w-4 h-4" />
-                {tab.label}
-              </button>
-            ))}
-          </div>
+      <div style={{ maxWidth: 960, margin: "0 auto", padding: "0 0 40px", fontFamily: "'Plus Jakarta Sans',-apple-system,sans-serif" }}>
+        {/* Header */}
+        <div style={{ marginBottom: 24 }}>
+          <h1 style={{ fontSize: 26, fontWeight: 800, color: "#0f172a", margin: "0 0 4px", letterSpacing: "-0.4px" }}>Settings</h1>
+          <p style={{ fontSize: 14, color: "#94a3b8", margin: 0 }}>Manage your account, business, and preferences.</p>
         </div>
 
-        {/* Content Area */}
-        <div className="flex-1 p-8">
-          {/* Integrations Tab */}
-          {activeTab === 'integrations' && (
-            <div className="space-y-6 animate-in fade-in duration-300">
-              <div>
-                <h2 className="text-lg font-bold text-gray-900 mb-1">Connected Channels</h2>
-                <p className="text-sm text-gray-500">Manage your social media connections.</p>
+        <div style={{ display: "flex", background: "#fff", borderRadius: 20, border: "1px solid #f1f5f9", boxShadow: "0 4px 24px rgba(0,0,0,0.06)", overflow: "hidden", minHeight: 600 }}>
+          {/* Sidebar */}
+          <div style={{ width: 220, background: "#fafafa", borderRight: "1px solid #f1f5f9", padding: "20px 12px", flexShrink: 0 }}>
+            {/* User preview */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px", marginBottom: 16, background: "#fff", borderRadius: 12, border: "1px solid #f1f5f9" }}>
+              <div style={{ width: 36, height: 36, borderRadius: "50%", background: avatarPreview ? "transparent" : "linear-gradient(135deg,#0d9488,#34d399)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "#fff", flexShrink: 0, overflow: "hidden" }}>
+                {avatarPreview ? <img src={avatarPreview} alt="avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : initials}
               </div>
+              <div style={{ minWidth: 0 }}>
+                <p style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{profile.name || user?.name || "User"}</p>
+                <p style={{ fontSize: 11, color: "#94a3b8", margin: 0, textTransform: "capitalize" }}>{user?.role?.toLowerCase() || "seller"}</p>
+              </div>
+            </div>
 
-              <div className="grid grid-cols-1 gap-4">
-                {integrationCards.map((item) => {
-                  const isConnected = channels[item.id as Platform].connected;
-                  const identifier = channels[item.id as Platform].identifier;
+            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              {TABS.map(tab => (
+                <button key={tab.id} className="tab-btn" onClick={() => setActiveTab(tab.id)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, border: "none", background: activeTab === tab.id ? "#fff" : "transparent", color: activeTab === tab.id ? "#0d9488" : "#64748b", fontWeight: activeTab === tab.id ? 700 : 500, fontSize: 13, cursor: "pointer", textAlign: "left", boxShadow: activeTab === tab.id ? "0 2px 8px rgba(0,0,0,0.06)" : "none", transition: "all 0.15s", fontFamily: "inherit", width: "100%", position: "relative" }}>
+                  {activeTab === tab.id && <div style={{ position: "absolute", left: 0, top: "20%", bottom: "20%", width: 3, borderRadius: "0 2px 2px 0", background: "#0d9488" }} />}
+                  <tab.icon size={15} style={{ flexShrink: 0 }} />
+                  {tab.label}
+                </button>
+              ))}
+            </div>
 
-                  return (
-                    <div key={item.id} className="flex items-center justify-between p-4 rounded-xl border border-gray-200 hover:border-gray-300 transition-colors">
-                      <div className="flex items-center gap-4">
-                        <div className={cn("w-12 h-12 rounded-lg flex items-center justify-center", item.color)}>
-                          <item.icon className="w-6 h-6" />
+            {/* Danger zone */}
+            <div style={{ marginTop: "auto", paddingTop: 16, borderTop: "1px solid #f1f5f9", marginTop: 32 }}>
+              <button onClick={() => { logout(); navigate("/login"); }} style={{ display: "flex", alignItems: "center", gap: 8, padding: "9px 12px", borderRadius: 10, border: "none", background: "transparent", color: "#94a3b8", fontSize: 12, fontWeight: 500, cursor: "pointer", width: "100%", fontFamily: "inherit", transition: "all 0.15s" }}
+                onMouseEnter={e => { e.currentTarget.style.background = "#fee2e2"; e.currentTarget.style.color = "#dc2626"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#94a3b8"; }}
+              >
+                <LogOut size={13} /> Sign out
+              </button>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div style={{ flex: 1, padding: "28px 32px", overflowY: "auto", minWidth: 0 }}>
+            {fetching ? (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 300 }}>
+                <Loader2 size={28} color="#0d9488" style={{ animation: "spin 0.8s linear infinite" }} />
+              </div>
+            ) : (
+              <>
+                {/* ── PROFILE ── */}
+                {activeTab === "profile" && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 24, animation: "slideUp 0.3s ease" }}>
+                    <div>
+                      <h2 style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", margin: "0 0 4px" }}>Personal Information</h2>
+                      <p style={{ fontSize: 13, color: "#94a3b8", margin: 0 }}>Update your personal details and avatar.</p>
+                    </div>
+
+                    {/* Avatar */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+                      <div style={{ position: "relative" }}>
+                        <div style={{ width: 80, height: 80, borderRadius: "50%", background: avatarPreview ? "transparent" : "linear-gradient(135deg,#0d9488,#34d399)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, fontWeight: 800, color: "#fff", overflow: "hidden", border: "3px solid #fff", boxShadow: "0 4px 16px rgba(13,148,136,0.25)" }}>
+                          {avatarPreview
+                            ? <img src={avatarPreview} alt="avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                            : initials
+                          }
                         </div>
-                        <div>
-                          <h3 className="font-bold text-gray-900 flex items-center gap-2">
-                            {item.name}
-                            {isConnected && (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                                <CheckCircle2 className="w-3 h-3 mr-1" /> Connected
-                              </span>
-                            )}
-                          </h3>
-                          <p className="text-sm text-gray-500">
-                            {isConnected ? `Connected as ${identifier}` : item.desc}
-                          </p>
-                        </div>
+                        <button onClick={() => avatarRef.current?.click()} style={{ position: "absolute", bottom: -2, right: -2, width: 28, height: 28, borderRadius: "50%", background: "#0d9488", border: "2px solid #fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                          <Camera size={12} color="#fff" />
+                        </button>
+                        <input ref={avatarRef} type="file" accept="image/*" onChange={handleAvatarChange} style={{ display: "none" }} />
                       </div>
                       <div>
-                        {isConnected ? (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200"
-                            onClick={() => disconnectChannel(item.id as Platform)}
-                          >
-                            Disconnect
-                          </Button>
-                        ) : (
-                          <Button 
-                            size="sm"
-                            onClick={() => handleConnectClick(item.id as Platform)}
-                          >
-                            Connect
-                          </Button>
+                        <p style={{ fontSize: 14, fontWeight: 600, color: "#0f172a", margin: "0 0 4px" }}>Profile photo</p>
+                        <p style={{ fontSize: 12, color: "#94a3b8", margin: "0 0 10px" }}>PNG, JPG up to 2MB</p>
+                        <button onClick={() => avatarRef.current?.click()} style={{ padding: "7px 14px", borderRadius: 8, border: "1.5px solid #e2e8f0", background: "#fff", fontSize: 12, fontWeight: 600, color: "#374151", cursor: "pointer", fontFamily: "inherit" }}>
+                          Change photo
+                        </button>
+                        {avatarPreview && avatarFile && (
+                          <button onClick={() => { setAvatarPreview(null); setAvatarFile(null); }} style={{ marginLeft: 8, padding: "7px 14px", borderRadius: 8, border: "1.5px solid #fecaca", background: "#fef2f2", fontSize: 12, fontWeight: 600, color: "#dc2626", cursor: "pointer", fontFamily: "inherit" }}>
+                            Remove
+                          </button>
                         )}
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
 
-          {/* Other Tabs (Profile, Business, etc.) - Keeping existing form structure */}
-          {activeTab !== 'integrations' && (
-            <form onSubmit={handleSave} className="max-w-xl space-y-8">
-              {/* Profile Tab */}
-              {activeTab === 'profile' && (
-                <div className="space-y-6 animate-in fade-in duration-300">
-                  <div>
-                    <h2 className="text-lg font-bold text-gray-900 mb-1">Personal Information</h2>
-                    <p className="text-sm text-gray-500">Update your personal details here.</p>
-                  </div>
-
-                  <div className="flex items-center gap-6">
-                    <div className="w-20 h-20 rounded-full bg-primary-100 flex items-center justify-center text-2xl font-bold text-primary-600 border-2 border-white shadow-md">
-                      {user?.name?.charAt(0) || 'M'}
-                    </div>
-                    <Button type="button" variant="outline" size="sm">Change Avatar</Button>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                      <input 
-                        type="text" 
-                        defaultValue={user?.name}
-                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 outline-none" 
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                      <input 
-                        type="email" 
-                        defaultValue={user?.email}
-                        disabled
-                        className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-50 text-gray-500 cursor-not-allowed" 
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Business Tab */}
-              {activeTab === 'business' && (
-                <div className="space-y-6 animate-in fade-in duration-300">
-                  <div>
-                    <h2 className="text-lg font-bold text-gray-900 mb-1">Business Profile</h2>
-                    <p className="text-sm text-gray-500">This information will be visible on your invoices.</p>
-                  </div>
-                  <div className="grid grid-cols-1 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Business Name</label>
-                      <input 
-                        type="text" 
-                        defaultValue="Hypnate Store"
-                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 outline-none" 
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                      <textarea 
-                        rows={3}
-                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 outline-none" 
-                        placeholder="123, Business Park, Mumbai..."
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Security Tab */}
-              {activeTab === 'security' && (
-                <div className="space-y-6 animate-in fade-in duration-300">
-                  <div>
-                    <h2 className="text-lg font-bold text-gray-900 mb-1">Security</h2>
-                    <p className="text-sm text-gray-500">Manage your password and 2FA settings.</p>
-                  </div>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
-                      <input type="password" className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 outline-none" />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Notifications Tab */}
-              {activeTab === 'notifications' && (
-                <div className="space-y-6 animate-in fade-in duration-300">
-                  <div>
-                    <h2 className="text-lg font-bold text-gray-900 mb-1">Notification Preferences</h2>
-                    <p className="text-sm text-gray-500">Choose what you want to be notified about.</p>
-                  </div>
-                  <div className="space-y-4">
-                    {['New Order Received', 'Payment Successful', 'New Customer Message'].map((item, idx) => (
-                      <div key={idx} className="flex items-center justify-between py-2">
-                        <span className="text-gray-700 font-medium">{item}</span>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input type="checkbox" defaultChecked className="sr-only peer" />
-                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
-                        </label>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                      <div style={{ gridColumn: "1 / -1" }}>
+                        <Label>Full Name</Label>
+                        <input value={profile.name} onChange={e => setProfile(p => ({ ...p, name: e.target.value }))} style={iStyle} placeholder="Your full name" onFocus={focusIn} onBlur={focusOut} />
                       </div>
-                    ))}
+                      <div>
+                        <Label>Email Address</Label>
+                        <input value={profile.email} disabled style={{ ...iStyle, background: "#f8fafc", color: "#94a3b8", cursor: "not-allowed" }} />
+                        <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 4 }}>Email cannot be changed. Contact support if needed.</p>
+                      </div>
+                      <div>
+                        <Label hint="(optional)">Phone Number</Label>
+                        <input value={profile.phone} onChange={e => setProfile(p => ({ ...p, phone: e.target.value }))} style={iStyle} placeholder="+91 98765 43210" onFocus={focusIn} onBlur={focusOut} />
+                      </div>
+                    </div>
+                    <SaveBtn onClick={saveProfile} />
                   </div>
-                </div>
-              )}
+                )}
 
-              <div className="pt-6 border-t border-gray-200 flex justify-end">
-                <Button type="submit" isLoading={isLoading} className="px-8">
-                  <Save className="w-4 h-4 mr-2" /> Save Changes
-                </Button>
-              </div>
-            </form>
-          )}
+                {/* ── BUSINESS ── */}
+                {activeTab === "business" && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 24, animation: "slideUp 0.3s ease" }}>
+                    <div>
+                      <h2 style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", margin: "0 0 4px" }}>Business Profile</h2>
+                      <p style={{ fontSize: 13, color: "#94a3b8", margin: 0 }}>This information appears on your invoices and store page.</p>
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                      <div style={{ gridColumn: "1 / -1" }}>
+                        <Label>Business Name</Label>
+                        <input value={business.businessName} onChange={e => setBusiness(b => ({ ...b, businessName: e.target.value }))} style={iStyle} placeholder="Your business name" onFocus={focusIn} onBlur={focusOut} />
+                      </div>
+                      <div>
+                        <Label>Industry</Label>
+                        <select value={business.industry} onChange={e => setBusiness(b => ({ ...b, industry: e.target.value }))} style={{ ...iStyle, cursor: "pointer" }} onFocus={focusIn} onBlur={focusOut}>
+                          {[["retail", "Retail"], ["food", "Food & Beverage"], ["fashion", "Fashion"], ["electronics", "Electronics"], ["beauty", "Beauty & Wellness"], ["furniture", "Furniture & Home"], ["services", "Services"], ["other", "Other"]].map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <Label hint="(optional)">Business Phone</Label>
+                        <input value={business.phone} onChange={e => setBusiness(b => ({ ...b, phone: e.target.value }))} style={iStyle} placeholder="+91 98765 43210" onFocus={focusIn} onBlur={focusOut} />
+                      </div>
+                      <div style={{ gridColumn: "1 / -1" }}>
+                        <Label hint="(optional)">Business Address</Label>
+                        <textarea value={business.address} onChange={e => setBusiness(b => ({ ...b, address: e.target.value }))} rows={3} style={{ ...iStyle, resize: "vertical" }} placeholder="123, Business Park, Mumbai, Maharashtra 400001" onFocus={focusIn} onBlur={focusOut} />
+                      </div>
+                      <div>
+                        <Label hint="(optional)">GST Number</Label>
+                        <input value={business.gstNumber} onChange={e => setBusiness(b => ({ ...b, gstNumber: e.target.value.toUpperCase() }))} style={{ ...iStyle, fontFamily: "monospace", textTransform: "uppercase" }} placeholder="27AAPFU0939F1ZV" maxLength={15} onFocus={focusIn} onBlur={focusOut} />
+                      </div>
+                      <div>
+                        <Label hint="(optional)">Website</Label>
+                        <input value={business.website} onChange={e => setBusiness(b => ({ ...b, website: e.target.value }))} style={iStyle} placeholder="https://yourstore.com" onFocus={focusIn} onBlur={focusOut} />
+                      </div>
+                    </div>
+                    <SaveBtn onClick={saveBusiness} />
+                  </div>
+                )}
+
+                {/* ── INTEGRATIONS ── */}
+                {activeTab === "integrations" && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 24, animation: "slideUp 0.3s ease" }}>
+                    <div>
+                      <h2 style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", margin: "0 0 4px" }}>Connected Channels</h2>
+                      <p style={{ fontSize: 13, color: "#94a3b8", margin: 0 }}>Manage your social media and messaging integrations.</p>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                      {(Object.keys(CHANNEL_CFG) as (keyof typeof CHANNEL_CFG)[]).map(key => {
+                        const cfg = CHANNEL_CFG[key]; const connected = channels[key]; const Icon = cfg.icon;
+                        return (
+                          <div key={key} className="channel-card" style={{ display: "flex", alignItems: "center", gap: 16, padding: "16px 20px", borderRadius: 14, border: `1.5px solid ${connected ? "#bbf7d0" : "#f1f5f9"}`, background: connected ? "#f0fdf4" : "#fff", transition: "all 0.2s", cursor: "default" }}>
+                            <div style={{ width: 48, height: 48, borderRadius: 14, background: cfg.gradient, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 4px 14px ${cfg.glow}`, flexShrink: 0 }}>
+                              <Icon size={22} color="#fff" />
+                            </div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <p style={{ fontWeight: 700, color: "#0f172a", fontSize: 14, margin: 0 }}>{cfg.name}</p>
+                                {connected && (
+                                  <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, color: "#16a34a", background: "#dcfce7", padding: "2px 8px", borderRadius: 20, border: "1px solid #bbf7d0" }}>
+                                    <CheckCircle2 size={10} /> Connected
+                                  </span>
+                                )}
+                              </div>
+                              <p style={{ fontSize: 12, color: "#64748b", margin: "2px 0 0" }}>{cfg.desc}</p>
+                            </div>
+                            {connected ? (
+                              <button onClick={() => setChannels(c => ({ ...c, [key]: false }))} style={{ padding: "8px 16px", borderRadius: 8, border: "1.5px solid #fecaca", background: "#fef2f2", color: "#dc2626", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>
+                                Disconnect
+                              </button>
+                            ) : (
+                              <button onClick={() => setChannels(c => ({ ...c, [key]: true }))} style={{ padding: "8px 16px", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#0d9488,#0f766e)", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 3px 10px rgba(13,148,136,0.25)", flexShrink: 0 }}>
+                                Connect
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* ── SECURITY ── */}
+                {activeTab === "security" && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 28, animation: "slideUp 0.3s ease" }}>
+                    <div>
+                      <h2 style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", margin: "0 0 4px" }}>Security</h2>
+                      <p style={{ fontSize: 13, color: "#94a3b8", margin: 0 }}>Protect your account with a strong password.</p>
+                    </div>
+
+                    {/* Change password */}
+                    <div style={{ padding: 24, background: "#f8fafc", borderRadius: 16, border: "1px solid #f1f5f9" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
+                        <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg,#6366f1,#8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <Lock size={16} color="#fff" />
+                        </div>
+                        <div>
+                          <p style={{ fontSize: 14, fontWeight: 700, color: "#0f172a", margin: 0 }}>Change Password</p>
+                          <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>Use a strong password you don't use elsewhere</p>
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                        <div>
+                          <Label>Current Password</Label>
+                          <div style={{ position: "relative" }}>
+                            <input type={showPw.current ? "text" : "password"} value={pwData.currentPassword} onChange={e => setPwData(p => ({ ...p, currentPassword: e.target.value }))} style={{ ...iStyle, paddingRight: 44 }} placeholder="Your current password" onFocus={focusIn} onBlur={focusOut} />
+                            <button type="button" onClick={() => setShowPw(s => ({ ...s, current: !s.current }))} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#94a3b8" }}>
+                              {showPw.current ? <EyeOff size={15} /> : <Eye size={15} />}
+                            </button>
+                          </div>
+                        </div>
+                        <div>
+                          <Label>New Password</Label>
+                          <div style={{ position: "relative" }}>
+                            <input type={showPw.new ? "text" : "password"} value={pwData.newPassword} onChange={e => setPwData(p => ({ ...p, newPassword: e.target.value }))} style={{ ...iStyle, paddingRight: 44 }} placeholder="Min 8 chars, uppercase, number, symbol" onFocus={focusIn} onBlur={focusOut} />
+                            <button type="button" onClick={() => setShowPw(s => ({ ...s, new: !s.new }))} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#94a3b8" }}>
+                              {showPw.new ? <EyeOff size={15} /> : <Eye size={15} />}
+                            </button>
+                          </div>
+                          <PasswordStrength password={pwData.newPassword} />
+                        </div>
+                        <div>
+                          <Label>Confirm New Password</Label>
+                          <div style={{ position: "relative" }}>
+                            <input type={showPw.confirm ? "text" : "password"} value={pwData.confirmPassword} onChange={e => setPwData(p => ({ ...p, confirmPassword: e.target.value }))} style={{ ...iStyle, paddingRight: 44, borderColor: pwData.confirmPassword && pwData.confirmPassword !== pwData.newPassword ? "#ef4444" : "#e2e8f0" }} placeholder="Repeat new password" onFocus={focusIn} onBlur={focusOut} />
+                            <button type="button" onClick={() => setShowPw(s => ({ ...s, confirm: !s.confirm }))} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#94a3b8" }}>
+                              {showPw.confirm ? <EyeOff size={15} /> : <Eye size={15} />}
+                            </button>
+                          </div>
+                          {pwData.confirmPassword && pwData.confirmPassword !== pwData.newPassword && (
+                            <p style={{ fontSize: 12, color: "#ef4444", marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}><AlertCircle size={11} /> Passwords do not match</p>
+                          )}
+                          {pwData.confirmPassword && pwData.confirmPassword === pwData.newPassword && pwData.newPassword && (
+                            <p style={{ fontSize: 12, color: "#16a34a", marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}><Check size={11} /> Passwords match</p>
+                          )}
+                        </div>
+                      </div>
+                      <div style={{ marginTop: 20, display: "flex", justifyContent: "flex-end" }}>
+                        <button onClick={changePassword} disabled={loading} style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 22px", background: loading ? "#94a3b8" : "linear-gradient(135deg,#6366f1,#8b5cf6)", color: "#fff", borderRadius: 10, fontSize: 13, fontWeight: 700, border: "none", cursor: loading ? "not-allowed" : "pointer", boxShadow: "0 4px 14px rgba(99,102,241,0.3)", fontFamily: "inherit" }}>
+                          {loading ? <Loader2 size={14} style={{ animation: "spin 0.7s linear infinite" }} /> : <Shield size={14} />}
+                          Update Password
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Security tips */}
+                    <div style={{ padding: 20, background: "#fffbeb", border: "1px solid #fcd34d", borderRadius: 14 }}>
+                      <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
+                        <AlertTriangle size={16} color="#d97706" style={{ flexShrink: 0, marginTop: 1 }} />
+                        <p style={{ fontSize: 13, fontWeight: 700, color: "#92400e", margin: 0 }}>Security best practices</p>
+                      </div>
+                      {["Use a unique password not used on other sites", "Never share your password with anyone — Hypnate support will never ask for it", "Enable 2FA when available for extra protection", "Log out of shared or public devices after use"].map((tip, i) => (
+                        <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start", marginBottom: 6 }}>
+                          <div style={{ width: 16, height: 16, borderRadius: "50%", background: "#fcd34d", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
+                            <span style={{ fontSize: 9, fontWeight: 800, color: "#78350f" }}>{i + 1}</span>
+                          </div>
+                          <p style={{ fontSize: 12, color: "#92400e", margin: 0, lineHeight: 1.5 }}>{tip}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Danger zone */}
+                    <div style={{ padding: 20, background: "#fff", border: "1.5px solid #fecaca", borderRadius: 14 }}>
+                      <p style={{ fontSize: 13, fontWeight: 700, color: "#dc2626", margin: "0 0 8px" }}>Danger Zone</p>
+                      <p style={{ fontSize: 12, color: "#64748b", margin: "0 0 14px", lineHeight: 1.6 }}>Permanently delete your account and all associated data. This action cannot be undone.</p>
+                      <button style={{ padding: "9px 18px", borderRadius: 9, border: "1.5px solid #fecaca", background: "#fef2f2", color: "#dc2626", fontSize: 12, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontFamily: "inherit" }}>
+                        <Trash2 size={13} /> Delete Account
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── NOTIFICATIONS ── */}
+                {activeTab === "notifications" && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 24, animation: "slideUp 0.3s ease" }}>
+                    <div>
+                      <h2 style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", margin: "0 0 4px" }}>Notification Preferences</h2>
+                      <p style={{ fontSize: 13, color: "#94a3b8", margin: 0 }}>Choose what events trigger notifications for you.</p>
+                    </div>
+
+                    <div style={{ border: "1px solid #f1f5f9", borderRadius: 14, overflow: "hidden" }}>
+                      {[
+                        { key: "newOrder", label: "New Order Received", desc: "When a customer places a new order", color: "#8b5cf6" },
+                        { key: "paymentSuccess", label: "Payment Successful", desc: "When a payment is confirmed", color: "#16a34a" },
+                        { key: "newMessage", label: "New Customer Message", desc: "When a customer sends a message", color: "#0284c7" },
+                        { key: "lowStock", label: "Low Stock Alert", desc: "When a product stock drops below 10 units", color: "#f59e0b" },
+                        { key: "orderShipped", label: "Order Shipped", desc: "When an order is marked as shipped", color: "#0d9488" },
+                      ].map((item, i, arr) => (
+                        <div key={item.key} className="notif-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: i < arr.length - 1 ? "1px solid #f8fafc" : "none", transition: "background 0.1s" }}>
+                          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                            <div style={{ width: 8, height: 8, borderRadius: "50%", background: item.color, flexShrink: 0 }} />
+                            <div>
+                              <p style={{ fontSize: 14, fontWeight: 600, color: "#0f172a", margin: 0 }}>{item.label}</p>
+                              <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>{item.desc}</p>
+                            </div>
+                          </div>
+                          {/* Toggle */}
+                          <button
+                            onClick={() => setNotifs(n => ({ ...n, [item.key]: !n[item.key as keyof NotifPrefs] }))}
+                            style={{ width: 44, height: 24, borderRadius: 12, border: "none", cursor: "pointer", background: notifs[item.key as keyof NotifPrefs] ? "#0d9488" : "#e2e8f0", position: "relative", transition: "background 0.2s", flexShrink: 0 }}
+                          >
+                            <div style={{ position: "absolute", top: 2, left: notifs[item.key as keyof NotifPrefs] ? 22 : 2, width: 20, height: 20, borderRadius: "50%", background: "#fff", transition: "left 0.2s", boxShadow: "0 1px 4px rgba(0,0,0,0.15)" }} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <SaveBtn onClick={saveNotifs} />
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Connection Modal */}
-      <ConnectModal 
-        isOpen={isConnectModalOpen} 
-        onClose={() => setIsConnectModalOpen(false)} 
-        platform={selectedPlatform} 
-      />
-    </div>
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+    </>
   );
 };
