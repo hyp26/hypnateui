@@ -4,7 +4,7 @@ import {
   Instagram, Facebook, Send, CheckCircle2, Camera, Eye, EyeOff,
   Shield, Smartphone, AlertTriangle, Check, X, Loader2,
   ChevronRight, AlertCircle, Phone, MapPin, Hash, Globe,
-  Trash2, Download, LogOut,
+  Trash2, Download, LogOut, CreditCard, Copy, CheckCheck, ExternalLink,
 } from "lucide-react";
 import { useAuthStore } from "../stores/useAuthStore";
 import { useNavigate } from "react-router-dom";
@@ -100,6 +100,7 @@ const TABS = [
   { id: "profile", label: "Profile", icon: User },
   { id: "business", label: "Business", icon: Building2 },
   { id: "integrations", label: "Integrations", icon: Share2 },
+  { id: "payments", label: "Payments", icon: CreditCard },
   { id: "security", label: "Security", icon: Lock },
   { id: "notifications", label: "Notifications", icon: Bell },
 ];
@@ -132,6 +133,13 @@ export const Settings: React.FC = () => {
 
   // Notifications
   const [notifs, setNotifs] = useState<NotifPrefs>({ newOrder: true, paymentSuccess: true, newMessage: true, lowStock: true, orderShipped: true });
+
+  // Payments
+  const [plForm, setPlForm] = useState({ amount: '', customerName: '', customerPhone: '', customerEmail: '', description: '' });
+  const [plResult, setPlResult] = useState<{ shortUrl: string; amount: number } | null>(null);
+  const [plCopied, setPlCopied] = useState(false);
+  const [paymentOptions, setPaymentOptions] = useState({ razorpay: true, cod: true });
+  const [razorpayKey, setRazorpayKey] = useState("rzp_test_123456789");
 
   // Channels (from local state since no backend yet)
   const [channels, setChannels] = useState({ whatsapp: false, instagram: false, facebook: false, telegram: false });
@@ -254,6 +262,34 @@ export const Settings: React.FC = () => {
     } finally { setLoading(false); }
   };
 
+  /* ── CREATE PAYMENT LINK ── */
+  const handleCreatePaymentLink = async () => {
+    if (!plForm.amount || Number(plForm.amount) <= 0) { showToast("Enter a valid amount", "error"); return; }
+    setLoading(true);
+    try {
+      const res = await api.post('/api/payments/link', {
+        amount: Number(plForm.amount),
+        customerName: plForm.customerName || undefined,
+        customerPhone: plForm.customerPhone || undefined,
+        customerEmail: plForm.customerEmail || undefined,
+        description: plForm.description || undefined,
+      });
+      setPlResult(res.data);
+      showToast("Payment link created");
+    } catch (err: any) {
+      showToast(err?.response?.data?.message || 'Failed to create payment link', "error");
+    } finally { setLoading(false); }
+  };
+
+  const copyPaymentLink = () => {
+    if (!plResult) return;
+    navigator.clipboard.writeText(plResult.shortUrl);
+    setPlCopied(true);
+    setTimeout(() => setPlCopied(false), 2000);
+  };
+
+  const setPl = (k: string, v: string) => setPlForm(f => ({ ...f, [k]: v }));
+
   const initials = profile.name?.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || "?";
 
   const SaveBtn = ({ onClick }: { onClick: () => void }) => (
@@ -307,7 +343,7 @@ export const Settings: React.FC = () => {
             </div>
 
             {/* Danger zone */}
-            <div style={{ marginTop: "auto", paddingTop: 16, borderTop: "1px solid #f1f5f9", marginTop: 32 }}>
+            <div style={{ marginTop: "auto", paddingTop: 16, borderTop: "1px solid #f1f5f9" }}>
               <button onClick={() => { logout(); navigate("/login"); }} style={{ display: "flex", alignItems: "center", gap: 8, padding: "9px 12px", borderRadius: 10, border: "none", background: "transparent", color: "#94a3b8", fontSize: 12, fontWeight: 500, cursor: "pointer", width: "100%", fontFamily: "inherit", transition: "all 0.15s" }}
                 onMouseEnter={e => { e.currentTarget.style.background = "#fee2e2"; e.currentTarget.style.color = "#dc2626"; }}
                 onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#94a3b8"; }}
@@ -457,6 +493,131 @@ export const Settings: React.FC = () => {
                           </div>
                         );
                       })}
+                    </div>
+                  </div>
+                )}
+
+                {/* ── PAYMENTS ── */}
+                {activeTab === "payments" && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 32, animation: "slideUp 0.3s ease" }}>
+                    
+                    {/* Payment Gateways */}
+                    <div>
+                      <div style={{ marginBottom: 16 }}>
+                        <h2 style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", margin: "0 0 4px" }}>Payment Gateways</h2>
+                        <p style={{ fontSize: 13, color: "#94a3b8", margin: 0 }}>Configure how your customers can pay you.</p>
+                      </div>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                        {/* Razorpay Card */}
+                        <div className="channel-card" style={{ padding: 20, borderRadius: 14, border: `1.5px solid ${paymentOptions.razorpay ? "#bbf7d0" : "#f1f5f9"}`, background: paymentOptions.razorpay ? "#f0fdf4" : "#fff", cursor: "pointer", transition: "all 0.2s" }} onClick={() => setPaymentOptions(p => ({ ...p, razorpay: !p.razorpay }))}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: paymentOptions.razorpay ? 16 : 0 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                              <CreditCard size={20} color={paymentOptions.razorpay ? "#16a34a" : "#64748b"} />
+                              <span style={{ fontSize: 14, fontWeight: 700, color: "#0f172a" }}>Razorpay</span>
+                            </div>
+                            <div style={{ width: 44, height: 24, borderRadius: 12, background: paymentOptions.razorpay ? "#16a34a" : "#e2e8f0", position: "relative", transition: "background 0.2s" }}>
+                              <div style={{ position: "absolute", top: 2, left: paymentOptions.razorpay ? 22 : 2, width: 20, height: 20, borderRadius: "50%", background: "#fff", transition: "left 0.2s", boxShadow: "0 1px 4px rgba(0,0,0,0.15)" }} />
+                            </div>
+                          </div>
+                          {paymentOptions.razorpay && (
+                            <div onClick={e => e.stopPropagation()}>
+                              <Label>Razorpay Key ID</Label>
+                              <input value={razorpayKey} onChange={e => setRazorpayKey(e.target.value)} style={{...iStyle, padding: "8px 12px", fontSize: 13}} placeholder="rzp_test_..." onFocus={focusIn} onBlur={focusOut} />
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Cash on Delivery Card */}
+                        <div className="channel-card" style={{ padding: 20, borderRadius: 14, border: `1.5px solid ${paymentOptions.cod ? "#bbf7d0" : "#f1f5f9"}`, background: paymentOptions.cod ? "#f0fdf4" : "#fff", cursor: "pointer", transition: "all 0.2s", display: "flex", flexDirection: "column", justifyContent: "center" }} onClick={() => setPaymentOptions(p => ({ ...p, cod: !p.cod }))}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                              <CheckCheck size={20} color={paymentOptions.cod ? "#16a34a" : "#64748b"} />
+                              <span style={{ fontSize: 14, fontWeight: 700, color: "#0f172a" }}>Cash on Delivery</span>
+                            </div>
+                            <div style={{ width: 44, height: 24, borderRadius: 12, background: paymentOptions.cod ? "#16a34a" : "#e2e8f0", position: "relative", transition: "background 0.2s" }}>
+                              <div style={{ position: "absolute", top: 2, left: paymentOptions.cod ? 22 : 2, width: 20, height: 20, borderRadius: "50%", background: "#fff", transition: "left 0.2s", boxShadow: "0 1px 4px rgba(0,0,0,0.15)" }} />
+                            </div>
+                          </div>
+                          <p style={{ margin: "8px 0 0", fontSize: 12, color: paymentOptions.cod ? "#166534" : "#64748b", lineHeight: 1.5 }}>Allow customers to pay in cash upon receiving the order.</p>
+                        </div>
+                      </div>
+                      <div style={{ marginTop: 16, display: "flex", justifyContent: "flex-end" }}>
+                        <button onClick={() => showToast("Payment gateway preferences saved")} disabled={loading} style={{ display: "flex", alignItems: "center", gap: 8, padding: "9px 20px", background: "#0f172a", color: "#fff", borderRadius: 10, fontSize: 13, fontWeight: 700, border: "none", cursor: "pointer", fontFamily: "inherit" }}>
+                          <Save size={14} /> Save Gateways
+                        </button>
+                      </div>
+                    </div>
+
+                    <div style={{ height: 1, background: "#f1f5f9" }} />
+
+                    {/* Payment Links */}
+                    <div>
+                      <div style={{ marginBottom: 16 }}>
+                        <h2 style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", margin: "0 0 4px" }}>Payment Links</h2>
+                        <p style={{ fontSize: 13, color: "#94a3b8", margin: 0 }}>Create a new payment link to collect payments directly.</p>
+                      </div>
+
+                      <div style={{ padding: 24, background: "#f8fafc", borderRadius: 16, border: "1px solid #f1f5f9" }}>
+                      {plResult ? (
+                        <div style={{ textAlign: "center", padding: "20px 0" }}>
+                          <div style={{ width: 56, height: 56, borderRadius: "50%", background: "#dcfce7", color: "#16a34a", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+                            <CheckCheck size={28} />
+                          </div>
+                          <h3 style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", margin: "0 0 6px" }}>Payment link created!</h3>
+                          <p style={{ fontSize: 14, color: "#64748b", margin: "0 0 20px" }}>
+                            Share this link with your customer to collect {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(plResult.amount)}
+                          </p>
+                          <div style={{ display: "flex", gap: 8, background: "#fff", border: "1px solid #e2e8f0", borderRadius: 12, padding: "10px 14px", textAlign: "left", marginBottom: 16 }}>
+                            <span style={{ flex: 1, fontSize: 13, color: "#0d9488", fontWeight: 600, wordBreak: "break-all" }}>{plResult.shortUrl}</span>
+                            <button onClick={copyPaymentLink} style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "#0d9488", color: "#fff", fontSize: 12, fontWeight: 700, padding: "6px 12px", borderRadius: 8, border: "none", cursor: "pointer", flexShrink: 0, fontFamily: "inherit" }}>
+                              {plCopied ? <CheckCheck size={14} /> : <Copy size={14} />} {plCopied ? 'Copied!' : 'Copy'}
+                            </button>
+                          </div>
+                          <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+                            <a href={plResult.shortUrl} target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "#0f172a", color: "#fff", fontSize: 13, fontWeight: 700, padding: "9px 16px", borderRadius: 10, textDecoration: "none" }}>
+                              <ExternalLink size={13} /> Open Link
+                            </a>
+                            <button onClick={() => { setPlResult(null); setPlForm({ amount: '', customerName: '', customerPhone: '', customerEmail: '', description: '' }); }} style={{ background: "#f1f5f9", color: "#374151", fontSize: 13, fontWeight: 600, padding: "9px 16px", borderRadius: 10, border: "none", cursor: "pointer", fontFamily: "inherit" }}>
+                              Create Another
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                          <div>
+                            <Label>Amount (₹) *</Label>
+                            <div style={{ position: "relative" }}>
+                              <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", fontSize: 14, fontWeight: 600, color: "#94a3b8", pointerEvents: "none" }}>₹</span>
+                              <input type="number" min="1" value={plForm.amount} onChange={e => setPl('amount', e.target.value)} style={{...iStyle, paddingLeft: 28}} placeholder="0" onFocus={focusIn} onBlur={focusOut} />
+                            </div>
+                          </div>
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                            <div style={{ gridColumn: "1 / -1" }}>
+                              <Label>Customer Name</Label>
+                              <input value={plForm.customerName} onChange={e => setPl('customerName', e.target.value)} style={iStyle} placeholder="e.g. Rahul Sharma" onFocus={focusIn} onBlur={focusOut} />
+                            </div>
+                            <div>
+                              <Label>Phone</Label>
+                              <input value={plForm.customerPhone} onChange={e => setPl('customerPhone', e.target.value)} style={iStyle} placeholder="+91 98765 43210" onFocus={focusIn} onBlur={focusOut} />
+                            </div>
+                            <div>
+                              <Label>Email</Label>
+                              <input value={plForm.customerEmail} onChange={e => setPl('customerEmail', e.target.value)} style={iStyle} placeholder="customer@email.com" onFocus={focusIn} onBlur={focusOut} />
+                            </div>
+                            <div style={{ gridColumn: "1 / -1" }}>
+                              <Label>Description</Label>
+                              <input value={plForm.description} onChange={e => setPl('description', e.target.value)} style={iStyle} placeholder="e.g. Payment for Order #1023" onFocus={focusIn} onBlur={focusOut} />
+                            </div>
+                          </div>
+                          <div style={{ marginTop: 8, display: "flex", justifyContent: "flex-end" }}>
+                            <button onClick={handleCreatePaymentLink} disabled={loading} style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 22px", background: loading ? "#94a3b8" : "linear-gradient(135deg,#0d9488,#0f766e)", color: "#fff", borderRadius: 10, fontSize: 13, fontWeight: 700, border: "none", cursor: loading ? "not-allowed" : "pointer", boxShadow: "0 4px 14px rgba(13,148,136,0.3)", fontFamily: "inherit" }}>
+                              {loading ? <Loader2 size={14} style={{ animation: "spin 0.7s linear infinite" }} /> : <CreditCard size={14} />}
+                              Create Link
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                     </div>
                   </div>
                 )}

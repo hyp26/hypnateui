@@ -1,0 +1,1 @@
+src/pages/Settings.tsx(111,39): error TS2339: Property 'setUser' does not exist on type 'AuthState'.
