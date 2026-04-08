@@ -246,39 +246,45 @@ export const Analytics: React.FC = () => {
                   </div>
                   <MessageCircle size={16} color="#94a3b8" />
                 </div>
-                <div style={{ position: 'relative', height: 180 }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie data={data?.channelData || []} innerRadius={55} outerRadius={75}
-                        paddingAngle={4} dataKey="value" strokeWidth={0}>
-                        {(data?.channelData || []).map((entry, i) => (
-                          <Cell key={i} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(v: any) => [`${v}%`, '']} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-                    <div style={{ textAlign: 'center' }}>
-                      <p style={{ fontSize: 22, fontWeight: 800, color: '#0f172a', margin: 0 }}>{totalPieValue}%</p>
-                      <p style={{ fontSize: 11, color: '#94a3b8', margin: 0 }}>Coverage</p>
-                    </div>
-                  </div>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
-                  {(data?.channelData || []).map(c => (
-                    <div key={c.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div style={{ width: 10, height: 10, borderRadius: '50%', background: c.color }} />
-                        <span style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>{c.name}</span>
-                      </div>
-                      <div style={{ display: 'flex', gap: 12 }}>
-                        <span style={{ fontSize: 12, color: '#94a3b8' }}>{c.count} chats</span>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>{c.value}%</span>
+                {(!data?.channelData || data.channelData.length === 0 || !data.channelData.some(c => c.count > 0)) ? (
+                  <p style={{ textAlign: 'center', color: '#94a3b8', fontSize: 13, padding: '40px 0' }}>No chats or sales yet</p>
+                ) : (
+                  <>
+                    <div style={{ position: 'relative', height: 180 }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie data={data?.channelData || []} innerRadius={55} outerRadius={75}
+                            paddingAngle={4} dataKey="value" strokeWidth={0}>
+                            {(data?.channelData || []).map((entry, i) => (
+                              <Cell key={i} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <Tooltip formatter={(v: any) => [`${v}%`, '']} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+                        <div style={{ textAlign: 'center' }}>
+                          <p style={{ fontSize: 22, fontWeight: 800, color: '#0f172a', margin: 0 }}>{totalPieValue}%</p>
+                          <p style={{ fontSize: 11, color: '#94a3b8', margin: 0 }}>Coverage</p>
+                        </div>
                       </div>
                     </div>
-                  ))}
-                </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
+                      {(data?.channelData || []).map(c => (
+                        <div key={c.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <div style={{ width: 10, height: 10, borderRadius: '50%', background: c.color }} />
+                            <span style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>{c.name}</span>
+                          </div>
+                          <div style={{ display: 'flex', gap: 12 }}>
+                            <span style={{ fontSize: 12, color: '#94a3b8' }}>{c.count} chats</span>
+                            <span style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>{c.value}%</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 

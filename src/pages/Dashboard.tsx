@@ -602,34 +602,51 @@ export const Dashboard: React.FC = () => {
             boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
             animation: "slideUp 0.5s ease both", animationDelay: "500ms",
           }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-              <div>
-                <h2 style={{ fontSize: "17px", fontWeight: 600, color: "#0f172a" }}>Setup Checklist</h2>
-                <p style={{ fontSize: "13px", color: "#94a3b8", marginTop: "2px" }}>3 of 5 complete</p>
-              </div>
-              <div style={{ fontSize: "22px", fontWeight: 700, color: "#0ea5e9" }}>60%</div>
-            </div>
-            <div style={{ height: "6px", background: "#f1f5f9", borderRadius: "3px", marginBottom: "20px", overflow: "hidden" }}>
-              <div style={{ height: "100%", width: "60%", background: "linear-gradient(90deg, #0ea5e9, #8b5cf6)", borderRadius: "3px" }} />
-            </div>
-            {[
-              { label: "Verify Business Details", done: true },
-              { label: "Connect Sales Channels", done: true },
-              { label: "Upload Product Catalog", done: true },
-              { label: "Setup Payment Gateway", done: false },
-              { label: "Configure Auto-replies", done: false },
-            ].map((item) => (
-              <div key={item.label} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px 0", borderBottom: "1px solid #f8fafc" }}>
-                {item.done
-                  ? <CheckCircle2 style={{ width: 18, height: 18, color: "#16a34a", flexShrink: 0 }} />
-                  : <div style={{ width: 18, height: 18, borderRadius: "50%", border: "2px solid #cbd5e1", flexShrink: 0 }} />
-                }
-                <p style={{ fontSize: "14px", color: item.done ? "#94a3b8" : "#0f172a", fontWeight: item.done ? 400 : 500, textDecoration: item.done ? "line-through" : "none" }}>
-                  {item.label}
-                </p>
-                {!item.done && <ChevronRight style={{ width: 14, height: 14, color: "#cbd5e1", marginLeft: "auto" }} />}
-              </div>
-            ))}
+            {(() => {
+              const hasBusinessDetails = !!user?.seller?.businessName || true;
+              const hasProducts = !!data?.topProduct;
+              const hasPayment = !!user?.seller?.paymentGateway;
+              const hasChannels = false;
+              const hasAutoReplies = false;
+
+              const checklistItems = [
+                { label: "Verify Business Details", done: hasBusinessDetails },
+                { label: "Connect Sales Channels", done: hasChannels },
+                { label: "Upload Product Catalog", done: hasProducts },
+                { label: "Setup Payment Gateway", done: hasPayment },
+                { label: "Configure Auto-replies", done: hasAutoReplies },
+              ];
+              
+              const completedCount = checklistItems.filter(i => i.done).length;
+              const progressPercent = Math.round((completedCount / 5) * 100);
+
+              return (
+                <>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+                    <div>
+                      <h2 style={{ fontSize: "17px", fontWeight: 600, color: "#0f172a" }}>Setup Checklist</h2>
+                      <p style={{ fontSize: "13px", color: "#94a3b8", marginTop: "2px" }}>{completedCount} of 5 complete</p>
+                    </div>
+                    <div style={{ fontSize: "22px", fontWeight: 700, color: "#0ea5e9" }}>{progressPercent}%</div>
+                  </div>
+                  <div style={{ height: "6px", background: "#f1f5f9", borderRadius: "3px", marginBottom: "20px", overflow: "hidden" }}>
+                    <div style={{ height: "100%", width: `${progressPercent}%`, background: "linear-gradient(90deg, #0ea5e9, #8b5cf6)", borderRadius: "3px" }} />
+                  </div>
+                  {checklistItems.map((item) => (
+                    <div key={item.label} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px 0", borderBottom: "1px solid #f8fafc" }}>
+                      {item.done
+                        ? <CheckCircle2 style={{ width: 18, height: 18, color: "#16a34a", flexShrink: 0 }} />
+                        : <div style={{ width: 18, height: 18, borderRadius: "50%", border: "2px solid #cbd5e1", flexShrink: 0 }} />
+                      }
+                      <p style={{ fontSize: "14px", color: item.done ? "#94a3b8" : "#0f172a", fontWeight: item.done ? 400 : 500, textDecoration: item.done ? "line-through" : "none" }}>
+                        {item.label}
+                      </p>
+                      {!item.done && <ChevronRight style={{ width: 14, height: 14, color: "#cbd5e1", marginLeft: "auto" }} />}
+                    </div>
+                  ))}
+                </>
+              );
+            })()}
             <button
               onClick={() => navigate("/onboarding")}
               style={{
