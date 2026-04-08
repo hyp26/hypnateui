@@ -33,9 +33,6 @@ export const Login: React.FC = () => {
   const isSignup = location.pathname === "/signup";
   const API = process.env.REACT_APP_API_URL;
 
-  /* --------------------------------------------------
-   * EMAIL / PASSWORD AUTH
-   * -------------------------------------------------- */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -44,10 +41,11 @@ export const Login: React.FC = () => {
     try {
       if (isSignup) {
         await signup(name, email, password, businessName, phone);
+        navigate("/onboarding");
       } else {
         await login(email, password);
+        navigate("/dashboard");
       }
-      navigate("/dashboard");
     } catch (err: any) {
       // ✅ Show actual error message from backend instead of generic alert
       setError(err.message || "Something went wrong. Please try again.");
