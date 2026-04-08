@@ -39,7 +39,7 @@ export const PublicLayout = () => {
   return (
     <div className="min-h-screen bg-white flex flex-col font-sans relative">
       {/* Navbar */}
-      <nav 
+      {false && <nav 
         className={cn(
           "fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b",
           isScrolled || mobileMenuOpen
@@ -114,7 +114,7 @@ export const PublicLayout = () => {
             </Link>
           </div>
         </div>
-      </nav>
+      </nav>}
 
       {/* Main Content */}
       <main className="flex-1">
@@ -125,7 +125,7 @@ export const PublicLayout = () => {
       <DemoChatWidget />
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-gray-300 py-16 px-6">
+      {false && <footer className="bg-gray-900 text-gray-300 py-16 px-6">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           <div className="col-span-1 md:col-span-1">
             <img 
@@ -212,7 +212,7 @@ export const PublicLayout = () => {
           <p>© 2025 Hypnate Technologies Pvt Ltd. All rights reserved.</p>
           <p className="mt-2 md:mt-0 text-gray-500">Made with ❤️ in India</p>
         </div>
-      </footer>
+      </footer>}
     </div>
   );
 };
