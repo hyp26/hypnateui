@@ -65,6 +65,12 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 function App() {
+  const loadProfile = useAuthStore((state) => state.loadProfile);
+
+  React.useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
+
   return (
     <Router>
       <Routes>
