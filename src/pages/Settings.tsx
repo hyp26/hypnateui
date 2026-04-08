@@ -358,7 +358,7 @@ export const Settings: React.FC = () => {
 
             {/* Danger zone */}
             <div style={{ marginTop: "auto", paddingTop: 16, borderTop: "1px solid #f1f5f9" }}>
-              <button onClick={() => { logout(); navigate("/login"); }} style={{ display: "flex", alignItems: "center", gap: 8, padding: "9px 12px", borderRadius: 10, border: "none", background: "transparent", color: "#94a3b8", fontSize: 12, fontWeight: 500, cursor: "pointer", width: "100%", fontFamily: "inherit", transition: "all 0.15s" }}
+              <button onClick={() => { logout(); navigate("/"); }} style={{ display: "flex", alignItems: "center", gap: 8, padding: "9px 12px", borderRadius: 10, border: "none", background: "transparent", color: "#94a3b8", fontSize: 12, fontWeight: 500, cursor: "pointer", width: "100%", fontFamily: "inherit", transition: "all 0.15s" }}
                 onMouseEnter={e => { e.currentTarget.style.background = "#fee2e2"; e.currentTarget.style.color = "#dc2626"; }}
                 onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#94a3b8"; }}
               >

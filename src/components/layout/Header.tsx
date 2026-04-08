@@ -163,7 +163,7 @@ export const Header = () => {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const handleLogout = () => { logout(); navigate('/login'); };
+  const handleLogout = () => { logout(); navigate('/'); };
   const toggleLang = () => i18n.changeLanguage(i18n.language === 'en' ? 'hi' : 'en');
 
   const navigateTo = (path: string) => {
