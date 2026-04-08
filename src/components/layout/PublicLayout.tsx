@@ -39,28 +39,28 @@ export const PublicLayout = () => {
   return (
     <div className="min-h-screen bg-white flex flex-col font-sans relative">
       {/* Navbar */}
-      {false && <nav 
+      <nav
         className={cn(
           "fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b",
           isScrolled || mobileMenuOpen
-            ? "bg-white/90 backdrop-blur-md border-gray-200 shadow-sm py-3" 
+            ? "bg-white/90 backdrop-blur-md border-gray-200 shadow-sm py-3"
             : "bg-transparent border-transparent py-5"
         )}
       >
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between">
           <Link to="/" className="relative z-50">
-            <img 
-                src="/assets/logo.svg" 
-                alt="Hypnate Logo" 
-                className="h-10 w-auto object-contain"
-                />
-            </Link>
+            <img
+              src="/assets/logo.svg"
+              alt="Hypnate Logo"
+              className="h-10 w-auto object-contain"
+            />
+          </Link>
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => (
-              <Link 
-                key={link.path} 
+              <Link
+                key={link.path}
                 to={link.path}
                 className={cn(
                   "text-sm font-medium transition-colors hover:text-primary-600",
@@ -82,7 +82,7 @@ export const PublicLayout = () => {
           </div>
 
           {/* Mobile Menu Toggle */}
-          <button 
+          <button
             className="md:hidden relative z-50 p-2 text-gray-600"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
@@ -96,8 +96,8 @@ export const PublicLayout = () => {
           mobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         )}>
           {navLinks.map((link) => (
-            <Link 
-              key={link.path} 
+            <Link
+              key={link.path}
               to={link.path}
               className="text-2xl font-bold text-gray-900 hover:text-primary-600"
             >
@@ -114,7 +114,7 @@ export const PublicLayout = () => {
             </Link>
           </div>
         </div>
-      </nav>}
+      </nav>
 
       {/* Main Content */}
       <main className="flex-1">
@@ -128,10 +128,10 @@ export const PublicLayout = () => {
       <footer className="bg-gray-900 text-gray-300 py-16 px-6">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           <div className="col-span-1 md:col-span-1">
-            <img 
-                src="/assets/logo.svg" 
-                alt="Hypnate Logo" 
-                className="h-30 w-auto mx-auto object-contain"
+            <img
+              src="/assets/logo.svg"
+              alt="Hypnate Logo"
+              className="h-30 w-auto mx-auto object-contain"
             />
 
             <p className="mt-6 text-sm text-gray-400 leading-relaxed">
