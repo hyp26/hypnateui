@@ -255,8 +255,8 @@ const css = `
 .prod-sub { font-size: 13px; color: #94a3b8; margin: 4px 0 0; display: flex; align-items: center; gap: 8px; }
 .low-stock-pill { background: #fff7ed; color: #c2410c; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
 
-.prod-add-btn { display: inline-flex; align-items: center; gap: 6px; background: #0f172a; color: #fff; font-size: 13px; font-weight: 700; padding: 10px 18px; border-radius: 12px; text-decoration: none; transition: background 0.15s; font-family: 'Outfit', sans-serif; }
-.prod-add-btn:hover { background: #1e293b; }
+.prod-add-btn { display: inline-flex; align-items: center; gap: 6px; background: #0d9488; color: #fff; font-size: 13px; font-weight: 700; padding: 10px 18px; border-radius: 12px; text-decoration: none; transition: background 0.15s; font-family: 'Outfit', sans-serif; }
+.prod-add-btn:hover { background: #0f766e; }
 
 .prod-toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 24px; background: #fff; padding: 14px 16px; border-radius: 14px; border: 1px solid #f1f5f9; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
 .prod-search-wrap { position: relative; flex: 1; max-width: 380px; }
@@ -336,6 +336,6 @@ const css = `
 .page-btns { display: flex; gap: 4px; }
 .page-btn { width: 34px; height: 34px; border: 1.5px solid #e2e8f0; border-radius: 8px; background: #fff; color: #374151; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; font-family: 'Outfit', sans-serif; }
 .page-btn:hover:not(:disabled) { border-color: #0f172a; color: #0f172a; }
-.page-btn.active { background: #0f172a; border-color: #0f172a; color: #fff; }
+.page-btn.active { background: #0d9488; border-color: #0d9488; color: #fff; }
 .page-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 `;

@@ -488,7 +488,7 @@ const s: Record<string, React.CSSProperties> = {
   inputRow: { display: "flex", gap: 8, alignItems: "center" },
   attachBtn: { background: "none", border: "none", color: "#94a3b8", cursor: "pointer", padding: 6, borderRadius: 8, display: "flex", alignItems: "center", transition: "color 0.15s" },
   textInput: { flex: 1, background: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: 12, padding: "10px 16px", fontSize: 14, fontFamily: "inherit", color: "#0f172a", outline: "none", transition: "border-color 0.2s" },
-  sendBtn: { background: "linear-gradient(135deg, #FF6B35, #F7931E)", border: "none", borderRadius: 12, padding: "10px 14px", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", transition: "opacity 0.15s", boxShadow: "0 4px 12px rgba(255,107,53,0.3)" },
+  sendBtn: { background: "#0d9488", border: "none", borderRadius: 12, padding: "10px 14px", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.15s, opacity 0.15s", boxShadow: "0 4px 12px rgba(13,148,136,0.3)" },
   emptyChat: { flex: 1, display: "flex", alignItems: "center", justifyContent: "center", background: "#f8fafc" },
   emptyChatInner: { display: "flex", flexDirection: "column", alignItems: "center" },
   emptyChatIcon: { fontSize: 56, marginBottom: 16, filter: "grayscale(0.3)" },

@@ -151,7 +151,7 @@ const Customers = () => {
             <h1 style={styles.title}>Customers</h1>
             <p style={styles.subtitle}>Manage and track your customer base</p>
           </div>
-          <button style={styles.exportBtn}>↑ Export CSV</button>
+          <button style={styles.exportBtn} className="export-btn">↑ Export CSV</button>
         </div>
 
         {/* Stat cards */}
@@ -272,7 +272,7 @@ const styles: Record<string, React.CSSProperties> = {
   header: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 32 },
   title: { fontSize: 28, fontWeight: 700, color: "#0f172a", margin: 0, letterSpacing: "-0.5px" },
   subtitle: { fontSize: 14, color: "#94a3b8", margin: "4px 0 0", fontWeight: 400 },
-  exportBtn: { background: "#0f172a", color: "#fff", border: "none", borderRadius: 8, padding: "10px 18px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" },
+  exportBtn: { background: "#0d9488", color: "#fff", border: "none", borderRadius: 8, padding: "10px 18px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", transition: "background 0.15s" },
   statsRow: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 28 },
   statCard: { background: "#fff", borderRadius: 12, padding: "20px 22px", display: "flex", alignItems: "center", gap: 16, boxShadow: "0 1px 4px rgba(0,0,0,0.07)", border: "1px solid #f1f5f9" },
   statLabel: { fontSize: 12, color: "#94a3b8", margin: 0, textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 600 },
@@ -311,6 +311,7 @@ const css = `
   .cust-row:hover td { background: #fafafa !important; }
   .cust-search:focus { border-color: #FF6B35 !important; box-shadow: 0 0 0 3px rgba(255,107,53,0.1); }
   .stat-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1) !important; transition: box-shadow 0.2s; }
+  .export-btn:hover { background: #0f766e !important; }
 `;
 
 export default Customers;

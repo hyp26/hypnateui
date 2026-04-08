@@ -634,11 +634,11 @@ export const Dashboard: React.FC = () => {
               onClick={() => navigate("/onboarding")}
               style={{
                 marginTop: "16px", width: "100%", padding: "11px",
-                background: "#0f172a", color: "#fff", border: "none",
+                background: "#0d9488", color: "#fff", border: "none",
                 borderRadius: "12px", fontSize: "14px", fontWeight: 600, cursor: "pointer",
               }}
-              onMouseEnter={e => (e.currentTarget.style.background = "#1e293b")}
-              onMouseLeave={e => (e.currentTarget.style.background = "#0f172a")}
+              onMouseEnter={e => (e.currentTarget.style.background = "#0f766e")}
+              onMouseLeave={e => (e.currentTarget.style.background = "#0d9488")}
             >
               Complete Setup →
             </button>
