@@ -52,7 +52,7 @@ export const PublicLayout = () => {
             <img
               src="/assets/logo.svg"
               alt="Hypnate Logo"
-              className="h-10 w-auto object-contain"
+              className="h-16 w-auto object-contain py-1"
             />
           </Link>
 
@@ -131,7 +131,7 @@ export const PublicLayout = () => {
             <img
               src="/assets/logo.svg"
               alt="Hypnate Logo"
-              className="h-30 w-auto mx-auto object-contain"
+              className="h-32 w-auto object-contain"
             />
 
             <p className="mt-6 text-sm text-gray-400 leading-relaxed">
@@ -209,7 +209,7 @@ export const PublicLayout = () => {
         </div>
 
         <div className="max-w-7xl mx-auto pt-8 border-t border-gray-800 text-sm text-center md:text-left flex flex-col md:flex-row justify-between items-center">
-          <p>© 2025 Hypnate Technologies Pvt Ltd. All rights reserved.</p>
+          <p>© 2026 Hypnate Solutions Pvt Ltd. All rights reserved.</p>
           <p className="mt-2 md:mt-0 text-gray-500">Made with ❤️ in India</p>
         </div>
       </footer>
