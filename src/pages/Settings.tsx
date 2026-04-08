@@ -95,6 +95,15 @@ const CHANNEL_CFG = {
   telegram: { name: "Telegram", icon: Send, gradient: "linear-gradient(135deg,#0284c7,#0369a1)", glow: "rgba(2,132,199,0.15)", desc: "Connect your Telegram Bot for customer support" },
 };
 
+/* ─── PAYMENT GATEWAYS ─── */
+const GATEWAYS = [
+  { id: "razorpay", name: "Razorpay", logo: "R", gradient: "linear-gradient(135deg,#3b82f6,#1d4ed8)", tagline: "Most popular in India", fees: "2% per transaction", fields: [{ key: "keyId", label: "Key ID", placeholder: "rzp_live_... or rzp_test_..." }, { key: "keySecret", label: "Key Secret", placeholder: "••••••••••••••••" }] },
+  { id: "payu", name: "PayU", logo: "P", gradient: "linear-gradient(135deg,#f97316,#ea580c)", tagline: "Trusted by 5M+ businesses", fees: "1.99% per transaction", fields: [{ key: "merchantId", label: "Merchant Key", placeholder: "Your PayU Merchant Key" }, { key: "salt", label: "Salt", placeholder: "Your PayU Salt" }] },
+  { id: "cashfree", name: "Cashfree", logo: "C", gradient: "linear-gradient(135deg,#16a34a,#15803d)", tagline: "Lowest fees, fast settlements", fees: "1.75% per transaction", fields: [{ key: "keyId", label: "App ID", placeholder: "Your Cashfree App ID" }, { key: "keySecret", label: "Secret Key", placeholder: "••••••••••••••••" }] },
+  { id: "skydo", name: "Skydo", logo: "S", gradient: "linear-gradient(135deg,#7c3aed,#5b21b6)", tagline: "Best for international payments", fees: "1.99% + forex savings", fields: [{ key: "keyId", label: "API Key", placeholder: "Your Skydo API Key" }, { key: "keySecret", label: "API Secret", placeholder: "••••••••••••••••" }] },
+  { id: "cod", name: "Cash on Delivery", logo: "₹", gradient: "linear-gradient(135deg,#64748b,#475569)", tagline: "No setup needed", fees: "Free — collect at delivery", fields: [] },
+];
+
 /* ─── TABS ─── */
 const TABS = [
   { id: "profile", label: "Profile", icon: User },
@@ -138,8 +147,13 @@ export const Settings: React.FC = () => {
   const [plForm, setPlForm] = useState({ amount: '', customerName: '', customerPhone: '', customerEmail: '', description: '' });
   const [plResult, setPlResult] = useState<{ shortUrl: string; amount: number } | null>(null);
   const [plCopied, setPlCopied] = useState(false);
-  const [paymentOptions, setPaymentOptions] = useState({ razorpay: true, cod: true });
-  const [razorpayKey, setRazorpayKey] = useState("rzp_test_123456789");
+  const [paymentOptions, setPaymentOptions] = useState<Record<string, boolean>>({ razorpay: true, payu: false, cashfree: false, skydo: false, cod: true });
+  const [gatewayKeys, setGatewayKeys] = useState<Record<string, any>>({
+    razorpay: { keyId: "rzp_test_123456789", keySecret: "" },
+    payu: { merchantId: "", salt: "" },
+    cashfree: { keyId: "", keySecret: "" },
+    skydo: { keyId: "", keySecret: "" }
+  });
 
   // Channels (from local state since no backend yet)
   const [channels, setChannels] = useState({ whatsapp: false, instagram: false, facebook: false, telegram: false });
@@ -508,38 +522,45 @@ export const Settings: React.FC = () => {
                         <p style={{ fontSize: 13, color: "#94a3b8", margin: 0 }}>Configure how your customers can pay you.</p>
                       </div>
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                        {/* Razorpay Card */}
-                        <div className="channel-card" style={{ padding: 20, borderRadius: 14, border: `1.5px solid ${paymentOptions.razorpay ? "#bbf7d0" : "#f1f5f9"}`, background: paymentOptions.razorpay ? "#f0fdf4" : "#fff", cursor: "pointer", transition: "all 0.2s" }} onClick={() => setPaymentOptions(p => ({ ...p, razorpay: !p.razorpay }))}>
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: paymentOptions.razorpay ? 16 : 0 }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                              <CreditCard size={20} color={paymentOptions.razorpay ? "#16a34a" : "#64748b"} />
-                              <span style={{ fontSize: 14, fontWeight: 700, color: "#0f172a" }}>Razorpay</span>
+                        {GATEWAYS.map(gw => {
+                          const isEnabled = paymentOptions[gw.id];
+                          return (
+                            <div key={gw.id} className="channel-card" style={{ padding: 20, borderRadius: 14, border: `1.5px solid ${isEnabled ? "#bbf7d0" : "#f1f5f9"}`, background: isEnabled ? "#f0fdf4" : "#fff", cursor: "pointer", transition: "all 0.2s" }} onClick={() => setPaymentOptions(p => ({ ...p, [gw.id]: !p[gw.id] }))}>
+                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: isEnabled && gw.fields.length > 0 ? 16 : 0 }}>
+                                <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                                  <div style={{ width: 44, height: 44, borderRadius: 12, background: gw.gradient, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: `0 4px 12px ${gw.gradient.replace("linear-gradient", "rgba").split(",")[1].trim().replace(")", ",0.25)")}` }}>
+                                    <span style={{ fontSize: 20, fontWeight: 800, color: "#fff" }}>{gw.logo}</span>
+                                  </div>
+                                  <div style={{ flex: 1, minWidth: 0 }}>
+                                    <p style={{ fontWeight: 800, color: "#0f172a", fontSize: 16, margin: "0 0 2px" }}>{gw.name}</p>
+                                    <p style={{ fontSize: 12, color: "#64748b", margin: 0 }}>{gw.tagline}</p>
+                                    <p style={{ fontSize: 13, fontWeight: 700, color: "#0d9488", margin: "4px 0 0" }}>{gw.fees}</p>
+                                  </div>
+                                </div>
+                                <div style={{ width: 44, height: 24, borderRadius: 12, background: isEnabled ? "#16a34a" : "#e2e8f0", position: "relative", transition: "background 0.2s", flexShrink: 0, marginTop: 10 }}>
+                                  <div style={{ position: "absolute", top: 2, left: isEnabled ? 22 : 2, width: 20, height: 20, borderRadius: "50%", background: "#fff", transition: "left 0.2s", boxShadow: "0 1px 4px rgba(0,0,0,0.15)" }} />
+                                </div>
+                              </div>
+                              {isEnabled && gw.fields.length > 0 && (
+                                <div onClick={e => e.stopPropagation()} style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 16, paddingTop: 16, borderTop: "1px solid #e2e8f0" }}>
+                                  {gw.fields.map(field => (
+                                    <div key={field.key}>
+                                      <Label>{field.label}</Label>
+                                      <input 
+                                        value={gatewayKeys[gw.id]?.[field.key] || ""} 
+                                        onChange={e => setGatewayKeys(prev => ({ ...prev, [gw.id]: { ...prev[gw.id], [field.key]: e.target.value } }))} 
+                                        style={{...iStyle, padding: "8px 12px", fontSize: 13, fontFamily: "monospace"}} 
+                                        placeholder={field.placeholder} 
+                                        type={field.key.toLowerCase().includes('secret') || field.key.toLowerCase().includes('salt') ? "password" : "text"}
+                                        onFocus={focusIn} onBlur={focusOut} 
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                             </div>
-                            <div style={{ width: 44, height: 24, borderRadius: 12, background: paymentOptions.razorpay ? "#16a34a" : "#e2e8f0", position: "relative", transition: "background 0.2s" }}>
-                              <div style={{ position: "absolute", top: 2, left: paymentOptions.razorpay ? 22 : 2, width: 20, height: 20, borderRadius: "50%", background: "#fff", transition: "left 0.2s", boxShadow: "0 1px 4px rgba(0,0,0,0.15)" }} />
-                            </div>
-                          </div>
-                          {paymentOptions.razorpay && (
-                            <div onClick={e => e.stopPropagation()}>
-                              <Label>Razorpay Key ID</Label>
-                              <input value={razorpayKey} onChange={e => setRazorpayKey(e.target.value)} style={{...iStyle, padding: "8px 12px", fontSize: 13}} placeholder="rzp_test_..." onFocus={focusIn} onBlur={focusOut} />
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Cash on Delivery Card */}
-                        <div className="channel-card" style={{ padding: 20, borderRadius: 14, border: `1.5px solid ${paymentOptions.cod ? "#bbf7d0" : "#f1f5f9"}`, background: paymentOptions.cod ? "#f0fdf4" : "#fff", cursor: "pointer", transition: "all 0.2s", display: "flex", flexDirection: "column", justifyContent: "center" }} onClick={() => setPaymentOptions(p => ({ ...p, cod: !p.cod }))}>
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                              <CheckCheck size={20} color={paymentOptions.cod ? "#16a34a" : "#64748b"} />
-                              <span style={{ fontSize: 14, fontWeight: 700, color: "#0f172a" }}>Cash on Delivery</span>
-                            </div>
-                            <div style={{ width: 44, height: 24, borderRadius: 12, background: paymentOptions.cod ? "#16a34a" : "#e2e8f0", position: "relative", transition: "background 0.2s" }}>
-                              <div style={{ position: "absolute", top: 2, left: paymentOptions.cod ? 22 : 2, width: 20, height: 20, borderRadius: "50%", background: "#fff", transition: "left 0.2s", boxShadow: "0 1px 4px rgba(0,0,0,0.15)" }} />
-                            </div>
-                          </div>
-                          <p style={{ margin: "8px 0 0", fontSize: 12, color: paymentOptions.cod ? "#166534" : "#64748b", lineHeight: 1.5 }}>Allow customers to pay in cash upon receiving the order.</p>
-                        </div>
+                          );
+                        })}
                       </div>
                       <div style={{ marginTop: 16, display: "flex", justifyContent: "flex-end" }}>
                         <button onClick={() => showToast("Payment gateway preferences saved")} disabled={loading} style={{ display: "flex", alignItems: "center", gap: 8, padding: "9px 20px", background: "#0f172a", color: "#fff", borderRadius: 10, fontSize: 13, fontWeight: 700, border: "none", cursor: "pointer", fontFamily: "inherit" }}>
