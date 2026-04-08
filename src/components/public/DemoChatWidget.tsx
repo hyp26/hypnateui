@@ -19,8 +19,8 @@ export const DemoChatWidget = () => {
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { id: '1', text: 'Hi there! 👋 Welcome to the Hypnate Demo Store.', sender: 'bot' },
-    { id: '2', text: 'I am an AI agent. Try asking "Show me products" or "What is the price?"', sender: 'bot' }
+    { id: '1', text: 'Hi there! 👋 Welcome to Hypnate.', sender: 'bot' },
+    { id: '2', text: 'We will be launching soon!', sender: 'bot' }
   ]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -43,29 +43,11 @@ export const DemoChatWidget = () => {
 
     // Simulate AI processing
     setTimeout(() => {
-      let botResponse: Message = { id: (Date.now() + 1).toString(), text: "I'm not sure I understand. Try 'Show products'.", sender: 'bot' };
-      
-      const lowerInput = userMsg.text.toLowerCase();
-
-      if (lowerInput.includes('hi') || lowerInput.includes('hello')) {
-        botResponse.text = "Hello! How can I help you shop today?";
-      } else if (lowerInput.includes('show') || lowerInput.includes('product')) {
-        botResponse = { 
-          id: (Date.now() + 1).toString(), 
-          text: "Here are our best-sellers:", 
-          sender: 'bot',
-          type: 'product_carousel'
-        };
-      } else if (lowerInput.includes('price') || lowerInput.includes('cost')) {
-        botResponse.text = "Our prices start from ₹299. Would you like to see the catalog?";
-      } else if (lowerInput.includes('buy') || lowerInput.includes('order')) {
-        botResponse = {
-          id: (Date.now() + 1).toString(),
-          text: "Great choice! Here is your secure payment link.",
-          sender: 'bot',
-          type: 'payment_link'
-        };
-      }
+      const botResponse: Message = { 
+        id: (Date.now() + 1).toString(), 
+        text: "We will be launching soon!", 
+        sender: 'bot' 
+      };
 
       setMessages(prev => [...prev, botResponse]);
       setIsTyping(false);

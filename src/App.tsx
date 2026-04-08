@@ -38,7 +38,7 @@ import Customers from './pages/Customers';
 import { HypnateX } from './pages/HypnateX'; // ✅ added
 
 // Public Website Pages
-import { Home } from './pages/public/Home';
+import Home from './pages/public/Home';
 import { About } from './pages/public/About';
 import { Pricing } from './pages/public/Pricing';
 import { Contact } from './pages/public/Contact';
