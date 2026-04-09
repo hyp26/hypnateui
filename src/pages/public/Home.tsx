@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { MessageCircle, ShoppingBag, CreditCard, ArrowRight, Star, Instagram, Bot, BarChart } from 'lucide-react';
+import { HypnateDemoPlayer } from '../../components/public/HypnateDemoPlayer';
 
 export const Home = () => {
     return (
@@ -42,16 +43,7 @@ export const Home = () => {
                     <div className="mt-20 relative mx-auto max-w-5xl animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-200">
                         <div className="absolute -inset-4 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-2xl opacity-20 blur-3xl"></div>
                         <div className="relative bg-gray-900 rounded-2xl shadow-2xl border border-gray-800 overflow-hidden aspect-[16/9] flex items-center justify-center group">
-                            <img
-                                src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1600&q=80"
-                                alt="Hypnate Dashboard Interface"
-                                className="w-full h-full object-cover opacity-90 transition-opacity group-hover:opacity-100"
-                            />
-                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                <div className="bg-white/10 backdrop-blur-md border border-white/20 px-6 py-3 rounded-full text-white font-medium animate-pulse">
-                                    Live Dashboard Preview
-                                </div>
-                            </div>
+                            <HypnateDemoPlayer />
                         </div>
                     </div>
                 </div>
@@ -121,27 +113,18 @@ export const Home = () => {
             <section className="py-24 px-6 bg-primary-50/30">
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center mb-16">
-                        <h2 className="text-3xl font-bold text-gray-900">Loved by Merchants</h2>
+                        <h2 className="text-3xl font-bold text-gray-900">Early access now open</h2>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {[
-                            { name: 'Priya Sharma', role: 'Founder, EthnicWeaves', text: "Hypnate transformed how we handle inquiries. The AI agent saves us 4 hours every day!" },
-                            { name: 'Rahul Verma', role: 'Owner, UrbanKicks', text: "Sales went up by 40% after we started using the WhatsApp catalog feature. Highly recommended." },
-                            { name: 'Anjali Gupta', role: 'Marketing Head, GlowCosmetics', text: "The best part is the unified inbox. My team no longer switches between apps." },
+                            { title: 'Be among the first', text: "We’re onboarding early businesses to shape the future of AI commerce." },
+                            { title: 'Direct feedback loop', text: "Help us build the perfect AI commerce platform with your insights." },
+                            { title: 'Founding perks', text: "Early users get lifetime benefits and priority support." },
                         ].map((t, idx) => (
                             <div key={idx} className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-                                <div className="flex gap-1 text-yellow-400 mb-4">
-                                    {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-current" />)}
-                                </div>
                                 <p className="text-gray-700 mb-6 italic">"{t.text}"</p>
-                                <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-500">
-                                        {t.name.charAt(0)}
-                                    </div>
-                                    <div>
-                                        <h4 className="font-bold text-gray-900 text-sm">{t.name}</h4>
-                                        <p className="text-xs text-gray-500">{t.role}</p>
-                                    </div>
+                                <div className="flex items-center gap-2 text-primary-600 font-semibold text-sm">
+                                    <span>{t.title}</span>
                                 </div>
                             </div>
                         ))}
@@ -155,13 +138,13 @@ export const Home = () => {
                     <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
                     <div className="relative z-10">
                         <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to automate your sales?</h2>
-                        <p className="text-primary-100 mb-8 text-lg">Join thousands of businesses growing with Hypnate today.</p>
+                        <p className="text-primary-100 mb-8 text-lg">Join early businesses building with Hypnate today.</p>
                         <Link to="/signup">
                             <Button size="lg" className="bg-white text-primary-900 hover:bg-gray-100 rounded-full px-10 h-14 font-bold border-0">
                                 Get Started for Free
                             </Button>
                         </Link>
-                        <p className="mt-4 text-sm text-primary-200 opacity-80">No credit card required • 14-day free trial</p>
+                        <p className="mt-4 text-sm text-primary-200 opacity-80">No credit card required • 28-day free trial</p>
                     </div>
                 </div>
             </section>
