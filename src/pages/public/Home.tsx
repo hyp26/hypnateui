@@ -144,7 +144,7 @@ export const Home = () => {
                                 Get Started for Free
                             </Button>
                         </Link>
-                        <p className="mt-4 text-sm text-primary-200 opacity-80">No credit card required • 28-day free trial</p>
+                        <p className="mt-4 text-sm text-primary-200 opacity-80">No credit card required • 14-day free trial</p>
                     </div>
                 </div>
             </section>
