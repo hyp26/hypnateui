@@ -10,10 +10,16 @@ import {
   CreditCard,
   BarChart3,
   Wand2,
+  X,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
-export const Sidebar = () => {
+interface SidebarProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+export const Sidebar = ({ open, onClose }: SidebarProps) => {
   const { t } = useTranslation();
 
   const navItems = [
@@ -27,59 +33,82 @@ export const Sidebar = () => {
   ];
 
   return (
-    <div className="h-screen w-64 bg-primary-900 border-r border-primary-800 flex flex-col fixed left-0 top-0 z-10 shadow-xl">
-
-      {/* ── Logo ── */}
-      <div className="p-6 border-b border-primary-800 flex justify-center">
-        <img
-          src="/assets/logo.svg"
-          alt="Hypnate Logo"
-          className="h-55 w-150 object-contain"
+    <>
+      {/* Mobile backdrop */}
+      {open && (
+        <div
+          className="fixed inset-0 bg-black/50 z-20 lg:hidden"
+          onClick={onClose}
         />
-      </div>
+      )}
 
-      {/* ── Navigation ── */}
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            className={({ isActive }) =>
-              cn(
-                'flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200',
-                isActive
-                  ? 'bg-secondary-500 text-white shadow-lg shadow-secondary-900/20 translate-x-1'
-                  : 'text-primary-100 hover:bg-primary-800 hover:text-white'
-              )
-            }
-          >
-            <item.icon className="w-5 h-5 shrink-0" />
-            {item.label}
-          </NavLink>
-        ))}
+      {/* Sidebar panel */}
+      <div className={cn(
+        "fixed left-0 top-0 h-screen w-64 bg-primary-900 border-r border-primary-800 flex flex-col z-30 shadow-xl transition-transform duration-300",
+        // On mobile: slide in/out. On lg+: always visible
+        open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+      )}>
 
-        {/* ── Hypnate X — special item ── */}
-        <div className="pt-3 mt-3 border-t border-primary-800">
-          <NavLink
-            to="/hypnate-x"
-            className={({ isActive }) =>
-              cn(
-                'flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200',
-                isActive
-                  ? 'bg-violet-600 text-white shadow-lg translate-x-1'
-                  : 'text-violet-300 hover:bg-violet-900/40 hover:text-violet-100'
-              )
-            }
+        {/* Logo + mobile close button */}
+        <div className="p-5 border-b border-primary-800 flex items-center justify-between">
+          <img
+            src="/assets/logo.svg"
+            alt="Hypnate Logo"
+            className="h-12 w-auto object-contain"
+          />
+          <button
+            onClick={onClose}
+            className="lg:hidden p-1.5 rounded-lg text-primary-300 hover:bg-primary-800 transition-colors"
+            aria-label="Close sidebar"
           >
-            <Wand2 className="w-5 h-5 shrink-0" />
-            <span>Hypnate X</span>
-            <span className="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded bg-violet-500 text-white leading-tight">
-              NEW
-            </span>
-          </NavLink>
+            <X className="w-5 h-5" />
+          </button>
         </div>
-      </nav>
 
-    </div>
+        {/* Navigation */}
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              onClick={onClose}
+              className={({ isActive }) =>
+                cn(
+                  'flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200',
+                  isActive
+                    ? 'bg-secondary-500 text-white shadow-lg shadow-secondary-900/20 translate-x-1'
+                    : 'text-primary-100 hover:bg-primary-800 hover:text-white'
+                )
+              }
+            >
+              <item.icon className="w-5 h-5 shrink-0" />
+              {item.label}
+            </NavLink>
+          ))}
+
+          {/* Hypnate X */}
+          <div className="pt-3 mt-3 border-t border-primary-800">
+            <NavLink
+              to="/hypnate-x"
+              onClick={onClose}
+              className={({ isActive }) =>
+                cn(
+                  'flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200',
+                  isActive
+                    ? 'bg-violet-600 text-white shadow-lg translate-x-1'
+                    : 'text-violet-300 hover:bg-violet-900/40 hover:text-violet-100'
+                )
+              }
+            >
+              <Wand2 className="w-5 h-5 shrink-0" />
+              <span>Hypnate X</span>
+              <span className="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded bg-violet-500 text-white leading-tight">
+                NEW
+              </span>
+            </NavLink>
+          </div>
+        </nav>
+      </div>
+    </>
   );
 };
