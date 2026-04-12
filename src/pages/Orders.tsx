@@ -9,10 +9,8 @@ import {
 import { format } from 'date-fns';
 import api from '../lib/api';
 
-// ── Types ──────────────────────────────────────────────────────────────────
 type StatusFilter = 'all' | 'PENDING' | 'PAYMENT_PENDING' | 'PAID' | 'CONFIRMED' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
 
-// ── Status config ──────────────────────────────────────────────────────────
 const STATUS_CFG: Record<string, { label: string; color: string; bg: string; dot: string; icon: React.ReactNode }> = {
   PENDING: { label: 'Pending', color: '#92400e', bg: '#fef3c7', dot: '#f59e0b', icon: <Clock size={11} /> },
   PAYMENT_PENDING: { label: 'Payment Pending', color: '#9a3412', bg: '#fff7ed', dot: '#f97316', icon: <CreditCard size={11} /> },
@@ -50,7 +48,6 @@ const PayBadge = ({ status }: { status: string }) => (
   </span>
 );
 
-// ── Component ──────────────────────────────────────────────────────────────
 export const Orders: React.FC = () => {
   const { orders, fetchOrders, loading, error } = useOrderStore();
   const navigate = useNavigate();
@@ -66,7 +63,6 @@ export const Orders: React.FC = () => {
     return () => clearTimeout(t);
   }, [fetchOrders]);
 
-  // ── Export with cookie auth ────────────────────────────────────────────
   const handleExport = async () => {
     try {
       setExporting(true);
@@ -82,13 +78,10 @@ export const Orders: React.FC = () => {
     finally { setExporting(false); }
   };
 
-  // ── Filter ────────────────────────────────────────────────────────────
   const filtered = orders.filter(order => {
     const matchStatus = filterStatus === 'all' || order.status?.toUpperCase() === filterStatus;
     const q = searchQuery.toLowerCase();
-    const matchSearch = !q ||
-      String(order.id).includes(q) ||
-      order.customerName?.toLowerCase().includes(q);
+    const matchSearch = !q || String(order.id).includes(q) || order.customerName?.toLowerCase().includes(q);
     return matchStatus && matchSearch;
   });
 
@@ -102,7 +95,6 @@ export const Orders: React.FC = () => {
       <style>{css}</style>
       <div className={`or-root ${visible ? 'or-visible' : ''}`}>
 
-        {/* ── HEADER ── */}
         <div className="or-header">
           <div>
             <h1 className="or-title">Orders</h1>
@@ -115,12 +107,11 @@ export const Orders: React.FC = () => {
             <button onClick={handleExport} disabled={exporting} className="or-export-btn">
               {exporting
                 ? <><div className="or-btn-spinner" /> Exporting…</>
-                : <><Download size={14} /> Export CSV</>}
+                : <><Download size={14} /> <span className="or-export-label">Export CSV</span></>}
             </button>
           </div>
         </div>
 
-        {/* ── STATS ── */}
         <div className="or-stats">
           {[
             { label: 'Total Orders', value: orders.length, color: '#0ea5e9' },
@@ -135,14 +126,13 @@ export const Orders: React.FC = () => {
           ))}
         </div>
 
-        {/* ── TOOLBAR ── */}
         <div className="or-toolbar">
           <div className="or-search-wrap">
             <Search size={14} className="or-search-icon" />
             <input
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search by order ID or customer name…"
+              placeholder="Search by order ID or customer…"
               className="or-search"
             />
           </div>
@@ -164,7 +154,6 @@ export const Orders: React.FC = () => {
           </div>
         </div>
 
-        {/* ── TABLE ── */}
         <div className="or-table-wrap">
           {loading ? (
             <div className="or-state">
@@ -186,61 +175,76 @@ export const Orders: React.FC = () => {
               </p>
             </div>
           ) : (
-            <table className="or-table">
-              <thead>
-                <tr>
-                  <th>Order</th>
-                  <th>Date</th>
-                  <th>Customer</th>
-                  <th>Items</th>
-                  <th>Payment</th>
-                  <th>Status</th>
-                  <th style={{ textAlign: 'right' }}>Total</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
+            <>
+              {/* Desktop table */}
+              <table className="or-table or-desktop-table">
+                <thead>
+                  <tr>
+                    <th>Order</th>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Items</th>
+                    <th>Payment</th>
+                    <th>Status</th>
+                    <th style={{ textAlign: 'right' }}>Total</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((order, i) => {
+                    const items = order.items || [];
+                    const total = order.total || 0;
+                    return (
+                      <tr key={order.id} className="or-row" onClick={() => navigate(`/orders/${order.id}`)} style={{ animationDelay: `${i * 25}ms` }}>
+                        <td><span className="or-id">#{String(order.id).padStart(4, '0')}</span></td>
+                        <td className="or-date">{order.createdAt ? format(new Date(order.createdAt), 'dd MMM yyyy') : '—'}</td>
+                        <td>
+                          <div className="or-customer">
+                            <div className="or-avatar">{order.customerName?.charAt(0)?.toUpperCase() || '?'}</div>
+                            <div>
+                              <p className="or-cname">{order.customerName}</p>
+                              {order.customerPhone && <p className="or-cphone">{order.customerPhone}</p>}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="or-items-count">{items.length} item{items.length !== 1 ? 's' : ''}</td>
+                        <td><PayBadge status={order.paymentStatus} /></td>
+                        <td><StatusBadge status={order.status} /></td>
+                        <td style={{ textAlign: 'right' }}><span className="or-total">{fmt(total)}</span></td>
+                        <td><ChevronRight size={16} color="#94a3b8" /></td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+
+              {/* Mobile cards */}
+              <div className="or-mobile-list">
                 {filtered.map((order, i) => {
                   const items = order.items || [];
-                  const total = order.total || 0;
                   return (
-                    <tr
-                      key={order.id}
-                      className="or-row"
-                      onClick={() => navigate(`/orders/${order.id}`)}
-                      style={{ animationDelay: `${i * 25}ms` }}
-                    >
-                      <td>
-                        <span className="or-id">#{String(order.id).padStart(4, '0')}</span>
-                      </td>
-                      <td className="or-date">
-                        {order.createdAt ? format(new Date(order.createdAt), 'dd MMM yyyy') : '—'}
-                      </td>
-                      <td>
-                        <div className="or-customer">
-                          <div className="or-avatar">
-                            {order.customerName?.charAt(0)?.toUpperCase() || '?'}
-                          </div>
+                    <div key={order.id} className="or-mobile-card" onClick={() => navigate(`/orders/${order.id}`)} style={{ animationDelay: `${i * 25}ms` }}>
+                      <div className="or-mobile-top">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <div className="or-avatar">{order.customerName?.charAt(0)?.toUpperCase() || '?'}</div>
                           <div>
                             <p className="or-cname">{order.customerName}</p>
-                            {order.customerPhone && <p className="or-cphone">{order.customerPhone}</p>}
+                            <p className="or-cphone">{order.createdAt ? format(new Date(order.createdAt), 'dd MMM yyyy') : '—'}</p>
                           </div>
                         </div>
-                      </td>
-                      <td className="or-items-count">
-                        {items.length} item{items.length !== 1 ? 's' : ''}
-                      </td>
-                      <td><PayBadge status={order.paymentStatus} /></td>
-                      <td><StatusBadge status={order.status} /></td>
-                      <td style={{ textAlign: 'right' }}>
-                        <span className="or-total">{fmt(total)}</span>
-                      </td>
-                      <td><ChevronRight size={16} color="#94a3b8" /></td>
-                    </tr>
+                        <span className="or-total">{fmt(order.total || 0)}</span>
+                      </div>
+                      <div className="or-mobile-bottom">
+                        <span className="or-id">#{String(order.id).padStart(4, '0')}</span>
+                        <span className="or-items-count">{items.length} item{items.length !== 1 ? 's' : ''}</span>
+                        <PayBadge status={order.paymentStatus} />
+                        <StatusBadge status={order.status} />
+                      </div>
+                    </div>
                   );
                 })}
-              </tbody>
-            </table>
+              </div>
+            </>
           )}
         </div>
       </div>
@@ -256,14 +260,13 @@ const css = `
 .or-root { font-family:'Outfit',sans-serif; padding:28px 32px; opacity:0; transform:translateY(10px); transition:opacity 0.4s ease, transform 0.4s ease; }
 .or-visible { opacity:1 !important; transform:none !important; }
 
-.or-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; }
+.or-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; gap:12px; flex-wrap:wrap; }
 .or-title { font-size:28px; font-weight:800; color:#0f172a; margin:0; letter-spacing:-0.5px; }
 .or-sub { font-size:13px; color:#94a3b8; margin:4px 0 0; }
 
-.or-refresh-btn { display:flex; align-items:center; justify-content:center; width:38px; height:38px; border:1.5px solid #e2e8f0; border-radius:10px; background:#fff; cursor:pointer; color:#64748b; transition:background 0.15s; }
+.or-refresh-btn { display:flex; align-items:center; justify-content:center; width:38px; height:38px; border:1.5px solid #e2e8f0; border-radius:10px; background:#fff; cursor:pointer; color:#64748b; transition:background 0.15s; flex-shrink:0; }
 .or-refresh-btn:hover { background:#f1f5f9; }
 
-/* Keep teal/primary color for export button as requested */
 .or-export-btn { display:inline-flex; align-items:center; gap:7px; background:#0d9488; color:#fff; font-size:13px; font-weight:700; padding:10px 18px; border-radius:10px; border:none; cursor:pointer; font-family:'Outfit',sans-serif; transition:background 0.15s; }
 .or-export-btn:hover:not(:disabled) { background:#0f766e; }
 .or-export-btn:disabled { opacity:0.6; cursor:not-allowed; }
@@ -307,4 +310,29 @@ const css = `
 
 .or-state { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px 20px; gap:10px; color:#94a3b8; font-size:14px; text-align:center; }
 .or-spinner { width:28px; height:28px; border:3px solid #e2e8f0; border-top-color:#0d9488; border-radius:50%; animation:spin 0.7s linear infinite; }
+
+/* Mobile cards */
+.or-mobile-list { display:none; flex-direction:column; gap:0; }
+.or-mobile-card { padding:14px 16px; border-bottom:1px solid #f8fafc; cursor:pointer; transition:background 0.1s; animation:fadeUp 0.35s ease both; }
+.or-mobile-card:last-child { border-bottom:none; }
+.or-mobile-card:hover { background:#f8fafc; }
+.or-mobile-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+.or-mobile-bottom { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+
+@media (max-width: 768px) {
+  .or-root { padding:16px; }
+  .or-title { font-size:22px; }
+  .or-stats { grid-template-columns:repeat(2,1fr); gap:10px; }
+  .or-stat { padding:14px 16px; }
+  .or-stat-val { font-size:22px; }
+  .or-desktop-table { display:none; }
+  .or-mobile-list { display:flex !important; }
+  .or-export-label { display:none; }
+  .or-export-btn { padding:10px 12px; }
+}
+
+@media (max-width: 480px) {
+  .or-stats { grid-template-columns:repeat(2,1fr); }
+  .or-tab { font-size:11px; padding:5px 8px; }
+}
 `;

@@ -12,7 +12,6 @@ import api from '../lib/api';
 const fmt = (n: number) =>
   new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
 
-// ── Status config ──────────────────────────────────────────────────────────
 const STATUS_CFG: Record<string, { label: string; color: string; bg: string; dot: string }> = {
   PENDING: { label: 'Pending', color: '#92400e', bg: '#fef3c7', dot: '#f59e0b' },
   PAYMENT_PENDING: { label: 'Payment Pending', color: '#9a3412', bg: '#fff7ed', dot: '#f97316' },
@@ -38,7 +37,6 @@ const StatusBadge = ({ status }: { status: string }) => {
   );
 };
 
-// ── Timeline steps ─────────────────────────────────────────────────────────
 const STEPS = [
   { id: 'PENDING', label: 'Order Placed', icon: Clock },
   { id: 'CONFIRMED', label: 'Confirmed', icon: CheckCircle2 },
@@ -46,7 +44,6 @@ const STEPS = [
   { id: 'DELIVERED', label: 'Delivered', icon: Package },
 ];
 
-// ── Component ──────────────────────────────────────────────────────────────
 export const OrderDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -58,7 +55,6 @@ export const OrderDetail: React.FC = () => {
 
   useEffect(() => { if (id) fetchOrder(id); }, [id, fetchOrder]);
 
-  // ── Download invoice with cookie auth ─────────────────────────────────
   const handleInvoice = async () => {
     try {
       setInvoiceLoading(true);
@@ -89,7 +85,6 @@ export const OrderDetail: React.FC = () => {
     </div>
   );
 
-  // Map products from backend shape
   const items = order.items || [];
   const currentStepIdx = STEPS.findIndex(s => s.id === order.status?.toUpperCase());
   const isCancelled = order.status?.toUpperCase() === 'CANCELLED';
@@ -99,13 +94,12 @@ export const OrderDetail: React.FC = () => {
       <style>{css}</style>
       <div className="od-root">
 
-        {/* ── HEADER ── */}
         <div className="od-header">
           <button onClick={() => navigate('/orders')} className="od-back">
             <ArrowLeft size={16} />
           </button>
           <div className="od-header-info">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div className="od-header-badges">
               <h1 className="od-title">Order #{String(order.id).padStart(4, '0')}</h1>
               <StatusBadge status={order.status} />
               {order.trackingNumber && (
@@ -119,26 +113,25 @@ export const OrderDetail: React.FC = () => {
             </p>
           </div>
 
-          {/* Action buttons — using primary teal color as requested */}
           <div className="od-actions">
             <button onClick={handleInvoice} disabled={invoiceLoading} className="od-btn-outline">
               <Printer size={14} />
-              {invoiceLoading ? 'Generating…' : 'Invoice'}
+              <span className="od-btn-label">{invoiceLoading ? 'Generating…' : 'Invoice'}</span>
             </button>
 
             {order.status?.toUpperCase() === 'PENDING' && (
               <button onClick={() => updateOrderStatus(order.id, 'confirmed')} className="od-btn-primary">
-                <CheckCircle2 size={14} /> Confirm Order
+                <CheckCircle2 size={14} /> <span className="od-btn-label">Confirm</span>
               </button>
             )}
             {order.status?.toUpperCase() === 'CONFIRMED' && (
               <button onClick={() => setShowTracking(true)} className="od-btn-primary">
-                <Truck size={14} /> Ship Order
+                <Truck size={14} /> <span className="od-btn-label">Ship</span>
               </button>
             )}
             {order.status?.toUpperCase() === 'SHIPPED' && (
               <button onClick={() => updateOrderStatus(order.id, 'delivered')} className="od-btn-primary">
-                <Package size={14} /> Mark Delivered
+                <Package size={14} /> <span className="od-btn-label">Delivered</span>
               </button>
             )}
             {!isCancelled && order.status?.toUpperCase() !== 'DELIVERED' && (
@@ -146,26 +139,21 @@ export const OrderDetail: React.FC = () => {
                 onClick={() => { if (window.confirm('Cancel this order?')) updateOrderStatus(order.id, 'cancelled'); }}
                 className="od-btn-danger"
               >
-                <XCircle size={14} /> Cancel
+                <XCircle size={14} /> <span className="od-btn-label">Cancel</span>
               </button>
             )}
           </div>
         </div>
 
         <div className="od-grid">
-          {/* ── LEFT ── */}
           <div className="od-left">
 
-            {/* Progress bar */}
             {!isCancelled && (
               <div className="od-card">
                 <h3 className="od-card-title">Order Progress</h3>
                 <div className="od-steps">
                   <div className="od-steps-line">
-                    <div
-                      className="od-steps-fill"
-                      style={{ width: currentStepIdx >= 0 ? `${(currentStepIdx / (STEPS.length - 1)) * 100}%` : '0%' }}
-                    />
+                    <div className="od-steps-fill" style={{ width: currentStepIdx >= 0 ? `${(currentStepIdx / (STEPS.length - 1)) * 100}%` : '0%' }} />
                   </div>
                   {STEPS.map((step, idx) => {
                     const done = idx <= currentStepIdx;
@@ -190,18 +178,13 @@ export const OrderDetail: React.FC = () => {
                       className="od-input"
                       onKeyDown={e => e.key === 'Enter' && handleTrackingSubmit()}
                     />
-                    <button onClick={handleTrackingSubmit} className="od-btn-primary" style={{ flexShrink: 0 }}>
-                      Save & Ship
-                    </button>
-                    <button onClick={() => setShowTracking(false)} className="od-btn-outline" style={{ flexShrink: 0 }}>
-                      Cancel
-                    </button>
+                    <button onClick={handleTrackingSubmit} className="od-btn-primary" style={{ flexShrink: 0 }}>Save & Ship</button>
+                    <button onClick={() => setShowTracking(false)} className="od-btn-outline" style={{ flexShrink: 0 }}>Cancel</button>
                   </div>
                 )}
               </div>
             )}
 
-            {/* Order items */}
             <div className="od-card">
               <h3 className="od-card-title">
                 Order Items
@@ -209,9 +192,6 @@ export const OrderDetail: React.FC = () => {
               </h3>
               <div className="od-items">
                 {items.map((item: any, i: number) => {
-                  // Handle both backend shapes:
-                  // shape A: { product: { name, imageUrl }, quantity, priceAtPurchase }
-                  // shape B: { name, image, quantity, price }
                   const name = item.product?.name || item.name || 'Unknown';
                   const img = item.product?.imageUrl || item.image || null;
                   const qty = item.quantity || 1;
@@ -233,26 +213,13 @@ export const OrderDetail: React.FC = () => {
                 })}
               </div>
 
-              {/* Totals */}
               <div className="od-totals">
-                <div className="od-total-row">
-                  <span>Subtotal</span>
-                  <span>{fmt(order.subtotal || 0)}</span>
-                </div>
-                {order.tax > 0 && (
-                  <div className="od-total-row">
-                    <span>Tax / GST</span>
-                    <span>{fmt(order.tax)}</span>
-                  </div>
-                )}
-                <div className="od-total-row grand">
-                  <span>Total</span>
-                  <span>{fmt(order.total || 0)}</span>
-                </div>
+                <div className="od-total-row"><span>Subtotal</span><span>{fmt(order.subtotal || 0)}</span></div>
+                {order.tax > 0 && <div className="od-total-row"><span>Tax / GST</span><span>{fmt(order.tax)}</span></div>}
+                <div className="od-total-row grand"><span>Total</span><span>{fmt(order.total || 0)}</span></div>
               </div>
             </div>
 
-            {/* Timeline */}
             {Array.isArray(order.timeline) && order.timeline.length > 0 && (
               <div className="od-card">
                 <h3 className="od-card-title">Activity Timeline</h3>
@@ -262,9 +229,7 @@ export const OrderDetail: React.FC = () => {
                       <div className="od-tl-dot" />
                       <div className="od-tl-content">
                         <p className="od-tl-note">{t.note || t.status}</p>
-                        <p className="od-tl-time">
-                          {t.timestamp ? format(new Date(t.timestamp), 'dd MMM yyyy, hh:mm a') : ''}
-                        </p>
+                        <p className="od-tl-time">{t.timestamp ? format(new Date(t.timestamp), 'dd MMM yyyy, hh:mm a') : ''}</p>
                       </div>
                     </div>
                   ))}
@@ -273,10 +238,8 @@ export const OrderDetail: React.FC = () => {
             )}
           </div>
 
-          {/* ── RIGHT ── */}
           <div className="od-right">
 
-            {/* Payment */}
             <div className="od-card">
               <h3 className="od-card-title"><CreditCard size={14} /> Payment</h3>
               <div className="od-pay-row">
@@ -301,61 +264,35 @@ export const OrderDetail: React.FC = () => {
                 <span style={{ fontWeight: 800, fontSize: 18 }}>{fmt(order.total || 0)}</span>
               </div>
               {order.paymentStatus?.toUpperCase() !== 'PAID' && !isCancelled && (
-                <button
-                  onClick={() => updatePaymentStatus(order.id, 'paid')}
-                  className="od-btn-primary"
-                  style={{ width: '100%', marginTop: 14 }}
-                >
+                <button onClick={() => updatePaymentStatus(order.id, 'paid')} className="od-btn-primary" style={{ width: '100%', marginTop: 14 }}>
                   <CheckCircle2 size={14} /> Mark as Paid
                 </button>
               )}
             </div>
 
-            {/* Customer */}
             <div className="od-card">
               <h3 className="od-card-title">Customer</h3>
               <div className="od-customer-block">
-                <div className="od-cust-avatar">
-                  {order.customerName?.charAt(0)?.toUpperCase() || '?'}
-                </div>
+                <div className="od-cust-avatar">{order.customerName?.charAt(0)?.toUpperCase() || '?'}</div>
                 <div>
                   <p style={{ fontWeight: 700, fontSize: 15, color: '#0f172a', margin: '0 0 2px' }}>{order.customerName}</p>
                   <p style={{ fontSize: 12, color: '#94a3b8', margin: 0 }}>Customer</p>
                 </div>
               </div>
               <div className="od-contact-list">
-                {order.customerEmail && (
-                  <div className="od-contact-item">
-                    <Mail size={13} color="#94a3b8" />
-                    <span>{order.customerEmail}</span>
-                  </div>
-                )}
-                {order.customerPhone && (
-                  <div className="od-contact-item">
-                    <Phone size={13} color="#94a3b8" />
-                    <span>{order.customerPhone}</span>
-                  </div>
-                )}
-                {order.shippingAddress && (
-                  <div className="od-contact-item">
-                    <MapPin size={13} color="#94a3b8" />
-                    <span>{order.shippingAddress}</span>
-                  </div>
-                )}
+                {order.customerEmail && <div className="od-contact-item"><Mail size={13} color="#94a3b8" /><span>{order.customerEmail}</span></div>}
+                {order.customerPhone && <div className="od-contact-item"><Phone size={13} color="#94a3b8" /><span>{order.customerPhone}</span></div>}
+                {order.shippingAddress && <div className="od-contact-item"><MapPin size={13} color="#94a3b8" /><span>{order.shippingAddress}</span></div>}
               </div>
             </div>
 
-            {/* Tracking */}
             {order.trackingNumber && (
               <div className="od-card">
                 <h3 className="od-card-title"><Truck size={14} /> Tracking</h3>
                 <div className="od-tracking-display">
                   <span>{order.trackingNumber}</span>
-                  <button
-                    className="od-btn-outline"
-                    style={{ padding: '5px 10px', fontSize: 12 }}
-                    onClick={() => window.open(`https://www.google.com/search?q=${order.trackingNumber}+tracking`, '_blank')}
-                  >
+                  <button className="od-btn-outline" style={{ padding: '5px 10px', fontSize: 12 }}
+                    onClick={() => window.open(`https://www.google.com/search?q=${order.trackingNumber}+tracking`, '_blank')}>
                     <ExternalLink size={11} /> Track
                   </button>
                 </div>
@@ -375,39 +312,33 @@ const css = `
 
 .od-root { font-family:'Outfit',sans-serif; padding:28px 32px; animation:fadeUp 0.4s ease; }
 
-/* Header */
 .od-header { display:flex; align-items:flex-start; gap:16px; margin-bottom:28px; flex-wrap:wrap; }
 .od-back { width:38px; height:38px; border-radius:10px; border:1.5px solid #e2e8f0; background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#374151; flex-shrink:0; transition:background 0.15s; }
 .od-back:hover { background:#f1f5f9; }
 .od-header-info { flex:1; min-width:0; }
+.od-header-badges { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
 .od-title { font-size:24px; font-weight:800; color:#0f172a; margin:0; letter-spacing:-0.5px; }
 .od-date { font-size:13px; color:#94a3b8; margin:5px 0 0; }
 .od-tracking-chip { display:inline-flex; align-items:center; gap:5px; background:#f1f5f9; color:#374151; font-size:11px; font-weight:600; padding:3px 10px; border-radius:20px; }
 
 .od-actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-left:auto; }
 
-/* Buttons — keeping teal as primary color */
 .od-btn-primary { display:inline-flex; align-items:center; gap:6px; background:#0d9488; color:#fff; font-size:13px; font-weight:700; padding:9px 16px; border-radius:10px; border:none; cursor:pointer; font-family:'Outfit',sans-serif; transition:background 0.15s; white-space:nowrap; }
 .od-btn-primary:hover:not(:disabled) { background:#0f766e; }
 .od-btn-primary:disabled { opacity:0.6; cursor:not-allowed; }
-
 .od-btn-outline { display:inline-flex; align-items:center; gap:6px; background:#fff; color:#374151; font-size:13px; font-weight:600; padding:9px 14px; border-radius:10px; border:1.5px solid #e2e8f0; cursor:pointer; font-family:'Outfit',sans-serif; transition:all 0.15s; white-space:nowrap; }
 .od-btn-outline:hover { border-color:#0d9488; color:#0d9488; }
-
 .od-btn-danger { display:inline-flex; align-items:center; gap:6px; background:#fef2f2; color:#dc2626; font-size:13px; font-weight:700; padding:9px 14px; border-radius:10px; border:1.5px solid #fecaca; cursor:pointer; font-family:'Outfit',sans-serif; transition:all 0.15s; }
 .od-btn-danger:hover { background:#fee2e2; }
 
-/* Grid */
 .od-grid { display:grid; grid-template-columns:1fr 320px; gap:20px; align-items:start; }
 .od-left { display:flex; flex-direction:column; gap:16px; }
 .od-right { display:flex; flex-direction:column; gap:16px; }
 
-/* Card */
 .od-card { background:#fff; border-radius:16px; padding:20px; border:1px solid #f1f5f9; box-shadow:0 1px 4px rgba(0,0,0,0.05); }
 .od-card-title { display:flex; align-items:center; gap:7px; font-size:14px; font-weight:700; color:#0f172a; margin:0 0 18px; }
 .od-badge { background:#f1f5f9; color:#64748b; font-size:11px; font-weight:700; padding:2px 8px; border-radius:20px; margin-left:4px; }
 
-/* Progress */
 .od-steps { position:relative; display:flex; justify-content:space-between; padding-top:20px; }
 .od-steps-line { position:absolute; top:30px; left:20px; right:20px; height:3px; background:#f1f5f9; border-radius:2px; }
 .od-steps-fill { position:absolute; top:0; left:0; height:100%; background:#0d9488; border-radius:2px; transition:width 0.5s ease; }
@@ -417,12 +348,11 @@ const css = `
 .od-step-label { font-size:11px; font-weight:600; color:#cbd5e1; text-align:center; }
 .od-step-label.done { color:#0d9488; }
 
-.od-tracking-input { display:flex; gap:8px; margin-top:16px; align-items:center; }
-.od-input { flex:1; padding:10px 12px; border:1.5px solid #e2e8f0; border-radius:10px; font-size:13px; font-family:'Outfit',sans-serif; color:#0f172a; outline:none; }
+.od-tracking-input { display:flex; gap:8px; margin-top:16px; align-items:center; flex-wrap:wrap; }
+.od-input { flex:1; min-width:120px; padding:10px 12px; border:1.5px solid #e2e8f0; border-radius:10px; font-size:13px; font-family:'Outfit',sans-serif; color:#0f172a; outline:none; }
 .od-input:focus { border-color:#0d9488; }
 
-/* Items */
-.od-items { display:flex; flex-direction:column; gap:0; }
+.od-items { display:flex; flex-direction:column; }
 .od-item { display:flex; align-items:center; gap:14px; padding:12px 0; border-bottom:1px solid #f8fafc; }
 .od-item:last-child { border-bottom:none; }
 .od-item-img { width:52px; height:52px; border-radius:12px; background:#f1f5f9; flex-shrink:0; overflow:hidden; display:flex; align-items:center; justify-content:center; }
@@ -431,31 +361,43 @@ const css = `
 .od-item-qty { font-size:12px; color:#94a3b8; margin:0; }
 .od-item-total { font-size:14px; font-weight:800; color:#0f172a; flex-shrink:0; }
 
-/* Totals */
 .od-totals { border-top:1px solid #f1f5f9; margin-top:12px; padding-top:12px; }
 .od-total-row { display:flex; justify-content:space-between; align-items:center; padding:5px 0; font-size:13px; color:#64748b; }
 .od-total-row.grand { font-size:16px; font-weight:800; color:#0f172a; border-top:1px solid #f1f5f9; margin-top:6px; padding-top:10px; }
 
-/* Timeline */
-.od-timeline { display:flex; flex-direction:column; gap:0; }
+.od-timeline { display:flex; flex-direction:column; }
 .od-tl-item { display:flex; gap:12px; align-items:flex-start; padding:10px 0; position:relative; }
 .od-tl-item:not(:last-child)::after { content:''; position:absolute; left:7px; top:28px; bottom:-10px; width:2px; background:#f1f5f9; }
 .od-tl-dot { width:16px; height:16px; border-radius:50%; background:#0d9488; border:3px solid #f0fdfa; flex-shrink:0; margin-top:2px; }
-.od-tl-content {}
 .od-tl-note { font-size:13px; font-weight:600; color:#0f172a; margin:0 0 2px; }
 .od-tl-time { font-size:11px; color:#94a3b8; margin:0; }
 
-/* Payment */
 .od-pay-row { display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid #f8fafc; }
 .od-pay-row:last-of-type { border-bottom:none; }
 .od-pay-row.grand { border-top:1px solid #f1f5f9; padding-top:12px; margin-top:4px; }
 
-/* Customer */
 .od-customer-block { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
 .od-cust-avatar { width:44px; height:44px; border-radius:50%; background:#e0f2fe; color:#0284c7; font-size:18px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 .od-contact-list { display:flex; flex-direction:column; gap:8px; }
 .od-contact-item { display:flex; align-items:flex-start; gap:10px; font-size:13px; color:#374151; }
 
-/* Tracking display */
 .od-tracking-display { display:flex; align-items:center; justify-content:space-between; background:#f8fafc; border-radius:10px; padding:10px 14px; font-size:13px; font-weight:600; color:#374151; font-family:monospace; }
+
+@media (max-width: 768px) {
+  .od-root { padding:16px; }
+  .od-title { font-size:18px; }
+  .od-grid { grid-template-columns:1fr; }
+  /* On mobile, right panel comes first */
+  .od-right { order:-1; }
+  .od-header { gap:10px; }
+  .od-actions { margin-left:0; width:100%; justify-content:flex-start; }
+  .od-step-label { font-size:9px; }
+  .od-step-dot { width:32px; height:32px; }
+  .od-steps-line { top:24px; }
+}
+
+@media (max-width: 480px) {
+  .od-btn-label { display:none; }
+  .od-btn-primary, .od-btn-outline, .od-btn-danger { padding:9px 10px; }
+}
 `;

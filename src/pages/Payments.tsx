@@ -6,7 +6,6 @@ import {
 } from 'lucide-react';
 import api from '../lib/api';
 
-// ── Types ──────────────────────────────────────────────────────────────────
 interface Transaction {
   id: string;
   orderId: number;
@@ -33,7 +32,6 @@ interface Stats {
   methodBreakdown: { method: string; total: number; count: number }[];
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────────
 const fmt = (n: number) =>
   new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
 
@@ -61,7 +59,6 @@ const StatusBadge = ({ status }: { status: string }) => {
   );
 };
 
-// ── Payment Link Modal ─────────────────────────────────────────────────────
 const PaymentLinkModal = ({ onClose }: { onClose: () => void }) => {
   const [form, setForm] = useState({ amount: '', customerName: '', customerPhone: '', customerEmail: '', description: '' });
   const [loading, setLoading] = useState(false);
@@ -175,7 +172,6 @@ const PaymentLinkModal = ({ onClose }: { onClose: () => void }) => {
   );
 };
 
-// ── Main Component ─────────────────────────────────────────────────────────
 export const Payments: React.FC = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
@@ -191,21 +187,18 @@ export const Payments: React.FC = () => {
     try {
       if (!silent) setLoading(true);
       else setRefreshing(true);
-
       const [txRes, stRes] = await Promise.allSettled([
         api.get('/api/payments', { params: { search: search || undefined, status: statusFilter !== 'all' ? statusFilter : undefined } }),
         api.get('/api/payments/stats'),
       ]);
-
       if (txRes.status === 'fulfilled') setTransactions(txRes.value.data);
       if (stRes.status === 'fulfilled') setStats(stRes.value.data);
-    } catch { /* silent */ }
+    } catch { }
     finally { setLoading(false); setRefreshing(false); }
   }, [search, statusFilter]);
 
   useEffect(() => { loadData(); const t = setTimeout(() => setVisible(true), 60); return () => clearTimeout(t); }, [loadData]);
 
-  // ── Export ────────────────────────────────────────────────────────────
   const handleExport = async () => {
     try {
       setExporting(true);
@@ -228,31 +221,27 @@ export const Payments: React.FC = () => {
 
       <div className={`py-root ${visible ? 'py-visible' : ''}`}>
 
-        {/* ── HEADER ── */}
         <div className="py-header">
           <div>
             <h1 className="py-title">Payments</h1>
             <p className="py-sub">{transactions.length} transactions · {fmt(totalShown)} net</p>
           </div>
-          <div style={{ display: 'flex', gap: 10 }}>
+          <div className="py-header-actions">
             <button onClick={() => loadData(true)} className="py-icon-btn" title="Refresh">
               <RefreshCw size={14} style={{ animation: refreshing ? 'spin 0.7s linear infinite' : 'none' }} />
             </button>
             <button onClick={handleExport} disabled={exporting} className="py-outline-btn">
-              {exporting ? <><div className="py-spinner" /> Exporting…</> : <><Download size={14} /> Export CSV</>}
+              {exporting ? <><div className="py-spinner" /> <span className="py-btn-label">Exporting…</span></> : <><Download size={14} /> <span className="py-btn-label">Export CSV</span></>}
             </button>
             <button onClick={() => setShowModal(true)} className="py-primary-btn">
-              <CreditCard size={14} /> Create Payment Link
+              <CreditCard size={14} /> <span className="py-btn-label">Create Payment Link</span>
             </button>
           </div>
         </div>
 
-        {/* ── STAT CARDS ── */}
         <div className="py-stats">
           <div className="py-stat" style={{ animationDelay: '0ms' }}>
-            <div className="py-stat-icon" style={{ background: '#e0f2fe', color: '#0284c7' }}>
-              <TrendingUp size={18} />
-            </div>
+            <div className="py-stat-icon" style={{ background: '#e0f2fe', color: '#0284c7' }}><TrendingUp size={18} /></div>
             <div>
               <p className="py-stat-label">Total Collected</p>
               <p className="py-stat-val">{fmt(stats?.totalCollected ?? 0)}</p>
@@ -266,9 +255,7 @@ export const Payments: React.FC = () => {
           </div>
 
           <div className="py-stat" style={{ animationDelay: '60ms' }}>
-            <div className="py-stat-icon" style={{ background: '#fff7ed', color: '#f97316' }}>
-              <Clock size={18} />
-            </div>
+            <div className="py-stat-icon" style={{ background: '#fff7ed', color: '#f97316' }}><Clock size={18} /></div>
             <div>
               <p className="py-stat-label">Pending Collection</p>
               <p className="py-stat-val">{fmt(stats?.pendingSettlement ?? 0)}</p>
@@ -277,9 +264,7 @@ export const Payments: React.FC = () => {
           </div>
 
           <div className="py-stat" style={{ animationDelay: '120ms' }}>
-            <div className="py-stat-icon" style={{ background: '#dbeafe', color: '#3b82f6' }}>
-              <IndianRupee size={18} />
-            </div>
+            <div className="py-stat-icon" style={{ background: '#dbeafe', color: '#3b82f6' }}><IndianRupee size={18} /></div>
             <div>
               <p className="py-stat-label">This Month</p>
               <p className="py-stat-val">{fmt(stats?.thisMonthCollected ?? 0)}</p>
@@ -288,9 +273,7 @@ export const Payments: React.FC = () => {
           </div>
 
           <div className="py-stat" style={{ animationDelay: '180ms' }}>
-            <div className="py-stat-icon" style={{ background: '#fef2f2', color: '#dc2626' }}>
-              <Wallet size={18} />
-            </div>
+            <div className="py-stat-icon" style={{ background: '#fef2f2', color: '#dc2626' }}><Wallet size={18} /></div>
             <div>
               <p className="py-stat-label">Refunds</p>
               <p className="py-stat-val">{fmt(stats?.totalRefunded ?? 0)}</p>
@@ -299,7 +282,6 @@ export const Payments: React.FC = () => {
           </div>
         </div>
 
-        {/* ── METHOD BREAKDOWN ── */}
         {stats?.methodBreakdown && stats.methodBreakdown.length > 0 && (
           <div className="py-methods">
             <p className="py-methods-label">By Payment Method</p>
@@ -315,7 +297,6 @@ export const Payments: React.FC = () => {
           </div>
         )}
 
-        {/* ── TOOLBAR ── */}
         <div className="py-toolbar">
           <div className="py-search-wrap">
             <Search size={14} className="py-search-icon" />
@@ -328,18 +309,13 @@ export const Payments: React.FC = () => {
           </div>
           <div className="py-tabs">
             {STATUS_TABS.map(s => (
-              <button
-                key={s}
-                onClick={() => setStatusFilter(s)}
-                className={`py-tab ${statusFilter === s ? 'active' : ''}`}
-              >
+              <button key={s} onClick={() => setStatusFilter(s)} className={`py-tab ${statusFilter === s ? 'active' : ''}`}>
                 {s === 'all' ? 'All' : STATUS_CFG[s]?.label || s}
               </button>
             ))}
           </div>
         </div>
 
-        {/* ── TABLE ── */}
         <div className="py-table-wrap">
           {loading ? (
             <div className="py-state">
@@ -353,51 +329,75 @@ export const Payments: React.FC = () => {
               <p style={{ fontSize: 13, color: '#94a3b8' }}>Payment records will appear once orders are placed</p>
             </div>
           ) : (
-            <table className="py-table">
-              <thead>
-                <tr>
-                  <th>Transaction ID</th>
-                  <th>Customer</th>
-                  <th>Date</th>
-                  <th>Method</th>
-                  <th>Order Status</th>
-                  <th>Payment</th>
-                  <th style={{ textAlign: 'right' }}>Amount</th>
-                </tr>
-              </thead>
-              <tbody>
+            <>
+              {/* Desktop table */}
+              <table className="py-table py-desktop-table">
+                <thead>
+                  <tr>
+                    <th>Transaction ID</th>
+                    <th>Customer</th>
+                    <th>Date</th>
+                    <th>Method</th>
+                    <th>Order Status</th>
+                    <th>Payment</th>
+                    <th style={{ textAlign: 'right' }}>Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {transactions.map((txn, i) => (
+                    <tr key={txn.id} className="py-row" style={{ animationDelay: `${i * 20}ms` }}>
+                      <td>
+                        <span className="py-txn-id">{txn.id}</span>
+                        <span className="py-order-id">Order #{txn.orderId}</span>
+                      </td>
+                      <td>
+                        <div className="py-customer">
+                          <div className="py-avatar">{txn.customer?.charAt(0)?.toUpperCase()}</div>
+                          <div>
+                            <p className="py-cname">{txn.customer}</p>
+                            {txn.phone && <p className="py-cphone">{txn.phone}</p>}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-date">{fmtDate(txn.createdAt)}</td>
+                      <td><span className="py-method">{txn.method}</span></td>
+                      <td><span className="py-order-status">{txn.orderStatus}</span></td>
+                      <td><StatusBadge status={txn.paymentStatus} /></td>
+                      <td style={{ textAlign: 'right' }}>
+                        <span className={`py-amount ${txn.type === 'credit' ? 'credit' : 'debit'}`}>
+                          {txn.type === 'credit' ? '+' : '−'} {fmt(txn.amount)}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              {/* Mobile cards */}
+              <div className="py-mobile-list">
                 {transactions.map((txn, i) => (
-                  <tr key={txn.id} className="py-row" style={{ animationDelay: `${i * 20}ms` }}>
-                    <td>
-                      <span className="py-txn-id">{txn.id}</span>
-                      <span className="py-order-id">Order #{txn.orderId}</span>
-                    </td>
-                    <td>
+                  <div key={txn.id} className="py-mobile-card" style={{ animationDelay: `${i * 20}ms` }}>
+                    <div className="py-mobile-top">
                       <div className="py-customer">
                         <div className="py-avatar">{txn.customer?.charAt(0)?.toUpperCase()}</div>
                         <div>
                           <p className="py-cname">{txn.customer}</p>
-                          {txn.phone && <p className="py-cphone">{txn.phone}</p>}
+                          <p className="py-cphone">{fmtDate(txn.createdAt)}</p>
                         </div>
                       </div>
-                    </td>
-                    <td className="py-date">{fmtDate(txn.createdAt)}</td>
-                    <td>
-                      <span className="py-method">{txn.method}</span>
-                    </td>
-                    <td>
-                      <span className="py-order-status">{txn.orderStatus}</span>
-                    </td>
-                    <td><StatusBadge status={txn.paymentStatus} /></td>
-                    <td style={{ textAlign: 'right' }}>
                       <span className={`py-amount ${txn.type === 'credit' ? 'credit' : 'debit'}`}>
                         {txn.type === 'credit' ? '+' : '−'} {fmt(txn.amount)}
                       </span>
-                    </td>
-                  </tr>
+                    </div>
+                    <div className="py-mobile-bottom">
+                      <span className="py-txn-id">{txn.id}</span>
+                      <span className="py-method">{txn.method}</span>
+                      <StatusBadge status={txn.paymentStatus} />
+                    </div>
+                  </div>
                 ))}
-              </tbody>
-            </table>
+              </div>
+            </>
           )}
         </div>
       </div>
@@ -405,7 +405,6 @@ export const Payments: React.FC = () => {
   );
 };
 
-// ── CSS ────────────────────────────────────────────────────────────────────
 const css = `
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
 @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
@@ -414,26 +413,21 @@ const css = `
 .py-root { font-family:'Outfit',sans-serif; padding:28px 32px; opacity:0; transform:translateY(10px); transition:opacity 0.4s ease,transform 0.4s ease; }
 .py-visible { opacity:1!important; transform:none!important; }
 
-/* Header */
-.py-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; }
+.py-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; gap:12px; flex-wrap:wrap; }
 .py-title { font-size:28px; font-weight:800; color:#0f172a; margin:0; letter-spacing:-0.5px; }
 .py-sub { font-size:13px; color:#94a3b8; margin:4px 0 0; }
+.py-header-actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
 
-.py-icon-btn { width:38px; height:38px; border:1.5px solid #e2e8f0; border-radius:10px; background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#64748b; transition:background 0.15s; }
+.py-icon-btn { width:38px; height:38px; border:1.5px solid #e2e8f0; border-radius:10px; background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#64748b; transition:background 0.15s; flex-shrink:0; }
 .py-icon-btn:hover { background:#f1f5f9; }
-
-/* Keep teal for outline button, keep teal for primary */
 .py-outline-btn { display:inline-flex; align-items:center; gap:7px; background:#fff; color:#0d9488; border:1.5px solid #0d9488; font-size:13px; font-weight:700; padding:9px 16px; border-radius:10px; cursor:pointer; font-family:'Outfit',sans-serif; transition:all 0.15s; }
 .py-outline-btn:hover:not(:disabled) { background:#f0fdfa; }
 .py-outline-btn:disabled { opacity:0.6; cursor:not-allowed; }
-
 .py-primary-btn { display:inline-flex; align-items:center; gap:7px; background:#0d9488; color:#fff; font-size:13px; font-weight:700; padding:10px 18px; border-radius:10px; border:none; cursor:pointer; font-family:'Outfit',sans-serif; transition:background 0.15s; }
 .py-primary-btn:hover { background:#0f766e; }
-
 .py-spinner { width:14px; height:14px; border:2px solid rgba(13,148,136,0.3); border-top-color:#0d9488; border-radius:50%; animation:spin 0.7s linear infinite; }
 .py-spinner-lg { width:28px; height:28px; border:3px solid #e2e8f0; border-top-color:#0d9488; border-radius:50%; animation:spin 0.7s linear infinite; }
 
-/* Stats */
 .py-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:16px; }
 .py-stat { background:#fff; border-radius:16px; padding:20px; border:1px solid #f1f5f9; box-shadow:0 1px 4px rgba(0,0,0,0.04); display:flex; gap:14px; align-items:flex-start; animation:fadeUp 0.4s ease both; }
 .py-stat-icon { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
@@ -444,7 +438,6 @@ const css = `
 .py-stat-change.down { color:#dc2626; }
 .py-stat-note { font-size:12px; color:#94a3b8; margin:0; }
 
-/* Method breakdown */
 .py-methods { background:#fff; border-radius:12px; padding:14px 18px; border:1px solid #f1f5f9; margin-bottom:16px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
 .py-methods-label { font-size:12px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap; }
 .py-methods-list { display:flex; gap:8px; flex-wrap:wrap; }
@@ -453,18 +446,16 @@ const css = `
 .py-method-val { font-weight:700; color:#0d9488; }
 .py-method-count { color:#94a3b8; }
 
-/* Toolbar */
 .py-toolbar { display:flex; gap:12px; align-items:center; background:#fff; padding:12px 16px; border-radius:14px; border:1px solid #f1f5f9; margin-bottom:16px; flex-wrap:wrap; }
 .py-search-wrap { position:relative; flex:1; min-width:220px; }
 .py-search-icon { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#94a3b8; pointer-events:none; }
 .py-search { width:100%; box-sizing:border-box; padding:9px 12px 9px 36px; border:1.5px solid #e2e8f0; border-radius:10px; font-size:13px; font-family:'Outfit',sans-serif; color:#0f172a; background:#f8fafc; outline:none; transition:border-color 0.2s; }
 .py-search:focus { border-color:#0d9488; background:#fff; }
-.py-tabs { display:flex; gap:6px; }
+.py-tabs { display:flex; gap:6px; flex-wrap:wrap; }
 .py-tab { padding:7px 14px; border-radius:8px; font-size:12px; font-weight:600; border:none; cursor:pointer; font-family:'Outfit',sans-serif; background:#f1f5f9; color:#64748b; transition:all 0.15s; }
 .py-tab:hover { background:#e2e8f0; }
 .py-tab.active { background:#0d9488; color:#fff; }
 
-/* Table */
 .py-table-wrap { background:#fff; border-radius:16px; border:1px solid #f1f5f9; box-shadow:0 2px 8px rgba(0,0,0,0.05); overflow:hidden; }
 .py-table { width:100%; border-collapse:collapse; font-size:13px; }
 .py-table thead tr { background:#fafafa; }
@@ -473,7 +464,6 @@ const css = `
 .py-row:hover td { background:#f8fafc; }
 .py-row td { padding:13px 16px; border-bottom:1px solid #f8fafc; vertical-align:middle; }
 .py-row:last-child td { border-bottom:none; }
-
 .py-txn-id { display:block; font-family:monospace; font-size:12px; font-weight:700; color:#0d9488; }
 .py-order-id { display:block; font-size:11px; color:#94a3b8; margin-top:1px; }
 .py-customer { display:flex; align-items:center; gap:10px; }
@@ -488,9 +478,16 @@ const css = `
 .py-amount.debit { color:#dc2626; }
 .py-state { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px 20px; gap:10px; color:#94a3b8; font-size:14px; text-align:center; }
 
+/* Mobile cards */
+.py-mobile-list { display:none; flex-direction:column; gap:0; }
+.py-mobile-card { padding:14px 16px; border-bottom:1px solid #f8fafc; animation:fadeUp 0.35s ease both; }
+.py-mobile-card:last-child { border-bottom:none; }
+.py-mobile-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+.py-mobile-bottom { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+
 /* ── Payment Link Modal ── */
-.pl-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.4); backdrop-filter:blur(4px); z-index:1000; display:flex; align-items:center; justify-content:center; animation:fadeUp 0.2s ease; }
-.pl-modal { background:#fff; border-radius:20px; width:480px; max-width:calc(100vw - 32px); max-height:90vh; overflow-y:auto; box-shadow:0 24px 64px rgba(0,0,0,0.2); }
+.pl-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.4); backdrop-filter:blur(4px); z-index:1000; display:flex; align-items:center; justify-content:center; animation:fadeUp 0.2s ease; padding:16px; }
+.pl-modal { background:#fff; border-radius:20px; width:480px; max-width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 24px 64px rgba(0,0,0,0.2); }
 .pl-modal-header { display:flex; justify-content:space-between; align-items:center; padding:20px 24px; border-bottom:1px solid #f1f5f9; }
 .pl-modal-title { display:flex; align-items:center; gap:8px; font-size:17px; font-weight:800; color:#0f172a; margin:0; }
 .pl-close { width:32px; height:32px; border-radius:8px; background:#f1f5f9; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#64748b; transition:background 0.15s; }
@@ -512,8 +509,6 @@ const css = `
 .pl-create-btn:hover:not(:disabled) { background:#0f766e; }
 .pl-create-btn:disabled { opacity:0.6; cursor:not-allowed; }
 .pl-spinner { width:14px; height:14px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin 0.7s linear infinite; }
-
-/* Success state */
 .pl-success { padding:32px 24px; text-align:center; }
 .pl-success-icon { width:60px; height:60px; border-radius:50%; background:#dcfce7; color:#16a34a; font-size:28px; font-weight:800; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; }
 .pl-success h3 { font-size:18px; font-weight:800; color:#0f172a; margin:0 0 6px; }
@@ -526,4 +521,23 @@ const css = `
 .pl-open-btn:hover { background:#1e293b; }
 .pl-new-btn { background:#f1f5f9; color:#374151; font-size:13px; font-weight:600; padding:10px 16px; border-radius:10px; border:none; cursor:pointer; font-family:'Outfit',sans-serif; transition:background 0.15s; }
 .pl-new-btn:hover { background:#e2e8f0; }
+
+@media (max-width: 768px) {
+  .py-root { padding:16px; }
+  .py-title { font-size:22px; }
+  .py-stats { grid-template-columns:repeat(2,1fr); gap:10px; }
+  .py-stat { padding:14px; }
+  .py-stat-icon { width:36px; height:36px; }
+  .py-stat-val { font-size:18px; }
+  .py-desktop-table { display:none; }
+  .py-mobile-list { display:flex !important; }
+  .py-btn-label { display:none; }
+  .py-outline-btn, .py-primary-btn { padding:9px 12px; }
+  .py-search-wrap { min-width:0; }
+}
+
+@media (max-width: 480px) {
+  .py-stats { grid-template-columns:repeat(2,1fr); }
+  .pl-row { grid-template-columns:1fr; }
+}
 `;

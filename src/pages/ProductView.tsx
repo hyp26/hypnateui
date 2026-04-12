@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Edit2, Trash2, Package, Tag, Calendar, Layers, IndianRupee, AlertTriangle } from "lucide-react";
 import api from "../lib/api";
@@ -50,12 +50,10 @@ export const ProductView: React.FC = () => {
       <style>{viewCss}</style>
       <div className="pv-root">
 
-        {/* Back */}
         <Link to="/products" className="pv-back"><ArrowLeft size={16} /> Products</Link>
 
         <div className="pv-layout">
 
-          {/* LEFT — Image */}
           <div className="pv-img-col">
             <div className="pv-img-wrap">
               <img
@@ -71,7 +69,6 @@ export const ProductView: React.FC = () => {
               )}
             </div>
 
-            {/* Actions */}
             <div className="pv-actions">
               <Link to={`/products/${product.id}/edit`} className="pv-btn-edit">
                 <Edit2 size={15} /> Edit Product
@@ -91,7 +88,6 @@ export const ProductView: React.FC = () => {
             </div>
           </div>
 
-          {/* RIGHT — Info */}
           <div className="pv-info-col">
             {product.category && (
               <span className="pv-category"><Tag size={11} /> {product.category}</span>
@@ -99,7 +95,6 @@ export const ProductView: React.FC = () => {
 
             <h1 className="pv-name">{product.name}</h1>
 
-            {/* Price block */}
             <div className="pv-price-block">
               <span className="pv-price">{fmt(product.price)}</span>
               {product.mrp && product.mrp > product.price && (
@@ -110,7 +105,6 @@ export const ProductView: React.FC = () => {
               )}
             </div>
 
-            {/* Stock */}
             <div className={`pv-stock ${product.stock < 10 ? "low" : "ok"}`}>
               <Package size={14} />
               {product.stock < 10
@@ -118,7 +112,6 @@ export const ProductView: React.FC = () => {
                 : `${product.stock} units in stock`}
             </div>
 
-            {/* Sizes */}
             {product.sizes && product.sizes.length > 0 && (
               <div className="pv-section">
                 <div className="pv-section-label"><Layers size={13} /> Available Sizes</div>
@@ -130,7 +123,6 @@ export const ProductView: React.FC = () => {
               </div>
             )}
 
-            {/* Description */}
             {product.description && (
               <div className="pv-section">
                 <div className="pv-section-label"><Package size={13} /> Description</div>
@@ -138,7 +130,6 @@ export const ProductView: React.FC = () => {
               </div>
             )}
 
-            {/* Meta */}
             <div className="pv-meta">
               <div className="pv-meta-item">
                 <Calendar size={13} />
@@ -174,7 +165,7 @@ const viewCss = `
 .pv-actions { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
 .pv-btn-edit { display: flex; align-items: center; justify-content: center; gap: 7px; background: #0f172a; color: #fff; font-size: 14px; font-weight: 700; padding: 12px; border-radius: 12px; text-decoration: none; transition: background 0.15s; font-family: 'Outfit', sans-serif; }
 .pv-btn-edit:hover { background: #1e293b; }
-.pv-btn-delete { display: flex; align-items: center; gap: 6px; background: #fef2f2; color: #dc2626; border: 1.5px solid #fecaca; font-size: 14px; font-weight: 700; padding: 12px 16px; border-radius: 12px; cursor: pointer; transition: all 0.15s; font-family: 'Outfit', sans-serif; }
+.pv-btn-delete { display: flex; align-items: center; gap: 6px; background: #fef2f2; color: #dc2626; border: 1.5px solid #fecaca; font-size: 14px; font-weight: 700; padding: 12px 16px; border-radius: 12px; cursor: pointer; transition: all 0.15s; font-family: 'Outfit', sans-serif; white-space: nowrap; }
 .pv-btn-delete:hover { background: #fee2e2; }
 
 .pv-info-col { padding-top: 4px; }
@@ -200,4 +191,20 @@ const viewCss = `
 
 .pv-meta { display: flex; flex-direction: column; gap: 8px; padding-top: 20px; border-top: 1px solid #f1f5f9; }
 .pv-meta-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #94a3b8; }
+
+@media (max-width: 768px) {
+  .pv-root { padding: 16px; }
+  .pv-layout { grid-template-columns: 1fr; gap: 20px; }
+  .pv-img-wrap { max-width: 100%; aspect-ratio: 4/3; }
+  .pv-name { font-size: 24px; }
+  .pv-price { font-size: 28px; }
+}
+
+@media (max-width: 480px) {
+  .pv-name { font-size: 20px; }
+  .pv-price { font-size: 24px; }
+  .pv-price-block { padding: 14px; }
+  .pv-actions { grid-template-columns: 1fr 1fr; }
+  .pv-btn-edit, .pv-btn-delete { font-size: 13px; padding: 10px 12px; }
+}
 `;

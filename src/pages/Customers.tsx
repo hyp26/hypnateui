@@ -16,26 +16,11 @@ type CustomerStats = {
   totalRevenue: number;
 };
 
-/* ─── tiny avatar helper ─── */
 const initials = (name: string) =>
-  name
-    .split(" ")
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
+  name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
 
 const avatarColor = (name: string) => {
-  const colors = [
-    "#FF6B35",
-    "#F7931E",
-    "#2EC4B6",
-    "#E71D36",
-    "#011627",
-    "#7B2D8B",
-    "#1A936F",
-    "#C6AC8F",
-  ];
+  const colors = ["#FF6B35", "#F7931E", "#2EC4B6", "#E71D36", "#011627", "#7B2D8B", "#1A936F", "#C6AC8F"];
   let hash = 0;
   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
   return colors[Math.abs(hash) % colors.length];
@@ -58,33 +43,21 @@ const Customers = () => {
     return () => clearTimeout(t);
   }, []);
 
-  /* ── BUG FIX: use Promise.allSettled so one failing endpoint
-       doesn't kill the whole page. Stats are non-critical. ── */
   const loadData = async () => {
     try {
       setLoading(true);
       setError("");
-
       const [customersResult, statsResult] = await Promise.allSettled([
         api.get("/api/customers"),
         api.get("/api/customers/stats"),
       ]);
-
       if (customersResult.status === "fulfilled") {
         setCustomers(customersResult.value.data);
       } else {
-        throw new Error(
-          customersResult.reason?.response?.data?.message ||
-          "Failed to load customers"
-        );
+        throw new Error(customersResult.reason?.response?.data?.message || "Failed to load customers");
       }
-
-      if (statsResult.status === "fulfilled") {
-        setStats(statsResult.value.data);
-      }
-      // stats failing is non-fatal — page still renders
+      if (statsResult.status === "fulfilled") setStats(statsResult.value.data);
     } catch (err: any) {
-      console.error("Failed to load customers:", err);
       setError(err.message || "Failed to load customer data");
     } finally {
       setLoading(false);
@@ -98,9 +71,7 @@ const Customers = () => {
 
   const filtered = customers
     .filter((c) =>
-      `${c.name} ${c.email ?? ""} ${c.phone ?? ""}`
-        .toLowerCase()
-        .includes(search.toLowerCase())
+      `${c.name} ${c.email ?? ""} ${c.phone ?? ""}`.toLowerCase().includes(search.toLowerCase())
     )
     .sort((a, b) => {
       const av = sortKey === "name" ? a.name : a[sortKey];
@@ -117,17 +88,13 @@ const Customers = () => {
       <span style={{ marginLeft: 4, opacity: 0.25 }}>↕</span>
     );
 
-  /* ── LOADING ── */
   if (loading) return (
     <div style={styles.centerBox}>
       <div style={styles.spinner} />
-      <p style={{ color: "#94a3b8", marginTop: 16, fontFamily: "'DM Sans', sans-serif" }}>
-        Loading customers…
-      </p>
+      <p style={{ color: "#94a3b8", marginTop: 16, fontFamily: "'DM Sans', sans-serif" }}>Loading customers…</p>
     </div>
   );
 
-  /* ── ERROR ── */
   if (error) return (
     <div style={styles.centerBox}>
       <div style={styles.errorCard}>
@@ -139,13 +106,11 @@ const Customers = () => {
     </div>
   );
 
-  /* ── MAIN ── */
   return (
     <>
       <style>{css}</style>
       <div style={{ ...styles.page, opacity: visible ? 1 : 0, transform: visible ? "none" : "translateY(12px)", transition: "opacity 0.45s ease, transform 0.45s ease" }}>
 
-        {/* Header */}
         <div style={styles.header}>
           <div>
             <h1 style={styles.title}>Customers</h1>
@@ -154,14 +119,12 @@ const Customers = () => {
           <button style={styles.exportBtn} className="export-btn">↑ Export CSV</button>
         </div>
 
-        {/* Stat cards */}
         <div style={styles.statsRow}>
           <StatCard label="Total Customers" value={stats.totalCustomers.toLocaleString()} accent="#FF6B35" icon="👥" delay={0} />
           <StatCard label="Total Revenue" value={`₹${stats.totalRevenue.toLocaleString()}`} accent="#2EC4B6" icon="₹" delay={80} />
           <StatCard label="Avg. Spent" value={stats.totalCustomers ? `₹${Math.round(stats.totalRevenue / stats.totalCustomers).toLocaleString()}` : "—"} accent="#F7931E" icon="📊" delay={160} />
         </div>
 
-        {/* Search */}
         <div style={styles.searchWrap}>
           <span style={styles.searchIcon}>🔍</span>
           <input
@@ -177,8 +140,8 @@ const Customers = () => {
           )}
         </div>
 
-        {/* Table */}
-        <div style={styles.tableWrap}>
+        {/* Desktop table */}
+        <div style={styles.tableWrap} className="cust-table-wrap">
           <table style={styles.table}>
             <thead>
               <tr>
@@ -212,9 +175,7 @@ const Customers = () => {
                     <td style={{ ...styles.td, color: "#94a3b8", fontSize: 12, width: 36 }}>{i + 1}</td>
                     <td style={styles.td}>
                       <div style={styles.nameCell}>
-                        <div style={{ ...styles.avatar, background: avatarColor(c.name) }}>
-                          {initials(c.name)}
-                        </div>
+                        <div style={{ ...styles.avatar, background: avatarColor(c.name) }}>{initials(c.name)}</div>
                         <span style={styles.nameText}>{c.name}</span>
                       </div>
                     </td>
@@ -243,15 +204,46 @@ const Customers = () => {
           </table>
         </div>
 
-        <p style={styles.footer}>
-          Showing {filtered.length} of {customers.length} customers
-        </p>
+        {/* Mobile cards */}
+        <div className="cust-mobile-list">
+          {filtered.length === 0 ? (
+            <div style={styles.emptyBox}>
+              <span style={{ fontSize: 40 }}>🕵️</span>
+              <p>No customers match "{search}"</p>
+            </div>
+          ) : (
+            filtered.map((c, i) => (
+              <div key={c.id} className="cust-mobile-card">
+                <div className="cust-mobile-row">
+                  <div style={styles.nameCell}>
+                    <div style={{ ...styles.avatar, background: avatarColor(c.name) }}>{initials(c.name)}</div>
+                    <div>
+                      <span style={styles.nameText}>{c.name}</span>
+                      {c.email && <div style={{ ...styles.contactLine, marginTop: 2 }}>✉ {c.email}</div>}
+                      {c.phone && <div style={{ ...styles.contactLine, color: "#94a3b8" }}>📞 {c.phone}</div>}
+                    </div>
+                  </div>
+                  <span style={{ ...styles.badge, background: c.totalOrders > 5 ? "#dcfce7" : "#f1f5f9", color: c.totalOrders > 5 ? "#166534" : "#475569" }}>
+                    {c.totalOrders} orders
+                  </span>
+                </div>
+                <div className="cust-mobile-footer">
+                  <span style={{ fontSize: 12, color: "#94a3b8" }}>
+                    Last: {c.lastOrderAt ? new Date(c.lastOrderAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "—"}
+                  </span>
+                  <span style={styles.spent}>₹{c.totalSpent.toLocaleString()}</span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        <p style={styles.footer}>Showing {filtered.length} of {customers.length} customers</p>
       </div>
     </>
   );
 };
 
-/* ── Stat Card sub-component ── */
 const StatCard = ({ label, value, accent, icon, delay }: { label: string; value: string; accent: string; icon: string; delay: number }) => {
   const [show, setShow] = useState(false);
   useEffect(() => { const t = setTimeout(() => setShow(true), delay + 100); return () => clearTimeout(t); }, [delay]);
@@ -266,10 +258,9 @@ const StatCard = ({ label, value, accent, icon, delay }: { label: string; value:
   );
 };
 
-/* ── Styles ── */
 const styles: Record<string, React.CSSProperties> = {
   page: { padding: "32px 36px", fontFamily: "'DM Sans', 'Segoe UI', sans-serif", maxWidth: 1100, margin: "0 auto" },
-  header: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 32 },
+  header: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 32, flexWrap: "wrap", gap: 12 },
   title: { fontSize: 28, fontWeight: 700, color: "#0f172a", margin: 0, letterSpacing: "-0.5px" },
   subtitle: { fontSize: 14, color: "#94a3b8", margin: "4px 0 0", fontWeight: 400 },
   exportBtn: { background: "#0d9488", color: "#fff", border: "none", borderRadius: 8, padding: "10px 18px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", transition: "background 0.15s" },
@@ -312,6 +303,38 @@ const css = `
   .cust-search:focus { border-color: #FF6B35 !important; box-shadow: 0 0 0 3px rgba(255,107,53,0.1); }
   .stat-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1) !important; transition: box-shadow 0.2s; }
   .export-btn:hover { background: #0f766e !important; }
+
+  /* Mobile card list (hidden on desktop) */
+  .cust-mobile-list { display: none; flex-direction: column; gap: 10px; }
+  .cust-mobile-card { background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 14px 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+  .cust-mobile-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+  .cust-mobile-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid #f1f5f9; }
+
+  @media (max-width: 768px) {
+    /* Page padding */
+    div[style*="padding: 32px 36px"] { padding: 16px !important; }
+
+    /* Stats: 1 col on very small, 3 col on tablet */
+    .stat-card { flex-direction: column; align-items: flex-start !important; gap: 8px !important; padding: 14px 16px !important; }
+
+    /* Hide table, show mobile cards */
+    .cust-table-wrap { display: none !important; }
+    .cust-mobile-list { display: flex !important; }
+  }
+
+  @media (max-width: 480px) {
+    /* Stats go to 1 col */
+    div[style*="grid-template-columns: repeat(3, 1fr)"] {
+      grid-template-columns: 1fr !important;
+    }
+    h1[style*="font-size: 28px"] { font-size: 22px !important; }
+  }
+
+  @media (min-width: 481px) and (max-width: 768px) {
+    div[style*="grid-template-columns: repeat(3, 1fr)"] {
+      grid-template-columns: repeat(3, 1fr) !important;
+    }
+  }
 `;
 
 export default Customers;

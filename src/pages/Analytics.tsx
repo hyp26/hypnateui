@@ -11,7 +11,6 @@ import {
 } from 'lucide-react';
 import api from '../lib/api';
 
-// ── Types ──────────────────────────────────────────────────────────────────
 interface KPIs {
   revenue: number; revenueChange: number;
   orders: number; ordersChange: number;
@@ -29,7 +28,6 @@ interface AnalyticsData {
   orderStatuses: { status: string; count: number }[];
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────────
 const fmt = (n: number) =>
   new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
 
@@ -39,7 +37,6 @@ const fmtCompact = (n: number) => {
   return `₹${n}`;
 };
 
-// ── Custom Tooltip ─────────────────────────────────────────────────────────
 const ChartTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   return (
@@ -54,7 +51,6 @@ const ChartTooltip = ({ active, payload, label }: any) => {
   );
 };
 
-// ── Change Badge ───────────────────────────────────────────────────────────
 const ChangeBadge = ({ change }: { change: number }) => (
   <span style={{
     display: 'inline-flex', alignItems: 'center', gap: 3,
@@ -66,13 +62,11 @@ const ChangeBadge = ({ change }: { change: number }) => (
   </span>
 );
 
-// ── Status colors ──────────────────────────────────────────────────────────
 const STATUS_COLOR: Record<string, string> = {
   PENDING: '#f59e0b', CONFIRMED: '#6366f1', SHIPPED: '#10b981',
   DELIVERED: '#16a34a', CANCELLED: '#ef4444', PAID: '#3b82f6',
 };
 
-// ── Main Component ─────────────────────────────────────────────────────────
 export const Analytics: React.FC = () => {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [days, setDays] = useState(7);
@@ -88,7 +82,7 @@ export const Analytics: React.FC = () => {
       else setRefreshing(true);
       const res = await api.get('/api/analytics/overview', { params: { days } });
       setData(res.data);
-    } catch { /* silent */ }
+    } catch { }
     finally { setLoading(false); setRefreshing(false); }
   }, [days]);
 
@@ -111,9 +105,9 @@ export const Analytics: React.FC = () => {
   };
 
   const PERIOD_OPTS = [
-    { label: 'Last 7 days', value: 7 },
-    { label: 'Last 30 days', value: 30 },
-    { label: 'Last 90 days', value: 90 },
+    { label: '7 days', value: 7 },
+    { label: '30 days', value: 30 },
+    { label: '90 days', value: 90 },
   ];
 
   const kpis = data?.kpis;
@@ -124,18 +118,16 @@ export const Analytics: React.FC = () => {
       <style>{css}</style>
       <div className={`an-root ${visible ? 'an-visible' : ''}`}>
 
-        {/* ── HEADER ── */}
         <div className="an-header">
           <div>
             <h1 className="an-title">Analytics</h1>
             <p className="an-sub">Track your business performance over time</p>
           </div>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <div className="an-header-actions">
             <button onClick={() => loadData(true)} className="an-icon-btn" title="Refresh">
               <RefreshCw size={14} style={{ animation: refreshing ? 'spin 0.7s linear infinite' : 'none' }} />
             </button>
 
-            {/* Period selector */}
             <div className="an-period-tabs">
               {PERIOD_OPTS.map(o => (
                 <button
@@ -151,8 +143,8 @@ export const Analytics: React.FC = () => {
 
             <button onClick={handleExport} disabled={exporting} className="an-export-btn">
               {exporting
-                ? <><div className="an-spinner" /> Exporting…</>
-                : <><Download size={14} /> Export CSV</>}
+                ? <><div className="an-spinner" /> <span className="an-btn-label">Exporting…</span></>
+                : <><Download size={14} /> <span className="an-btn-label">Export CSV</span></>}
             </button>
           </div>
         </div>
@@ -164,7 +156,6 @@ export const Analytics: React.FC = () => {
           </div>
         ) : (
           <>
-            {/* ── KPI CARDS ── */}
             <div className="an-kpis">
               {[
                 { label: 'Revenue', value: fmt(kpis?.revenue ?? 0), change: kpis?.revenueChange, icon: <IndianRupee size={18} />, color: '#0ea5e9', bg: '#e0f2fe' },
@@ -186,10 +177,7 @@ export const Analytics: React.FC = () => {
               ))}
             </div>
 
-            {/* ── MAIN CHARTS ── */}
             <div className="an-chart-row">
-
-              {/* Revenue/Orders chart */}
               <div className="an-card an-chart-main">
                 <div className="an-card-header">
                   <div>
@@ -197,24 +185,18 @@ export const Analytics: React.FC = () => {
                       {chartMetric === 'revenue' ? 'Revenue' : 'Orders'} — Last {days} days
                     </h3>
                     <p className="an-card-sub">
-                      {chartMetric === 'revenue'
-                        ? `Total: ${fmt(kpis?.revenue ?? 0)}`
-                        : `Total: ${kpis?.orders ?? 0} orders`}
+                      {chartMetric === 'revenue' ? `Total: ${fmt(kpis?.revenue ?? 0)}` : `Total: ${kpis?.orders ?? 0} orders`}
                     </p>
                   </div>
                   <div style={{ display: 'flex', gap: 6 }}>
                     {(['revenue', 'orders'] as const).map(m => (
-                      <button
-                        key={m}
-                        onClick={() => setChartMetric(m)}
-                        className={`an-metric-btn ${chartMetric === m ? 'active' : ''}`}
-                      >
+                      <button key={m} onClick={() => setChartMetric(m)} className={`an-metric-btn ${chartMetric === m ? 'active' : ''}`}>
                         {m.charAt(0).toUpperCase() + m.slice(1)}
                       </button>
                     ))}
                   </div>
                 </div>
-                <ResponsiveContainer width="100%" height={260}>
+                <ResponsiveContainer width="100%" height={240}>
                   <AreaChart data={data?.chartData || []} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
@@ -223,12 +205,11 @@ export const Analytics: React.FC = () => {
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                    <XAxis dataKey="day" tick={{ fontSize: 12, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 12, fill: '#94a3b8' }} axisLine={false} tickLine={false}
+                    <XAxis dataKey="day" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false}
                       tickFormatter={v => chartMetric === 'revenue' ? fmtCompact(v).replace('₹', '') : String(v)} />
                     <Tooltip content={<ChartTooltip />} />
-                    <Area
-                      type="monotone" dataKey={chartMetric}
+                    <Area type="monotone" dataKey={chartMetric}
                       stroke={chartMetric === 'revenue' ? '#0ea5e9' : '#8b5cf6'}
                       strokeWidth={2.5} fill="url(#chartGrad)" dot={false}
                       activeDot={{ r: 5, strokeWidth: 0, fill: chartMetric === 'revenue' ? '#0ea5e9' : '#8b5cf6' }}
@@ -237,7 +218,6 @@ export const Analytics: React.FC = () => {
                 </ResponsiveContainer>
               </div>
 
-              {/* Channel pie */}
               <div className="an-card an-chart-side">
                 <div className="an-card-header">
                   <div>
@@ -253,11 +233,8 @@ export const Analytics: React.FC = () => {
                     <div style={{ position: 'relative', height: 180 }}>
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
-                          <Pie data={data?.channelData || []} innerRadius={55} outerRadius={75}
-                            paddingAngle={4} dataKey="value" strokeWidth={0}>
-                            {(data?.channelData || []).map((entry, i) => (
-                              <Cell key={i} fill={entry.color} />
-                            ))}
+                          <Pie data={data?.channelData || []} innerRadius={55} outerRadius={75} paddingAngle={4} dataKey="value" strokeWidth={0}>
+                            {(data?.channelData || []).map((entry, i) => <Cell key={i} fill={entry.color} />)}
                           </Pie>
                           <Tooltip formatter={(v: any) => [`${v}%`, '']} />
                         </PieChart>
@@ -288,11 +265,8 @@ export const Analytics: React.FC = () => {
               </div>
             </div>
 
-            {/* ── SECOND ROW ── */}
-            <div className="an-chart-row">
-
-              {/* Top products */}
-              <div className="an-card" style={{ flex: 1.5 }}>
+            <div className="an-chart-row an-chart-row-2">
+              <div className="an-card an-products-card">
                 <div className="an-card-header">
                   <div>
                     <h3 className="an-card-title">Top Products</h3>
@@ -311,9 +285,7 @@ export const Analytics: React.FC = () => {
                         <div key={i} className="an-product-row">
                           <div className="an-product-rank">#{i + 1}</div>
                           <div className="an-product-img">
-                            {p.imageUrl
-                              ? <img src={p.imageUrl} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                              : <Package size={16} color="#94a3b8" />}
+                            {p.imageUrl ? <img src={p.imageUrl} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Package size={16} color="#94a3b8" />}
                           </div>
                           <div className="an-product-info">
                             <p className="an-product-name">{p.name}</p>
@@ -332,10 +304,7 @@ export const Analytics: React.FC = () => {
                 )}
               </div>
 
-              {/* KPI cards + order status */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16, flex: 1 }}>
-
-                {/* Mini KPIs */}
+              <div className="an-side-col">
                 <div className="an-mini-kpis">
                   <div className="an-mini-kpi">
                     <p className="an-mini-label">Conv → Order Rate</p>
@@ -351,7 +320,6 @@ export const Analytics: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Order status bar chart */}
                 <div className="an-card" style={{ flex: 1 }}>
                   <h3 className="an-card-title" style={{ marginBottom: 14 }}>Order Status</h3>
                   {(data?.orderStatuses || []).length === 0 ? (
@@ -363,16 +331,13 @@ export const Analytics: React.FC = () => {
                           tickFormatter={s => s.charAt(0) + s.slice(1).toLowerCase()} />
                         <Tooltip formatter={(v: any, n: any, p: any) => [v, p.payload.status]} />
                         <Bar dataKey="count" radius={[6, 6, 0, 0]}>
-                          {(data?.orderStatuses || []).map((s, i) => (
-                            <Cell key={i} fill={STATUS_COLOR[s.status] || '#94a3b8'} />
-                          ))}
+                          {(data?.orderStatuses || []).map((s, i) => <Cell key={i} fill={STATUS_COLOR[s.status] || '#94a3b8'} />)}
                         </Bar>
                       </BarChart>
                     </ResponsiveContainer>
                   )}
                 </div>
 
-                {/* Payment methods */}
                 {(data?.paymentMethods || []).length > 0 && (
                   <div className="an-card">
                     <h3 className="an-card-title" style={{ marginBottom: 12 }}>Payment Methods</h3>
@@ -404,7 +369,6 @@ export const Analytics: React.FC = () => {
   );
 };
 
-// ── CSS ────────────────────────────────────────────────────────────────────
 const css = `
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
 @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
@@ -413,38 +377,38 @@ const css = `
 .an-root { font-family:'Outfit',sans-serif; padding:28px 32px; opacity:0; transform:translateY(10px); transition:opacity 0.4s ease,transform 0.4s ease; }
 .an-visible { opacity:1!important; transform:none!important; }
 
-/* Header */
 .an-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
+.an-header-actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
 .an-title { font-size:28px; font-weight:800; color:#0f172a; margin:0; letter-spacing:-0.5px; }
 .an-sub { font-size:13px; color:#94a3b8; margin:4px 0 0; }
 
-.an-icon-btn { width:38px; height:38px; border:1.5px solid #e2e8f0; border-radius:10px; background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#64748b; transition:background 0.15s; }
+.an-icon-btn { width:38px; height:38px; border:1.5px solid #e2e8f0; border-radius:10px; background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#64748b; transition:background 0.15s; flex-shrink:0; }
 .an-icon-btn:hover { background:#f1f5f9; }
 
 .an-period-tabs { display:flex; background:#f1f5f9; border-radius:10px; padding:3px; gap:2px; }
-.an-period-btn { display:inline-flex; align-items:center; gap:5px; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:600; border:none; cursor:pointer; font-family:'Outfit',sans-serif; background:transparent; color:#64748b; transition:all 0.15s; white-space:nowrap; }
+.an-period-btn { display:inline-flex; align-items:center; gap:5px; padding:6px 10px; border-radius:8px; font-size:12px; font-weight:600; border:none; cursor:pointer; font-family:'Outfit',sans-serif; background:transparent; color:#64748b; transition:all 0.15s; white-space:nowrap; }
 .an-period-btn.active { background:#fff; color:#0f172a; box-shadow:0 1px 4px rgba(0,0,0,0.08); }
 
 .an-export-btn { display:inline-flex; align-items:center; gap:7px; background:#0d9488; color:#fff; font-size:13px; font-weight:700; padding:9px 16px; border-radius:10px; border:none; cursor:pointer; font-family:'Outfit',sans-serif; transition:background 0.15s; }
 .an-export-btn:hover:not(:disabled) { background:#0f766e; }
 .an-export-btn:disabled { opacity:0.6; cursor:not-allowed; }
-
 .an-spinner { width:14px; height:14px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin 0.7s linear infinite; }
 .an-spinner-lg { width:32px; height:32px; border:3px solid #e2e8f0; border-top-color:#0d9488; border-radius:50%; animation:spin 0.7s linear infinite; }
 .an-loading { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:80px 20px; color:#94a3b8; font-size:14px; }
 
-/* KPI Cards */
 .an-kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:20px; }
 .an-kpi { background:#fff; border-radius:16px; padding:20px; border:1px solid #f1f5f9; box-shadow:0 1px 4px rgba(0,0,0,0.04); animation:fadeUp 0.4s ease both; }
 .an-kpi-label { font-size:12px; color:#94a3b8; font-weight:500; text-transform:uppercase; letter-spacing:0.5px; margin:0 0 4px; }
 .an-kpi-val { font-size:24px; font-weight:800; margin:0; letter-spacing:-0.5px; }
 .an-kpi-sub { font-size:12px; color:#94a3b8; margin:4px 0 0; }
 
-/* Charts */
 .an-chart-row { display:flex; gap:16px; margin-bottom:16px; }
+.an-chart-row-2 { align-items:start; }
 .an-card { background:#fff; border-radius:16px; padding:20px; border:1px solid #f1f5f9; box-shadow:0 1px 4px rgba(0,0,0,0.04); animation:fadeUp 0.4s ease both; }
-.an-chart-main { flex:2; }
-.an-chart-side { flex:1; }
+.an-chart-main { flex:2; min-width:0; }
+.an-chart-side { flex:1; min-width:0; }
+.an-products-card { flex:1.5; min-width:0; }
+.an-side-col { display:flex; flex-direction:column; gap:16px; flex:1; min-width:0; }
 .an-card-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; }
 .an-card-title { font-size:15px; font-weight:700; color:#0f172a; margin:0 0 3px; }
 .an-card-sub { font-size:12px; color:#94a3b8; margin:0; }
@@ -452,7 +416,6 @@ const css = `
 .an-metric-btn { padding:5px 12px; border-radius:8px; font-size:12px; font-weight:600; border:none; cursor:pointer; font-family:'Outfit',sans-serif; background:#f1f5f9; color:#64748b; transition:all 0.15s; }
 .an-metric-btn.active { background:#0f172a; color:#fff; }
 
-/* Top products */
 .an-top-products { display:flex; flex-direction:column; gap:10px; }
 .an-product-row { display:flex; align-items:center; gap:12px; }
 .an-product-rank { font-size:12px; font-weight:700; color:#94a3b8; width:20px; text-align:center; flex-shrink:0; }
@@ -465,10 +428,33 @@ const css = `
 .an-product-rev { font-size:13px; font-weight:800; color:#0f172a; margin:0 0 2px; }
 .an-product-units { font-size:11px; color:#94a3b8; margin:0; }
 
-/* Mini KPIs */
 .an-mini-kpis { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 .an-mini-kpi { background:#fff; border-radius:14px; padding:16px; border:1px solid #f1f5f9; box-shadow:0 1px 4px rgba(0,0,0,0.04); }
 .an-mini-label { font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; margin:0 0 6px; }
 .an-mini-val { font-size:26px; font-weight:800; margin:0 0 3px; letter-spacing:-0.5px; }
 .an-mini-sub { font-size:11px; color:#94a3b8; margin:0; }
+
+@media (max-width: 1024px) {
+  .an-chart-row { flex-direction:column; }
+  .an-chart-main, .an-chart-side { flex:none; width:100%; }
+  .an-chart-row-2 { flex-direction:column; }
+  .an-products-card { flex:none; width:100%; }
+  .an-side-col { flex:none; width:100%; }
+}
+
+@media (max-width: 768px) {
+  .an-root { padding:16px; }
+  .an-title { font-size:22px; }
+  .an-kpis { grid-template-columns:repeat(2,1fr); gap:10px; }
+  .an-kpi { padding:14px; }
+  .an-kpi-val { font-size:20px; }
+  .an-btn-label { display:none; }
+  .an-export-btn { padding:9px 12px; }
+  .an-period-btn { padding:5px 8px; font-size:11px; }
+}
+
+@media (max-width: 480px) {
+  .an-kpis { grid-template-columns:1fr 1fr; }
+  .an-mini-kpis { grid-template-columns:1fr 1fr; }
+}
 `;
