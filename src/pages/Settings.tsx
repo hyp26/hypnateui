@@ -283,36 +283,45 @@ export const Settings: React.FC = () => {
         /* Mobile tab bar: visible on mobile, hidden on desktop */
         .settings-tab-bar {
           display: flex;
-          gap: 0;
-          overflow-x: auto;
           background: #fafafa;
           border-bottom: 1px solid #f1f5f9;
+          overflow-x: auto;
           -webkit-overflow-scrolling: touch;
           scrollbar-width: none;
-          padding: 0 4px;
         }
         .settings-tab-bar::-webkit-scrollbar { display: none; }
+
+        /* Each tab: icon + label only when active */
         .settings-tab-bar-btn {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 4px;
-          padding: 10px 12px;
+          justify-content: center;
+          gap: 3px;
+          /* Equal width: 1/6 of bar, min 52px */
+          flex: 1 0 52px;
+          padding: 8px 4px;
           border: none;
           border-bottom: 2px solid transparent;
           background: transparent;
           color: #94a3b8;
-          font-size: 10px;
-          font-weight: 600;
           cursor: pointer;
-          white-space: nowrap;
           transition: all 0.15s;
           font-family: inherit;
-          flex-shrink: 0;
+        }
+        .settings-tab-bar-btn .tab-label {
+          font-size: 9px;
+          font-weight: 600;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: 56px;
+          line-height: 1;
         }
         .settings-tab-bar-btn.active {
           color: #0d9488;
           border-bottom-color: #0d9488;
+          background: rgba(13,148,136,0.04);
         }
 
         /* Content area */
@@ -396,9 +405,10 @@ export const Settings: React.FC = () => {
                 key={tab.id}
                 className={`settings-tab-bar-btn ${activeTab === tab.id ? 'active' : ''}`}
                 onClick={() => setActiveTab(tab.id)}
+                title={tab.label}
               >
-                <tab.icon size={16} />
-                {tab.label}
+                <tab.icon size={activeTab === tab.id ? 17 : 16} strokeWidth={activeTab === tab.id ? 2.5 : 1.8} />
+                <span className="tab-label">{tab.label}</span>
               </button>
             ))}
           </div>
