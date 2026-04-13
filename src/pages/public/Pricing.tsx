@@ -1,18 +1,20 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Check, X, Zap, Gift, ChevronDown, ChevronUp, ArrowRight, Star, Users, MessageCircle, Store, BarChart3, Headphones, Shield } from 'lucide-react';
+import {
+  Check, X, Zap, ChevronDown, ChevronUp, ArrowRight,
+  Star, Users, MessageCircle, Store, BarChart3, Headphones,
+  Shield, Rocket, Gift
+} from 'lucide-react';
 
-// ── Types ──────────────────────────────────────────────────────────────────
 type BillingCycle = 'monthly' | 'yearly';
 
 interface Plan {
   id: string;
   name: string;
   badge?: string;
-  badgeColor?: string;
   tagline: string;
   desc: string;
-  monthlyPrice: number | null;
+  monthlyPrice: number;
   highlight: boolean;
   cta: string;
   ctaLink: string;
@@ -20,50 +22,14 @@ interface Plan {
   accentBg: string;
   icon: React.ReactNode;
   features: { category: string; items: string[] }[];
-  limits: string[];
 }
 
-// ── Data ───────────────────────────────────────────────────────────────────
 const plans: Plan[] = [
-  {
-    id: 'founding',
-    name: 'Founding Member',
-    badge: '🎁 First 50 Only',
-    badgeColor: '#f59e0b',
-    tagline: 'A gift from us to you.',
-    desc: 'Exclusive lifetime free access for our first 50 believers. Your store, hosted on us — forever.',
-    monthlyPrice: 0,
-    highlight: false,
-    cta: 'Claim Your Spot',
-    ctaLink: '/signup?plan=founding',
-    color: '#f59e0b',
-    accentBg: '#fffbeb',
-    icon: <Gift size={22} />,
-    features: [
-      {
-        category: 'Inbox',
-        items: ['1 WhatsApp number (test mode)', '1 Instagram DM', '800 AI conversations/mo', 'Unified inbox'],
-      },
-      {
-        category: 'Commerce',
-        items: ['Up to 50 products', 'Basic order management', '500 customer profiles', '7-day analytics'],
-      },
-      {
-        category: 'HypnateX Store',
-        items: ['1 store — hosted FREE on Hypnate forever', 'yourstore.hypnate.in subdomain', '6 starter themes', 'Manual catalog sync', '5GB storage · 1,000 visitors/mo', 'SSL included'],
-      },
-      {
-        category: 'Perks',
-        items: ['Founding Member #badge in dashboard', '30% off Pro forever when you upgrade', 'Featured on Hypnate website', 'Private WhatsApp group with founders'],
-      },
-    ],
-    limits: ['"Powered by Hypnate" footer badge', 'Hypnate.in subdomain only', 'Test-mode WhatsApp (5 recipients)'],
-  },
   {
     id: 'starter',
     name: 'Starter',
     tagline: 'For solo sellers & new D2C founders.',
-    desc: 'Everything you need to start selling — conversations, orders, and a real website.',
+    desc: 'Everything you need to start selling on WhatsApp and Instagram — conversations, orders, and a real website.',
     monthlyPrice: 799,
     highlight: false,
     cta: 'Start Free Trial',
@@ -82,20 +48,18 @@ const plans: Plan[] = [
       },
       {
         category: 'HypnateX Store',
-        items: ['1 store — hosted on Hypnate servers', 'yourstore.hypnate.in subdomain', '6 starter themes', 'Manual catalog sync', '10GB storage · 5,000 visitors/mo', 'SSL included'],
+        items: ['1 store — hosted on Hypnate servers', 'yourstore.hypnate.in subdomain', '6 starter themes', '10GB storage · 5,000 visitors/mo', 'SSL included'],
       },
       {
         category: 'Support',
         items: ['Email support (48hr)', 'Help center access'],
       },
     ],
-    limits: ['"Powered by Hypnate" footer badge', 'Hypnate.in subdomain only'],
   },
   {
     id: 'pro',
     name: 'Pro',
     badge: '⭐ Most Popular',
-    badgeColor: '#0d9488',
     tagline: 'For growing D2C brands.',
     desc: 'Unlock all 4 platforms, automation, custom domain, and auto-syncing store.',
     monthlyPrice: 2199,
@@ -108,22 +72,21 @@ const plans: Plan[] = [
     features: [
       {
         category: 'Inbox',
-        items: ['1 WhatsApp number', 'Instagram + Facebook + Telegram', 'Unlimited AI conversations', '3 team members (shared inbox)', 'Saved replies (unlimited)', 'Broadcast to 5,000 contacts/mo', '5 chatbot automation flows', 'Auto-replies & away messages', 'WhatsApp order status notifications', 'Abandoned cart recovery'],
+        items: ['1 WhatsApp number', 'Instagram + Facebook + Telegram', 'Unlimited AI conversations', '3 team members', 'Broadcast to 5,000 contacts/mo', '5 chatbot automation flows', 'Abandoned cart recovery'],
       },
       {
         category: 'Commerce',
-        items: ['Unlimited products', 'Advanced order management', 'Unlimited customer profiles', 'Customer tags & segments', '90-day analytics (all channels)', 'Bulk order CSV export', 'COD confirmation via WhatsApp'],
+        items: ['Unlimited products', 'Advanced order management', 'Unlimited customer profiles', '90-day analytics (all channels)', 'Bulk order CSV export', 'COD confirmation via WhatsApp'],
       },
       {
         category: 'HypnateX Store',
-        items: ['1 store — hosted on Hypnate servers', 'Custom domain (yourbrand.com)', 'All 12 themes', 'Auto-sync catalog (instant updates)', 'Remove "Powered by Hypnate"', 'AI-generated SEO meta tags', 'Google Analytics integration', '25GB storage · 25,000 visitors/mo', '3 store rebuilds/mo'],
+        items: ['1 store on Hypnate servers', 'Custom domain (yourbrand.com)', 'All 12 themes', 'Auto-sync catalog', 'Remove "Powered by Hypnate"', 'AI-generated SEO meta tags', '25GB storage · 25,000 visitors/mo'],
       },
       {
         category: 'Support',
         items: ['Priority email (12hr)', 'WhatsApp support chat', 'Monthly strategy call (30 min)'],
       },
     ],
-    limits: [],
   },
   {
     id: 'business',
@@ -140,177 +103,200 @@ const plans: Plan[] = [
     features: [
       {
         category: 'Inbox',
-        items: ['3 WhatsApp numbers', 'All 4 platforms (WA + IG + FB + TG)', 'Unlimited AI conversations', '5 team members + role permissions', 'Unlimited chatbot flows', 'Broadcast to unlimited contacts', 'WhatsApp catalog in-chat shopping', 'Sentiment analysis on chats', 'CSAT surveys post-conversation'],
+        items: ['3 WhatsApp numbers', 'All 4 platforms (WA + IG + FB + TG)', 'Unlimited AI conversations', '5 team members + role permissions', 'Unlimited chatbot flows', 'Broadcast to unlimited contacts', 'Sentiment analysis on chats'],
       },
       {
         category: 'Commerce',
-        items: ['Everything in Pro', 'Multi-location inventory', 'Custom order statuses & pipeline', 'Revenue forecasting dashboard', 'Customer lifetime value tracking', 'Razorpay / PayU deep integration', 'API webhooks for custom integrations'],
+        items: ['Everything in Pro', 'Multi-location inventory', 'Custom order statuses & pipeline', 'Revenue forecasting dashboard', 'Customer lifetime value tracking', 'API webhooks for custom integrations'],
       },
       {
         category: 'HypnateX Store',
-        items: ['3 store websites (multi-brand / agency)', 'Custom domain on all 3 stores', 'All themes + early access to new ones', 'AI brand voice training per store', 'Auto-sync on all 3 stores', '100GB storage · 100,000 visitors/mo', 'Google Search Console integration', 'Unlimited store rebuilds', 'Priority build queue (<5 min builds)', '"Shop Now" WhatsApp button → store'],
+        items: ['3 store websites (multi-brand)', 'Custom domain on all 3 stores', 'All themes + early access', 'Auto-sync on all 3 stores', '100GB storage · 100,000 visitors/mo', 'Unlimited store rebuilds'],
       },
       {
         category: 'Support',
         items: ['Dedicated account manager', '4hr response SLA', 'Onboarding call included', 'Quarterly business review call'],
       },
     ],
-    limits: [],
   },
 ];
 
 const compareRows = [
-  { feature: 'WhatsApp Numbers', founding: '1 (test)', starter: '1', pro: '1', business: '3' },
-  { feature: 'Platforms', founding: 'WA + IG', starter: 'WA + IG', pro: 'WA+IG+FB+TG', business: 'All 4' },
-  { feature: 'AI Conversations/mo', founding: '800', starter: '800', pro: 'Unlimited', business: 'Unlimited' },
-  { feature: 'Team Members', founding: '1', starter: '1', pro: '3', business: '5' },
-  { feature: 'Products', founding: '50', starter: '100', pro: 'Unlimited', business: 'Unlimited' },
-  { feature: 'HypnateX Stores', founding: '1', starter: '1', pro: '1', business: '3' },
-  { feature: 'Store Hosting', founding: true, starter: true, pro: true, business: true },
-  { feature: 'Custom Domain', founding: false, starter: false, pro: true, business: true },
-  { feature: 'Auto-sync Catalog', founding: false, starter: false, pro: true, business: true },
-  { feature: 'Remove Branding', founding: false, starter: false, pro: true, business: true },
-  { feature: 'Broadcast Messages', founding: false, starter: false, pro: '5,000/mo', business: 'Unlimited' },
-  { feature: 'Store Rebuilds/mo', founding: '1', starter: '1', pro: '3', business: 'Unlimited' },
-  { feature: 'Support', founding: 'Email', starter: 'Email', pro: 'Priority + WA', business: 'Dedicated' },
-  { feature: 'API Access', founding: false, starter: false, pro: false, business: true },
-];
-
-const overages = [
-  { icon: <MessageCircle size={16} />, label: 'Extra conversations', price: '₹0.50 each', note: 'Never get cut off' },
-  { icon: <Store size={16} />, label: 'Extra 5,000 store visitors', price: '₹99', note: 'Scale without limits' },
-  { icon: <Users size={16} />, label: 'Extra team member', price: '₹299/mo', note: 'Add when you hire' },
-  { icon: <BarChart3 size={16} />, label: 'Extra store rebuild', price: '₹199', note: 'Redesign anytime' },
+  { feature: 'WhatsApp Numbers', starter: '1', pro: '1', business: '3' },
+  { feature: 'Platforms', starter: 'WA + IG', pro: 'WA+IG+FB+TG', business: 'All 4' },
+  { feature: 'AI Conversations/mo', starter: '800', pro: 'Unlimited', business: 'Unlimited' },
+  { feature: 'Team Members', starter: '1', pro: '3', business: '5' },
+  { feature: 'Products', starter: '100', pro: 'Unlimited', business: 'Unlimited' },
+  { feature: 'HypnateX Stores', starter: '1', pro: '1', business: '3' },
+  { feature: 'Store Hosting', starter: true, pro: true, business: true },
+  { feature: 'Custom Domain', starter: false, pro: true, business: true },
+  { feature: 'Auto-sync Catalog', starter: false, pro: true, business: true },
+  { feature: 'Remove Branding', starter: false, pro: true, business: true },
+  { feature: 'Broadcast Messages', starter: false, pro: '5,000/mo', business: 'Unlimited' },
+  { feature: 'API Access', starter: false, pro: false, business: true },
+  { feature: 'Support', starter: 'Email', pro: 'Priority + WA', business: 'Dedicated' },
 ];
 
 const faqs = [
-  { q: 'What is HypnateX hosting?', a: 'When you build a store through HypnateX, it lives on Hypnate\'s servers — no need for Hostinger, Shopify, or any separate hosting. We handle SSL, CDN, and uptime. Founding members get this free forever; all paid plans include it.' },
-  { q: 'What happens if I exceed my conversation limit?', a: 'We never cut you off. Each extra conversation costs ₹0.50. You\'ll see real-time usage in your dashboard. WhatsApp charges us ~₹0.30 per conversation so this is sustainable for both sides.' },
-  { q: 'How does the Founding Member plan work?', a: 'The first 50 sellers who sign up get a permanent free Starter plan. Your HypnateX store is hosted on our servers for life, at no cost. When you\'re ready to grow, you upgrade at a permanent 30% discount on Pro — locked in forever.' },
-  { q: 'Do I need the WhatsApp Business API separately?', a: 'We guide you through the Meta API setup directly from your dashboard. It takes about 2–3 business days for Meta to approve, and there\'s no setup fee. You just need a Meta Business Account.' },
-  { q: 'Can I use my own domain on Starter?', a: 'Custom domains are available on Pro and Business plans. On Starter and Founding Member, your store lives at yourstore.hypnate.in — which is still a real, shareable link your customers can bookmark.' },
-  { q: 'Is there a setup fee or contract?', a: 'No setup fees, no contracts. Monthly plans can be cancelled anytime. Annual plans come with a 14-day money-back guarantee if you\'re not satisfied.' },
-  { q: 'Can agencies use Business for multiple clients?', a: 'Yes — the Business plan includes 3 separate HypnateX stores, each with its own custom domain and catalog. Agencies building for multiple clients should look at our Enterprise plan for unlimited stores and white-labelling.' },
+  { q: 'What is the 50% launch offer?', a: 'We\'re celebrating Hypnate\'s launch with 50% off all plans. This is a time-limited offer for early adopters — both monthly and annual billing. Lock in the discounted rate now and it stays yours as long as your subscription is active.' },
+  { q: 'How does HypnateX store hosting work?', a: 'When you build a store through HypnateX, it lives on Hypnate\'s servers — no need for Hostinger, Shopify, or any separate hosting. We handle SSL, CDN, and uptime across all paid plans.' },
+  { q: 'What happens if I exceed my conversation limit?', a: 'We never cut you off. Each extra conversation costs ₹0.50. You\'ll see real-time usage in your dashboard so you\'re always in the know.' },
+  { q: 'Do I need the WhatsApp Business API separately?', a: 'We guide you through the Meta API setup from your dashboard. It takes about 2–3 business days for Meta to approve, and there\'s no setup fee from our side.' },
+  { q: 'Can I use my own domain on Starter?', a: 'Custom domains are available on Pro and Business. On Starter, your store lives at yourstore.hypnate.in — a real, shareable link your customers can bookmark.' },
+  { q: 'Is there a setup fee or contract?', a: 'No setup fees, no contracts. Monthly plans can be cancelled anytime. Annual plans come with a 14-day money-back guarantee.' },
+  { q: 'Can agencies use Business for multiple clients?', a: 'Yes — Business includes 3 separate HypnateX stores, each with its own custom domain and catalog. For unlimited stores, contact us about our Enterprise plan.' },
 ];
 
-// ── Component ──────────────────────────────────────────────────────────────
+const LAUNCH_DISCOUNT = 0.5; // 50% off
+
 export const Pricing: React.FC = () => {
   const [billing, setBilling] = useState<BillingCycle>('yearly');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [visible, setVisible] = useState(false);
-  const [foundingLeft] = useState(23); // simulate spots left
 
-  useEffect(() => {
-    const t = setTimeout(() => setVisible(true), 60);
-    return () => clearTimeout(t);
-  }, []);
+  useEffect(() => { const t = setTimeout(() => setVisible(true), 80); return () => clearTimeout(t); }, []);
 
-  const getPrice = (monthly: number | null) => {
-    if (monthly === null || monthly === 0) return 0;
-    return billing === 'yearly' ? Math.round(monthly * 0.8) : monthly;
-  };
+  const getOriginal = (monthly: number) => billing === 'yearly' ? Math.round(monthly * 0.8) : monthly;
+  const getLaunch = (monthly: number) => Math.round(getOriginal(monthly) * (1 - LAUNCH_DISCOUNT));
 
   return (
     <>
       <style>{css}</style>
-      <div className="pricing-root">
+      <div className="pr-root">
 
-        {/* ── HERO ── */}
-        <section className="pricing-hero">
-          <div className="hero-glow" />
-          <div className={`hero-content ${visible ? 'visible' : ''}`}>
-            <div className="founding-ticker">
-              <span className="ticker-dot" />
-              <span>🎁 Founding Member spots: <strong>{foundingLeft} of 50 remaining</strong></span>
-              <a href="/signup?plan=founding" className="ticker-link">Claim yours →</a>
+        {/* HERO */}
+        <section className="pr-hero">
+          <div className="pr-hero-glow" />
+          <div className={`pr-hero-content ${visible ? 'visible' : ''}`}>
+            {/* Launch banner */}
+            <div className="pr-launch-banner">
+              <Rocket size={16} />
+              <span>🚀 Launch Offer — <strong>50% OFF all plans</strong> for early adopters</span>
             </div>
-            <h1 className="hero-title">
-              Pricing that grows<br />
-              <span className="hero-accent">with your business</span>
+
+            <h1 className="pr-hero-title">
+              Pricing that scales<br />
+              <span className="pr-hero-accent">with your growth</span>
             </h1>
-            <p className="hero-sub">
-              One platform for WhatsApp, Instagram, Facebook &amp; Telegram — plus your own store, hosted on us.
+            <p className="pr-hero-sub">
+              WhatsApp, Instagram, Facebook & Telegram commerce — plus your own hosted store. All in one platform.
             </p>
 
             {/* Billing toggle */}
-            <div className="billing-toggle">
-              <span className={`billing-label ${billing === 'monthly' ? 'active' : ''}`}>Monthly</span>
-              <button
-                className="toggle-track"
-                onClick={() => setBilling(b => b === 'monthly' ? 'yearly' : 'monthly')}
-                aria-label="Toggle billing cycle"
-              >
-                <div className={`toggle-thumb ${billing === 'yearly' ? 'yearly' : ''}`} />
+            <div className="pr-billing-toggle">
+              <span className={`pr-bill-label ${billing === 'monthly' ? 'active' : ''}`} onClick={() => setBilling('monthly')}>Monthly</span>
+              <button className="pr-toggle-track" onClick={() => setBilling(b => b === 'monthly' ? 'yearly' : 'monthly')}>
+                <div className={`pr-toggle-thumb ${billing === 'yearly' ? 'yearly' : ''}`} />
               </button>
-              <span className={`billing-label ${billing === 'yearly' ? 'active' : ''}`}>
-                Yearly
-                <span className="save-badge">SAVE 20%</span>
+              <span className={`pr-bill-label ${billing === 'yearly' ? 'active' : ''}`} onClick={() => setBilling('yearly')}>
+                Yearly <span className="pr-save-badge">SAVE 20%</span>
               </span>
             </div>
           </div>
         </section>
 
-        {/* ── PLAN CARDS ── */}
-        <section className="cards-section">
-          <div className="cards-grid">
-            {plans.map((plan, i) => (
-              <PlanCard key={plan.id} plan={plan} billing={billing} getPrice={getPrice} delay={i * 80} />
-            ))}
-          </div>
-        </section>
+        {/* PLAN CARDS */}
+        <section className="pr-cards-section">
+          <div className="pr-cards-grid">
+            {plans.map((plan, i) => {
+              const original = getOriginal(plan.monthlyPrice);
+              const launch = getLaunch(plan.monthlyPrice);
+              return (
+                <div
+                  key={plan.id}
+                  className={`pr-card ${plan.highlight ? 'pr-highlight' : ''} ${visible ? 'pr-card-visible' : ''}`}
+                  style={{ animationDelay: `${i * 100 + 200}ms`, '--cc': plan.color } as any}
+                >
+                  {plan.badge && (
+                    <div className="pr-badge" style={{ background: plan.highlight ? 'rgba(255,255,255,0.2)' : '#e6fffa', color: plan.highlight ? '#fff' : '#0d9488' }}>
+                      {plan.badge}
+                    </div>
+                  )}
 
-        {/* ── OVERAGE SECTION ── */}
-        <section className="overage-section">
-          <div className="overage-inner">
-            <div className="overage-header">
-              <div className="overage-icon-wrap"><Zap size={20} /></div>
-              <div>
-                <h2 className="overage-title">Never get cut off — pay only for what you use</h2>
-                <p className="overage-sub">When you exceed your plan limits, we don't shut you down. We just charge a small overage so your business keeps moving.</p>
-              </div>
-            </div>
-            <div className="overage-grid">
-              {overages.map((o, i) => (
-                <div key={i} className="overage-card">
-                  <div className="overage-card-icon">{o.icon}</div>
-                  <div className="overage-label">{o.label}</div>
-                  <div className="overage-price">{o.price}</div>
-                  <div className="overage-note">{o.note}</div>
+                  <div className="pr-card-header">
+                    <div className="pr-card-icon" style={{ background: plan.highlight ? 'rgba(255,255,255,0.15)' : plan.accentBg, color: plan.highlight ? '#fff' : plan.color }}>
+                      {plan.icon}
+                    </div>
+                    <div>
+                      <h3 className="pr-card-name" style={{ color: plan.highlight ? '#fff' : '#0f172a' }}>{plan.name}</h3>
+                      <p className="pr-card-tagline" style={{ color: plan.highlight ? 'rgba(255,255,255,0.7)' : '#64748b' }}>{plan.tagline}</p>
+                    </div>
+                  </div>
+
+                  {/* Price with strikethrough */}
+                  <div className="pr-price-wrap">
+                    <div className="pr-original-price" style={{ color: plan.highlight ? 'rgba(255,255,255,0.45)' : '#94a3b8' }}>
+                      ₹{original.toLocaleString()}/mo
+                    </div>
+                    <div className="pr-price-row">
+                      <span className="pr-currency" style={{ color: plan.highlight ? 'rgba(255,255,255,0.6)' : '#94a3b8' }}>₹</span>
+                      <span className="pr-amount" style={{ color: plan.highlight ? '#fff' : '#0f172a' }}>{launch.toLocaleString()}</span>
+                      <span className="pr-period" style={{ color: plan.highlight ? 'rgba(255,255,255,0.6)' : '#94a3b8' }}>/mo</span>
+                      <span className="pr-discount-pill">50% OFF</span>
+                    </div>
+                    {billing === 'yearly' && (
+                      <p className="pr-annual" style={{ color: plan.highlight ? 'rgba(255,255,255,0.55)' : '#94a3b8' }}>
+                        ₹{(launch * 12).toLocaleString()} billed annually
+                      </p>
+                    )}
+                  </div>
+
+                  <Link to={plan.ctaLink} className={`pr-cta ${plan.highlight ? 'pr-cta-white' : 'pr-cta-outline'}`}>
+                    {plan.cta} <ArrowRight size={14} />
+                  </Link>
+
+                  <p className="pr-card-desc" style={{ color: plan.highlight ? 'rgba(255,255,255,0.7)' : '#64748b' }}>{plan.desc}</p>
+
+                  <div className="pr-features">
+                    {plan.features.map((cat, ci) => (
+                      <div key={ci} className="pr-feature-cat">
+                        <div className="pr-cat-label" style={{ color: plan.highlight ? 'rgba(255,255,255,0.4)' : '#94a3b8' }}>{cat.category}</div>
+                        {cat.items.map((item, ii) => (
+                          <div key={ii} className="pr-feature-item">
+                            <Check size={12} style={{ color: plan.highlight ? '#6ee7b7' : plan.color, flexShrink: 0 }} />
+                            <span style={{ color: plan.highlight ? 'rgba(255,255,255,0.85)' : '#374151' }}>{item}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))}
-            </div>
+              );
+            })}
+          </div>
+
+          {/* Launch offer note */}
+          <div className="pr-launch-note">
+            <Gift size={16} />
+            <span>Launch pricing is locked in for life — never increases as long as you stay subscribed.</span>
           </div>
         </section>
 
-        {/* ── COMPARE TABLE ── */}
-        <section className="compare-section">
-          <h2 className="section-title">Compare every feature</h2>
-          <p className="section-sub">See exactly what's included in each plan before you commit.</p>
-          <div className="table-wrap">
-            <table className="compare-table">
+        {/* COMPARE TABLE */}
+        <section className="pr-compare">
+          <h2 className="pr-section-title">Compare every feature</h2>
+          <p className="pr-section-sub">See exactly what's in each plan before you commit.</p>
+          <div className="pr-table-wrap">
+            <table className="pr-table">
               <thead>
                 <tr>
-                  <th className="table-feature-col">Feature</th>
-                  <th><span className="th-founding">Founding</span></th>
+                  <th className="pr-th-feature">Feature</th>
                   <th>Starter</th>
-                  <th className="th-pro">Pro ⭐</th>
+                  <th className="pr-th-pro">Pro ⭐</th>
                   <th>Business</th>
                 </tr>
               </thead>
               <tbody>
                 {compareRows.map((row, i) => (
                   <tr key={i}>
-                    <td className="feature-name">{row.feature}</td>
-                    {(['founding', 'starter', 'pro', 'business'] as const).map(col => {
+                    <td className="pr-td-feature">{row.feature}</td>
+                    {(['starter', 'pro', 'business'] as const).map(col => {
                       const val = row[col];
                       return (
-                        <td key={col} className={col === 'pro' ? 'td-pro' : ''}>
+                        <td key={col} className={col === 'pro' ? 'pr-td-pro' : ''}>
                           {typeof val === 'boolean'
-                            ? val
-                              ? <Check size={16} className="check-icon" />
-                              : <X size={16} className="x-icon" />
-                            : <span className="td-text">{val}</span>
-                          }
+                            ? val ? <Check size={15} className="pr-check" /> : <X size={15} className="pr-x" />
+                            : <span>{val}</span>}
                         </td>
                       );
                     })}
@@ -321,433 +307,152 @@ export const Pricing: React.FC = () => {
           </div>
         </section>
 
-        {/* ── FAQ ── */}
-        <section className="faq-section">
-          <h2 className="section-title">Frequently asked questions</h2>
-          <p className="section-sub">Everything you need to know before you sign up.</p>
-          <div className="faq-list">
+        {/* FAQ */}
+        <section className="pr-faq">
+          <h2 className="pr-section-title">Frequently asked questions</h2>
+          <p className="pr-section-sub">Everything you need to know before you sign up.</p>
+          <div className="pr-faq-list">
             {faqs.map((faq, i) => (
-              <div key={i} className={`faq-item ${openFaq === i ? 'open' : ''}`}>
-                <button className="faq-q" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
+              <div key={i} className={`pr-faq-item ${openFaq === i ? 'open' : ''}`}>
+                <button className="pr-faq-q" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
                   <span>{faq.q}</span>
                   {openFaq === i ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                 </button>
-                {openFaq === i && <p className="faq-a">{faq.a}</p>}
+                {openFaq === i && <p className="pr-faq-a">{faq.a}</p>}
               </div>
             ))}
           </div>
         </section>
 
-        {/* ── BOTTOM CTA ── */}
-        <section className="bottom-cta">
-          <div className="bottom-cta-inner">
-            <h2 className="bottom-cta-title">Still not sure? Start free.</h2>
-            <p className="bottom-cta-sub">14-day trial, no credit card required. Cancel anytime.</p>
-            <div className="bottom-cta-btns">
-              <Link to="/signup" className="cta-btn-primary">
-                Get started free <ArrowRight size={16} />
-              </Link>
-              <Link to="/signup?plan=founding" className="cta-btn-secondary">
-                🎁 Claim Founding Member spot
-              </Link>
+        {/* BOTTOM CTA */}
+        <section className="pr-bottom-cta">
+          <div className="pr-bottom-inner">
+            <h2 className="pr-bottom-title">Still not sure? Start free.</h2>
+            <p className="pr-bottom-sub">14-day trial, no credit card required. Cancel anytime.</p>
+            <div className="pr-bottom-btns">
+              <Link to="/signup" className="pr-btn-primary">Get started free <ArrowRight size={16} /></Link>
+              <Link to="/contact" className="pr-btn-secondary">Talk to our team</Link>
             </div>
-            <div className="trust-row">
+            <div className="pr-trust-row">
               <span><Shield size={13} /> No setup fees</span>
               <span><Check size={13} /> 14-day money-back</span>
               <span><Headphones size={13} /> WhatsApp support</span>
             </div>
           </div>
         </section>
-
       </div>
     </>
   );
 };
 
-// ── Plan Card ──────────────────────────────────────────────────────────────
-const PlanCard: React.FC<{
-  plan: Plan;
-  billing: BillingCycle;
-  getPrice: (m: number | null) => number;
-  delay: number;
-}> = ({ plan, billing, getPrice, delay }) => {
-  const [show, setShow] = useState(false);
-  const [expanded, setExpanded] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setShow(true), delay + 200); return () => clearTimeout(t); }, [delay]);
-
-  const price = getPrice(plan.monthlyPrice);
-  const isFoundingFree = plan.monthlyPrice === 0;
-
-  return (
-    <div
-      className={`plan-card ${plan.highlight ? 'plan-highlight' : ''} ${plan.id === 'founding' ? 'plan-founding' : ''} ${show ? 'card-visible' : ''}`}
-      style={{ '--card-color': plan.color } as any}
-    >
-      {/* Badge */}
-      {plan.badge && (
-        <div className="plan-badge" style={{ background: plan.id === 'founding' ? '#fef3c7' : '#e6fffa', color: plan.id === 'founding' ? '#92400e' : '#0d9488' }}>
-          {plan.badge}
-        </div>
-      )}
-
-      {/* Header */}
-      <div className={`card-header ${plan.highlight ? 'card-header-highlight' : ''}`}>
-        <div className="card-icon" style={{ background: plan.highlight ? 'rgba(255,255,255,0.15)' : plan.accentBg, color: plan.highlight ? '#fff' : plan.color }}>
-          {plan.icon}
-        </div>
-        <div>
-          <h3 className="card-name" style={{ color: plan.highlight ? '#fff' : '#0f172a' }}>{plan.name}</h3>
-          <p className="card-tagline" style={{ color: plan.highlight ? 'rgba(255,255,255,0.8)' : '#64748b' }}>{plan.tagline}</p>
-        </div>
-      </div>
-
-      {/* Price */}
-      <div className={`card-price-wrap ${plan.highlight ? 'price-highlight' : ''}`}>
-        {isFoundingFree ? (
-          <div className="price-free">FREE <span className="price-free-tag">forever</span></div>
-        ) : (
-          <div className="price-row">
-            <span className="price-currency" style={{ color: plan.highlight ? 'rgba(255,255,255,0.7)' : '#94a3b8' }}>₹</span>
-            <span className="price-amount" style={{ color: plan.highlight ? '#fff' : '#0f172a' }}>{price.toLocaleString()}</span>
-            <span className="price-period" style={{ color: plan.highlight ? 'rgba(255,255,255,0.7)' : '#94a3b8' }}>/mo</span>
-          </div>
-        )}
-        {!isFoundingFree && billing === 'yearly' && (
-          <p className="price-annual" style={{ color: plan.highlight ? 'rgba(255,255,255,0.7)' : '#94a3b8' }}>
-            ₹{(price * 12).toLocaleString()} billed annually
-          </p>
-        )}
-      </div>
-
-      {/* CTA */}
-      <Link
-        to={plan.ctaLink}
-        className={`card-cta ${plan.highlight ? 'cta-white' : plan.id === 'founding' ? 'cta-founding' : 'cta-outline'}`}
-      >
-        {plan.cta}
-        <ArrowRight size={14} />
-      </Link>
-
-      {/* Desc */}
-      <p className="card-desc" style={{ color: plan.highlight ? 'rgba(255,255,255,0.75)' : '#64748b' }}>{plan.desc}</p>
-
-      {/* Features */}
-      <div className="card-features">
-        {plan.features.map((cat, ci) => (
-          <div key={ci} className="feature-cat">
-            <div className="feature-cat-label" style={{ color: plan.highlight ? 'rgba(255,255,255,0.5)' : '#94a3b8' }}>{cat.category}</div>
-            {cat.items.map((item, ii) => (
-              <div key={ii} className="feature-item">
-                <Check size={13} className="feature-check" style={{ color: plan.highlight ? '#6ee7b7' : plan.color }} />
-                <span style={{ color: plan.highlight ? 'rgba(255,255,255,0.9)' : '#374151' }}>{item}</span>
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
-
-      {/* Limits */}
-      {plan.limits.length > 0 && (
-        <div className="card-limits">
-          <div className="limits-label" style={{ color: plan.highlight ? 'rgba(255,255,255,0.5)' : '#94a3b8' }}>Limitations</div>
-          {plan.limits.map((l, li) => (
-            <div key={li} className="limit-item">
-              <X size={12} style={{ color: plan.highlight ? 'rgba(255,255,255,0.4)' : '#cbd5e1', flexShrink: 0 }} />
-              <span style={{ color: plan.highlight ? 'rgba(255,255,255,0.6)' : '#94a3b8' }}>{l}</span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
-
-// ── CSS ────────────────────────────────────────────────────────────────────
 const css = `
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@700;800&family=DM+Sans:wght@400;500;600;700&display=swap');
 
-.pricing-root {
-  font-family: 'DM Sans', sans-serif;
-  color: #0f172a;
-  background: #fff;
-  overflow-x: hidden;
-}
+.pr-root { font-family: 'DM Sans', sans-serif; color: #0f172a; background: #fff; overflow-x: hidden; }
 
-/* ── HERO ── */
-.pricing-hero {
-  position: relative;
-  background: #0f172a;
-  padding: 100px 24px 80px;
-  text-align: center;
-  overflow: hidden;
-}
-.hero-glow {
-  position: absolute;
-  top: -120px; left: 50%; transform: translateX(-50%);
-  width: 700px; height: 400px;
-  background: radial-gradient(ellipse, rgba(13,148,136,0.35) 0%, transparent 70%);
-  pointer-events: none;
-}
-.hero-content {
-  position: relative;
-  max-width: 680px;
-  margin: 0 auto;
-  opacity: 0; transform: translateY(20px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
-}
-.hero-content.visible { opacity: 1; transform: none; }
+/* HERO */
+.pr-hero { position: relative; background: #0f172a; padding: clamp(80px,10vw,120px) 24px clamp(60px,8vw,90px); text-align: center; overflow: hidden; }
+.pr-hero-glow { position: absolute; top: -80px; left: 50%; transform: translateX(-50%); width: 700px; height: 400px; background: radial-gradient(ellipse, rgba(13,148,136,0.3) 0%, transparent 70%); pointer-events: none; }
+.pr-hero-content { position: relative; max-width: 660px; margin: 0 auto; opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.pr-hero-content.visible { opacity: 1; transform: none; }
 
-.founding-ticker {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3);
-  color: #fbbf24; font-size: 13px; font-weight: 500;
-  padding: 6px 14px; border-radius: 100px; margin-bottom: 28px;
-}
-.ticker-dot {
-  width: 7px; height: 7px; background: #f59e0b; border-radius: 50%;
-  animation: pulse-dot 1.5s ease-in-out infinite;
-}
-@keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
-.ticker-link { color: #fbbf24; text-decoration: none; font-weight: 700; }
+.pr-launch-banner { display: inline-flex; align-items: center; gap: 8px; background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.35); color: #fbbf24; font-size: 13px; font-weight: 600; padding: 7px 16px; border-radius: 100px; margin-bottom: 28px; }
 
-.hero-title {
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-size: clamp(36px, 5vw, 56px);
-  font-weight: 800; color: #fff; line-height: 1.1;
-  margin: 0 0 16px; letter-spacing: -1px;
-}
-.hero-accent {
-  background: linear-gradient(135deg, #0d9488, #34d399);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-}
-.hero-sub {
-  font-size: 17px; color: rgba(255,255,255,0.6);
-  margin: 0 0 36px; line-height: 1.6;
-}
+.pr-hero-title { font-family: 'Sora', sans-serif; font-size: clamp(32px,5vw,54px); font-weight: 800; color: #fff; line-height: 1.1; margin: 0 0 16px; letter-spacing: -1px; }
+.pr-hero-accent { background: linear-gradient(135deg, #0d9488, #34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.pr-hero-sub { font-size: clamp(14px,2vw,17px); color: rgba(255,255,255,0.55); margin: 0 0 36px; line-height: 1.65; }
 
-/* Toggle */
-.billing-toggle {
-  display: inline-flex; align-items: center; gap: 12px;
-  background: rgba(255,255,255,0.07); padding: 10px 20px;
-  border-radius: 100px; border: 1px solid rgba(255,255,255,0.1);
-}
-.billing-label { font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.4); transition: color 0.2s; }
-.billing-label.active { color: #fff; }
-.save-badge {
-  background: #0d9488; color: #fff; font-size: 9px; font-weight: 700;
-  padding: 2px 8px; border-radius: 100px; margin-left: 6px; letter-spacing: 0.5px;
-}
-.toggle-track {
-  width: 46px; height: 24px; background: #0d9488; border-radius: 100px;
-  border: none; cursor: pointer; position: relative; transition: background 0.2s;
-}
-.toggle-thumb {
-  position: absolute; top: 3px; left: 3px;
-  width: 18px; height: 18px; background: #fff; border-radius: 50%;
-  transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
-}
-.toggle-thumb.yearly { transform: translateX(22px); }
+.pr-billing-toggle { display: inline-flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.07); padding: 10px 20px; border-radius: 100px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer; }
+.pr-bill-label { font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.4); transition: color 0.2s; cursor: pointer; user-select: none; }
+.pr-bill-label.active { color: #fff; }
+.pr-save-badge { background: #0d9488; color: #fff; font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 100px; margin-left: 6px; }
+.pr-toggle-track { width: 44px; height: 22px; background: #0d9488; border-radius: 100px; border: none; cursor: pointer; position: relative; }
+.pr-toggle-thumb { position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; background: #fff; border-radius: 50%; transition: transform 0.25s; }
+.pr-toggle-thumb.yearly { transform: translateX(22px); }
 
-/* ── CARDS ── */
-.cards-section { padding: 60px 24px 40px; background: #f8fafc; }
-.cards-grid {
-  max-width: 1340px; margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-  align-items: start;
-}
+/* CARDS */
+.pr-cards-section { padding: clamp(40px,6vw,72px) 24px 40px; background: #f8fafc; }
+.pr-cards-grid { max-width: 1200px; margin: 0 auto 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(290px,1fr)); gap: 20px; align-items: start; }
 
-.plan-card {
-  background: #fff;
-  border-radius: 20px;
-  padding: 28px;
-  border: 1.5px solid #e2e8f0;
-  position: relative;
-  opacity: 0; transform: translateY(16px);
-  transition: opacity 0.45s ease, transform 0.45s ease, box-shadow 0.2s, border-color 0.2s;
-}
-.plan-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.09); border-color: var(--card-color, #e2e8f0); }
-.card-visible { opacity: 1 !important; transform: none !important; }
+.pr-card { background: #fff; border-radius: 20px; padding: clamp(20px,3vw,28px); border: 1.5px solid #e2e8f0; position: relative; opacity: 0; transform: translateY(16px); animation: none; transition: box-shadow 0.2s, border-color 0.2s; }
+.pr-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.09); border-color: var(--cc, #e2e8f0); }
+.pr-card-visible { animation: slideUp 0.5s ease both; }
+@keyframes slideUp { to { opacity: 1; transform: none; } }
 
-.plan-highlight {
-  background: linear-gradient(145deg, #0d9488, #0f766e);
-  border-color: #0d9488;
-  box-shadow: 0 20px 60px rgba(13,148,136,0.3);
-}
-.plan-founding { border-color: #f59e0b; border-style: dashed; border-width: 2px; }
+.pr-highlight { background: linear-gradient(145deg, #0d9488, #0f766e); border-color: #0d9488; box-shadow: 0 20px 60px rgba(13,148,136,0.28); }
+.pr-badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 100px; margin-bottom: 14px; }
 
-.plan-badge {
-  display: inline-block; font-size: 11px; font-weight: 700;
-  padding: 4px 12px; border-radius: 100px; margin-bottom: 16px;
-  letter-spacing: 0.2px;
-}
+.pr-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+.pr-card-icon { width: 40px; height: 40px; border-radius: 11px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.pr-card-name { font-family: 'Sora', sans-serif; font-size: 19px; font-weight: 700; margin: 0 0 2px; }
+.pr-card-tagline { font-size: 12px; margin: 0; }
 
-.card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
-.card-icon {
-  width: 42px; height: 42px; border-radius: 12px;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-}
-.card-name { font-family: 'Bricolage Grotesque', sans-serif; font-size: 20px; font-weight: 700; margin: 0 0 2px; }
-.card-tagline { font-size: 12px; margin: 0; }
+.pr-price-wrap { margin-bottom: 18px; }
+.pr-original-price { font-size: 13px; text-decoration: line-through; margin-bottom: 2px; }
+.pr-price-row { display: flex; align-items: baseline; gap: 2px; flex-wrap: wrap; }
+.pr-currency { font-size: 18px; font-weight: 600; }
+.pr-amount { font-family: 'Sora', sans-serif; font-size: 42px; font-weight: 800; line-height: 1; }
+.pr-period { font-size: 14px; margin-left: 2px; }
+.pr-discount-pill { background: #f59e0b; color: #fff; font-size: 10px; font-weight: 800; padding: 3px 9px; border-radius: 100px; margin-left: 8px; align-self: center; }
+.pr-annual { font-size: 12px; margin: 4px 0 0; }
 
-.card-price-wrap { margin-bottom: 20px; }
-.price-row { display: flex; align-items: baseline; gap: 2px; }
-.price-currency { font-size: 20px; font-weight: 600; }
-.price-amount { font-family: 'Bricolage Grotesque', sans-serif; font-size: 44px; font-weight: 800; line-height: 1; }
-.price-period { font-size: 15px; margin-left: 2px; }
-.price-annual { font-size: 12px; margin: 4px 0 0; }
-.price-free {
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-size: 40px; font-weight: 800; color: #f59e0b;
-  display: flex; align-items: center; gap: 10px;
-}
-.price-free-tag {
-  font-size: 13px; font-weight: 600; background: #fef3c7;
-  color: #92400e; padding: 3px 10px; border-radius: 100px;
-}
+.pr-cta { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 12px; border-radius: 12px; font-size: 14px; font-weight: 700; text-decoration: none; margin-bottom: 18px; transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
+.pr-cta-white { background: #fff; color: #0d9488; }
+.pr-cta-white:hover { background: #f0fdfa; }
+.pr-cta-outline { border: 2px solid #e2e8f0; color: #0f172a; background: transparent; }
+.pr-cta-outline:hover { border-color: var(--cc); color: var(--cc); }
 
-.card-cta {
-  display: flex; align-items: center; justify-content: center; gap: 6px;
-  width: 100%; padding: 12px; border-radius: 12px;
-  font-size: 14px; font-weight: 700; text-decoration: none;
-  margin-bottom: 20px; transition: all 0.15s; cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
-}
-.cta-white { background: #fff; color: #0d9488; }
-.cta-white:hover { background: #f0fdfa; }
-.cta-founding { background: #f59e0b; color: #fff; box-shadow: 0 4px 14px rgba(245,158,11,0.35); }
-.cta-founding:hover { background: #d97706; }
-.cta-outline { border: 2px solid #e2e8f0; color: #0f172a; background: transparent; }
-.cta-outline:hover { border-color: var(--card-color); color: var(--card-color); }
+.pr-card-desc { font-size: 13px; line-height: 1.6; margin: 0 0 18px; }
+.pr-features { display: flex; flex-direction: column; gap: 14px; }
+.pr-feature-cat {}
+.pr-cat-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 7px; }
+.pr-feature-item { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 5px; font-size: 13px; line-height: 1.4; }
 
-.card-desc { font-size: 13px; line-height: 1.6; margin: 0 0 20px; }
+.pr-launch-note { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 10px; background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.25); color: #92400e; padding: 14px 20px; border-radius: 12px; font-size: 14px; font-weight: 500; }
 
-.card-features { display: flex; flex-direction: column; gap: 16px; }
-.feature-cat {}
-.feature-cat-label {
-  font-size: 10px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 0.8px; margin-bottom: 8px;
-}
-.feature-item { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 6px; font-size: 13px; line-height: 1.4; }
-.feature-check { flex-shrink: 0; margin-top: 1px; }
+/* COMPARE */
+.pr-compare { padding: clamp(60px,8vw,90px) 24px; background: #fff; }
+.pr-section-title { font-family: 'Sora', sans-serif; font-size: clamp(24px,3vw,36px); font-weight: 800; text-align: center; margin: 0 0 8px; color: #0f172a; }
+.pr-section-sub { text-align: center; color: #64748b; font-size: 15px; margin: 0 0 40px; }
+.pr-table-wrap { max-width: 900px; margin: 0 auto; overflow-x: auto; border-radius: 16px; border: 1px solid #e2e8f0; }
+.pr-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 500px; }
+.pr-table thead tr { background: #f8fafc; }
+.pr-table th { padding: 14px 12px; font-weight: 700; color: #374151; text-align: center; border-bottom: 1px solid #e2e8f0; }
+.pr-th-feature { text-align: left; width: 35%; }
+.pr-th-pro { color: #0d9488; }
+.pr-table td { padding: 12px; text-align: center; border-bottom: 1px solid #f1f5f9; color: #374151; }
+.pr-table tr:last-child td { border-bottom: none; }
+.pr-table tr:hover td { background: #f8fafc; }
+.pr-td-feature { text-align: left; font-weight: 500; }
+.pr-td-pro { background: #f0fdfa; }
+.pr-check { color: #0d9488; margin: 0 auto; display: block; }
+.pr-x { color: #cbd5e1; margin: 0 auto; display: block; }
 
-.card-limits { margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(0,0,0,0.06); }
-.limits-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
-.limit-item { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 6px; font-size: 12px; }
+/* FAQ */
+.pr-faq { padding: clamp(60px,8vw,90px) 24px; background: #f8fafc; }
+.pr-faq-list { max-width: 700px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; }
+.pr-faq-item { background: #fff; border-radius: 14px; border: 1.5px solid #e2e8f0; overflow: hidden; transition: border-color 0.2s; }
+.pr-faq-item.open { border-color: #0d9488; }
+.pr-faq-q { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 16px 18px; background: none; border: none; cursor: pointer; font-size: 15px; font-weight: 600; color: #0f172a; text-align: left; font-family: 'DM Sans', sans-serif; gap: 12px; }
+.pr-faq-q svg { flex-shrink: 0; color: #94a3b8; }
+.pr-faq-a { padding: 12px 18px 16px; font-size: 14px; color: #475569; line-height: 1.7; margin: 0; border-top: 1px solid #f1f5f9; }
 
-/* ── OVERAGE ── */
-.overage-section { padding: 60px 24px; background: #0f172a; }
-.overage-inner { max-width: 900px; margin: 0 auto; }
-.overage-header { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 32px; }
-.overage-icon-wrap {
-  width: 40px; height: 40px; border-radius: 10px;
-  background: rgba(13,148,136,0.2); color: #34d399;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-}
-.overage-title {
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-size: 22px; font-weight: 700; color: #fff; margin: 0 0 6px;
-}
-.overage-sub { font-size: 14px; color: rgba(255,255,255,0.5); margin: 0; line-height: 1.6; }
-.overage-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
-.overage-card {
-  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 14px; padding: 18px;
-}
-.overage-card-icon { color: #34d399; margin-bottom: 10px; }
-.overage-label { font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 6px; }
-.overage-price { font-family: 'Bricolage Grotesque', sans-serif; font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 4px; }
-.overage-note { font-size: 11px; color: rgba(255,255,255,0.35); }
+/* BOTTOM CTA */
+.pr-bottom-cta { padding: clamp(60px,8vw,90px) 24px; background: linear-gradient(135deg, #0f172a 0%, #0d9488 100%); text-align: center; }
+.pr-bottom-inner { max-width: 540px; margin: 0 auto; }
+.pr-bottom-title { font-family: 'Sora', sans-serif; font-size: clamp(28px,4vw,42px); font-weight: 800; color: #fff; margin: 0 0 12px; }
+.pr-bottom-sub { font-size: 16px; color: rgba(255,255,255,0.6); margin: 0 0 30px; }
+.pr-bottom-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 24px; }
+.pr-btn-primary { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #0d9488; font-weight: 700; padding: 13px 26px; border-radius: 12px; font-size: 15px; text-decoration: none; transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
+.pr-btn-primary:hover { background: #f0fdfa; transform: translateY(-1px); }
+.pr-btn-secondary { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.1); color: #fff; font-weight: 600; padding: 13px 22px; border-radius: 12px; font-size: 15px; text-decoration: none; border: 1.5px solid rgba(255,255,255,0.25); transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
+.pr-btn-secondary:hover { background: rgba(255,255,255,0.18); }
+.pr-trust-row { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; font-size: 13px; color: rgba(255,255,255,0.5); }
+.pr-trust-row span { display: flex; align-items: center; gap: 5px; }
 
-/* ── COMPARE ── */
-.compare-section { padding: 80px 24px; background: #fff; }
-.section-title {
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-size: clamp(26px, 3vw, 36px); font-weight: 800;
-  text-align: center; margin: 0 0 8px; color: #0f172a;
-}
-.section-sub { text-align: center; color: #64748b; font-size: 16px; margin: 0 0 40px; }
-
-.table-wrap { max-width: 960px; margin: 0 auto; overflow-x: auto; border-radius: 16px; border: 1px solid #e2e8f0; }
-.compare-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.compare-table thead tr { background: #f8fafc; }
-.compare-table th {
-  padding: 16px 14px; font-weight: 700; color: #374151;
-  text-align: center; font-size: 13px; border-bottom: 1px solid #e2e8f0;
-}
-.table-feature-col { text-align: left; width: 28%; }
-.th-founding { color: #92400e; }
-.th-pro { color: #0d9488; }
-.compare-table td { padding: 13px 14px; text-align: center; border-bottom: 1px solid #f1f5f9; color: #374151; }
-.compare-table tr:last-child td { border-bottom: none; }
-.compare-table tr:hover td { background: #f8fafc; }
-.feature-name { text-align: left; font-weight: 500; color: #374151; }
-.td-pro { background: #f0fdfa; }
-.td-text { }
-.check-icon { color: #0d9488; margin: 0 auto; display: block; }
-.x-icon { color: #cbd5e1; margin: 0 auto; display: block; }
-
-/* ── FAQ ── */
-.faq-section { padding: 80px 24px; background: #f8fafc; }
-.faq-list { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; }
-.faq-item {
-  background: #fff; border-radius: 14px;
-  border: 1.5px solid #e2e8f0; overflow: hidden;
-  transition: border-color 0.2s;
-}
-.faq-item.open { border-color: #0d9488; }
-.faq-q {
-  width: 100%; display: flex; justify-content: space-between; align-items: center;
-  padding: 18px 20px; background: none; border: none; cursor: pointer;
-  font-size: 15px; font-weight: 600; color: #0f172a; text-align: left;
-  font-family: 'DM Sans', sans-serif; gap: 12px;
-}
-.faq-q svg { flex-shrink: 0; color: #94a3b8; }
-.faq-a {
-  padding: 0 20px 18px; font-size: 14px; color: #475569; line-height: 1.7; margin: 0;
-  border-top: 1px solid #f1f5f9;
-  padding-top: 14px;
-}
-
-/* ── BOTTOM CTA ── */
-.bottom-cta { padding: 80px 24px; background: linear-gradient(135deg, #0f172a 0%, #0d9488 100%); text-align: center; }
-.bottom-cta-inner { max-width: 560px; margin: 0 auto; }
-.bottom-cta-title {
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-size: clamp(30px, 4vw, 44px); font-weight: 800; color: #fff; margin: 0 0 12px;
-}
-.bottom-cta-sub { font-size: 16px; color: rgba(255,255,255,0.65); margin: 0 0 32px; }
-.bottom-cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 24px; }
-
-.cta-btn-primary {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: #fff; color: #0d9488; font-weight: 700;
-  padding: 14px 28px; border-radius: 12px; font-size: 15px;
-  text-decoration: none; transition: all 0.15s;
-  font-family: 'DM Sans', sans-serif;
-}
-.cta-btn-primary:hover { background: #f0fdfa; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
-
-.cta-btn-secondary {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: rgba(255,255,255,0.1); color: #fff; font-weight: 600;
-  padding: 14px 24px; border-radius: 12px; font-size: 15px;
-  text-decoration: none; border: 1.5px solid rgba(255,255,255,0.25);
-  transition: all 0.15s; font-family: 'DM Sans', sans-serif;
-}
-.cta-btn-secondary:hover { background: rgba(255,255,255,0.18); }
-
-.trust-row {
-  display: flex; gap: 24px; justify-content: center; flex-wrap: wrap;
-  font-size: 13px; color: rgba(255,255,255,0.5);
-}
-.trust-row span { display: flex; align-items: center; gap: 5px; }
-
-@media (max-width: 640px) {
-  .cards-grid { grid-template-columns: 1fr; }
-  .overage-grid { grid-template-columns: 1fr 1fr; }
-  .bottom-cta-btns { flex-direction: column; align-items: stretch; }
+@media(max-width:640px){
+  .pr-cards-grid { grid-template-columns: 1fr; }
+  .pr-bottom-btns { flex-direction: column; align-items: stretch; }
 }
 `;
 

@@ -1,132 +1,300 @@
-import React from 'react';
-import { Button } from '../../components/ui/Button';
-import { Rocket, Heart, Coffee, Globe, Smile } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Rocket, Heart, Globe, Coffee, Bell, ArrowRight, Linkedin } from 'lucide-react';
+
+function useInView() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setInView(true); }, { threshold: 0.1 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return { ref, inView };
+}
+
+const BENEFITS = [
+  { icon: Rocket, color: '#f59e0b', bg: '#fef3c7', title: 'High Impact', desc: 'Your work will directly impact thousands of merchants across India. No bureaucracy, no waiting.' },
+  { icon: Heart, color: '#e1306c', bg: '#fce7f3', title: 'Health First', desc: 'Comprehensive health insurance for you and your immediate family from day one.' },
+  { icon: Globe, color: '#0ea5e9', bg: '#e0f2fe', title: 'Remote Friendly', desc: 'Work from anywhere in India. We trust you to deliver great results, not just log hours.' },
+  { icon: Coffee, color: '#0d9488', bg: '#f0fdfa', title: 'Learning Budget', desc: 'Annual stipend for courses, books, and conferences. We invest in your growth.' },
+];
+
+const UPCOMING_ROLES = [
+  { title: 'Full-Stack Engineer', dept: 'Engineering', type: 'Full-time · Remote' },
+  { title: 'AI/ML Engineer', dept: 'Engineering', type: 'Full-time · Remote' },
+  { title: 'Growth & Marketing Lead', dept: 'Marketing', type: 'Full-time · Hybrid' },
+  { title: 'Customer Success Manager', dept: 'Operations', type: 'Full-time · Remote' },
+  { title: 'WhatsApp Commerce Specialist', dept: 'Product', type: 'Full-time · Remote' },
+];
 
 export const Careers = () => {
+  const heroRef = useRef<HTMLDivElement>(null);
+  const [heroVis, setHeroVis] = useState(false);
+  const [notifyEmail, setNotifyEmail] = useState('');
+  const [notifySubmitted, setNotifySubmitted] = useState(false);
+  const benefitsSection = useInView();
+  const rolesSection = useInView();
+  const cultureSection = useInView();
+
+  useEffect(() => { const t = setTimeout(() => setHeroVis(true), 80); return () => clearTimeout(t); }, []);
+
+  const handleNotify = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!notifyEmail) return;
+    setNotifySubmitted(true);
+    setNotifyEmail('');
+  };
+
   return (
-    <div className="bg-white">
-      {/* Hero */}
-      <section className="pt-20 pb-24 px-6 bg-gray-900 text-white overflow-hidden relative">
-        <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-primary-900/20 to-transparent pointer-events-none"></div>
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-primary-300 text-sm font-medium mb-6 border border-white/10">
-              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-              We are hiring!
+    <div style={{ background: '#fff', fontFamily: "'DM Sans', sans-serif", overflowX: 'hidden' }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Sora:wght@700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap');
+        * { box-sizing: border-box; }
+      `}</style>
+
+      {/* ── HERO ── */}
+      <section style={{
+        background: 'linear-gradient(135deg, #0f172a 0%, #0d2e2a 100%)',
+        padding: 'clamp(80px,12vw,140px) clamp(16px,4vw,24px) clamp(60px,8vw,100px)',
+        position: 'relative', overflow: 'hidden',
+      }}>
+        {/* Background elements */}
+        <div style={{ position: 'absolute', top: -100, right: -100, width: 500, height: 500, background: 'radial-gradient(ellipse, rgba(13,148,136,0.15) 0%, transparent 65%)', pointerEvents: 'none', borderRadius: '50%' }} />
+        <div style={{ position: 'absolute', bottom: -60, left: -60, width: 300, height: 300, background: 'radial-gradient(ellipse, rgba(245,158,11,0.08) 0%, transparent 70%)', pointerEvents: 'none', borderRadius: '50%' }} />
+
+        <div ref={heroRef} style={{
+          maxWidth: 1100, margin: '0 auto',
+          opacity: heroVis ? 1 : 0, transform: heroVis ? 'none' : 'translateY(24px)',
+          transition: 'opacity 0.7s ease, transform 0.7s ease',
+        }}>
+          {/* "Coming soon" chip — NOT "we are hiring" */}
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)',
+            color: '#fbbf24', padding: '6px 16px', borderRadius: 100,
+            fontSize: 13, fontWeight: 600, marginBottom: 28,
+          }}>
+            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#f59e0b' }} />
+            Hiring opens very soon — stay tuned
+          </div>
+
+          <h1 style={{
+            fontFamily: "'Sora', sans-serif",
+            fontSize: 'clamp(32px, 6vw, 68px)', fontWeight: 900,
+            color: '#fff', lineHeight: 1.1, marginBottom: 24,
+            letterSpacing: '-1.5px', maxWidth: 700,
+          }}>
+            Join the future of<br />
+            <span style={{
+              background: 'linear-gradient(135deg, #0d9488, #34d399)',
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+            }}>
+              AI Commerce
+            </span>
+          </h1>
+
+          <p style={{
+            fontSize: 'clamp(15px, 2.2vw, 19px)', color: 'rgba(255,255,255,0.55)',
+            lineHeight: 1.75, maxWidth: 560, marginBottom: 0,
+          }}>
+            We're building the operating system for social commerce in India. When we open roles, we'll be looking for builders who care deeply about impact, craft, and the merchants they serve.
+          </p>
+        </div>
+      </section>
+
+      {/* ── NOTIFY BANNER ── */}
+      <section style={{ background: '#0d9488', padding: 'clamp(24px,4vw,36px) clamp(16px,4vw,24px)' }}>
+        <div style={{ maxWidth: 700, margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, textAlign: 'center' }}>
+          <div>
+            <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 'clamp(18px,3vw,24px)', fontWeight: 800, color: '#fff', marginBottom: 6 }}>
+              Be first to know when we hire
+            </h2>
+            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)' }}>Drop your email and we'll notify you the moment roles open up.</p>
+          </div>
+          {notifySubmitted ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.15)', padding: '12px 20px', borderRadius: 12, color: '#fff', fontWeight: 600, fontSize: 14 }}>
+              ✅ You're on the list! We'll reach out when positions open.
             </div>
-            <h1 className="text-5xl md:text-7xl font-bold mb-8 leading-tight">
-              Join the Future of <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-secondary-400">
-                AI Commerce
-              </span>
-            </h1>
-            <p className="text-xl text-gray-400 mb-10 leading-relaxed max-w-2xl">
-              We're building the operating system for social commerce in emerging markets. 
-              Come help us empower millions of small businesses.
-            </p>
-            <Button size="lg" className="rounded-full px-8 h-14 text-lg bg-white text-gray-900 hover:bg-gray-100 border-0">
-              View Open Roles
-            </Button>
+          ) : (
+            <form onSubmit={handleNotify} style={{ display: 'flex', gap: 8, width: '100%', maxWidth: 440, flexWrap: 'wrap' }}>
+              <input
+                type="email" required
+                value={notifyEmail}
+                onChange={e => setNotifyEmail(e.target.value)}
+                placeholder="your@email.com"
+                style={{
+                  flex: 1, minWidth: 180, padding: '11px 16px',
+                  borderRadius: 10, border: 'none', outline: 'none',
+                  fontSize: 14, fontFamily: "'DM Sans', sans-serif", color: '#0f172a',
+                }}
+              />
+              <button type="submit" style={{
+                background: '#0f172a', color: '#fff', border: 'none',
+                padding: '11px 22px', borderRadius: 10, fontSize: 14, fontWeight: 700,
+                cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
+                display: 'flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap',
+              }}>
+                <Bell size={15} /> Notify Me
+              </button>
+            </form>
+          )}
+        </div>
+      </section>
+
+      {/* ── WHY HYPNATE ── */}
+      <section style={{ padding: 'clamp(60px,8vw,100px) clamp(16px,4vw,24px)' }}>
+        <div ref={benefitsSection.ref} style={{
+          maxWidth: 1100, margin: '0 auto',
+          opacity: benefitsSection.inView ? 1 : 0, transform: benefitsSection.inView ? 'none' : 'translateY(28px)',
+          transition: 'opacity 0.7s ease, transform 0.7s ease',
+        }}>
+          <div style={{ textAlign: 'center', marginBottom: 'clamp(36px,5vw,56px)' }}>
+            <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 'clamp(22px,3.5vw,36px)', fontWeight: 800, color: '#0f172a', marginBottom: 10 }}>
+              Why work at Hypnate?
+            </h2>
+            <p style={{ fontSize: 16, color: '#64748b' }}>More than just a job. It's a mission.</p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px,1fr))', gap: 20 }}>
+            {BENEFITS.map((b, i) => {
+              const Icon = b.icon;
+              return (
+                <div key={i} style={{
+                  background: '#fff', borderRadius: 18, padding: 'clamp(20px,2.5vw,28px)',
+                  border: '1px solid #f1f5f9',
+                  boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-4px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 12px 32px rgba(0,0,0,0.09)'; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = 'none'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 2px 12px rgba(0,0,0,0.05)'; }}>
+                  <div style={{ width: 48, height: 48, borderRadius: 14, background: b.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
+                    <Icon size={24} color={b.color} />
+                  </div>
+                  <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 17, fontWeight: 800, color: '#0f172a', marginBottom: 8 }}>{b.title}</h3>
+                  <p style={{ fontSize: 14, color: '#64748b', lineHeight: 1.65, margin: 0 }}>{b.desc}</p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* Culture / Benefits */}
-      <section className="py-24 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Why work at Hypnate?</h2>
-            <p className="text-gray-600">More than just a job. It's a mission.</p>
+      {/* ── UPCOMING ROLES ── */}
+      <section style={{ background: '#f8fafc', padding: 'clamp(60px,8vw,100px) clamp(16px,4vw,24px)' }}>
+        <div ref={rolesSection.ref} style={{
+          maxWidth: 760, margin: '0 auto', textAlign: 'center',
+          opacity: rolesSection.inView ? 1 : 0, transform: rolesSection.inView ? 'none' : 'translateY(28px)',
+          transition: 'opacity 0.7s ease, transform 0.7s ease',
+        }}>
+          <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 'clamp(22px,3.5vw,36px)', fontWeight: 800, color: '#0f172a', marginBottom: 12 }}>
+            Roles we're planning to open
+          </h2>
+          <p style={{ fontSize: 16, color: '#64748b', marginBottom: 40 }}>
+            No positions are open right now — but these are the roles we anticipate opening soon. If you're a fit, get on our notify list above.
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, textAlign: 'left' }}>
+            {UPCOMING_ROLES.map((role, i) => (
+              <div key={i} style={{
+                background: '#fff', borderRadius: 14, padding: '18px 20px',
+                border: '1px solid #e2e8f0',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                gap: 12, flexWrap: 'wrap',
+              }}>
+                <div>
+                  <div style={{ fontWeight: 700, color: '#0f172a', fontSize: 15, marginBottom: 4 }}>{role.title}</div>
+                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: '#0d9488', background: '#f0fdfa', padding: '2px 9px', borderRadius: 100 }}>{role.dept}</span>
+                    <span style={{ fontSize: 12, color: '#94a3b8' }}>{role.type}</span>
+                  </div>
+                </div>
+                <div style={{
+                  fontSize: 12, fontWeight: 600, color: '#f59e0b',
+                  background: '#fffbeb', border: '1px solid #fde68a',
+                  padding: '4px 12px', borderRadius: 100, whiteSpace: 'nowrap',
+                }}>
+                  Coming soon
+                </div>
+              </div>
+            ))}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div style={{ marginTop: 32, display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <a
+              href="https://www.linkedin.com/company/hypnate/"
+              target="_blank" rel="noopener noreferrer"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                background: '#0a66c2', color: '#fff',
+                padding: '11px 22px', borderRadius: 10, fontSize: 14, fontWeight: 700,
+                textDecoration: 'none', transition: 'opacity 0.15s', fontFamily: "'DM Sans', sans-serif",
+              }}
+              onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.opacity = '0.88'}
+              onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.opacity = '1'}
+            >
+              <Linkedin size={16} /> Follow us on LinkedIn
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* ── CULTURE PHOTOS ── */}
+      <section style={{ padding: 'clamp(60px,8vw,100px) clamp(16px,4vw,24px)', overflow: 'hidden' }}>
+        <div ref={cultureSection.ref} style={{
+          maxWidth: 1100, margin: '0 auto',
+          opacity: cultureSection.inView ? 1 : 0, transform: cultureSection.inView ? 'none' : 'translateY(28px)',
+          transition: 'opacity 0.7s ease, transform 0.7s ease',
+        }}>
+          <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 'clamp(20px,3vw,32px)', fontWeight: 800, color: '#0f172a', textAlign: 'center', marginBottom: 36 }}>
+            Life at Hypnate
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px,1fr))', gap: 14 }}>
             {[
-              { icon: Rocket, title: 'High Impact', desc: 'Your work will directly impact thousands of merchants.' },
-              { icon: Heart, title: 'Health First', desc: 'Comprehensive health insurance for you and your family.' },
-              { icon: Globe, title: 'Remote Friendly', desc: 'Work from anywhere. We trust you to deliver.' },
-              { icon: Coffee, title: 'Learning Budget', desc: 'Annual stipend for courses, books, and conferences.' },
-            ].map((item, idx) => (
-              <div key={idx} className="p-8 rounded-2xl bg-gray-50 border border-gray-100 hover:shadow-lg transition-all">
-                <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-primary-600 shadow-sm mb-6">
-                  <item.icon className="w-6 h-6" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">{item.title}</h3>
-                <p className="text-gray-600 leading-relaxed">{item.desc}</p>
+              { src: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&q=80', alt: 'Team collaboration' },
+              { src: 'https://images.unsplash.com/photo-1531746790731-6c087fecd65a?w=400&q=80', alt: 'Deep work' },
+              { src: 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400&q=80', alt: 'Happy team' },
+              { src: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=80', alt: 'Office energy' },
+            ].map((img, i) => (
+              <div key={i} style={{ borderRadius: 16, overflow: 'hidden', aspectRatio: '4/3' }}>
+                <img src={img.src} alt={img.alt} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s' }}
+                  onMouseEnter={e => (e.currentTarget as HTMLImageElement).style.transform = 'scale(1.05)'}
+                  onMouseLeave={e => (e.currentTarget as HTMLImageElement).style.transform = 'scale(1)'} />
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Open Roles - Updated */}
-      {/* Open Roles - Updated */}
-<section className="py-24 px-6 bg-gray-50">
-  <div className="max-w-5xl mx-auto text-center fade-in-up">
-    <h2 className="text-3xl font-bold text-gray-900 mb-6">Open Positions</h2>
-
-    <p className="text-lg text-gray-600 mb-12 animate-fade">
-      No roles available right now — new openings will be posted soon.
-    </p>
-
-    <div className="flex flex-col items-center gap-6">
-      <Button 
-        variant="outline" 
-        className="rounded-full px-8 py-3 text-primary-700 border-primary-300 
-                   hover:bg-primary-50 transition-all duration-300 hover:scale-105"
-      >
-        Notify Me
-      </Button>
-
-      <a
-        href="https://www.linkedin.com/company/hypnate/"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-flex items-center gap-2 text-primary-700 hover:text-primary-900
-                   transition-all duration-300 hover:scale-105"
-      >
-        <svg 
-          xmlns="http://www.w3.org/2000/svg" 
-          width="20" 
-          height="20" 
-          fill="currentColor" 
-          viewBox="0 0 24 24"
-        >
-          <path d="M4.98 3.5C4.98 4.88 3.86 6 2.48 6S0 4.88 0 3.5 1.12 1 2.48 1s2.5 1.12 2.5 2.5zM.4 8.98h4.16V24H.4zM8.34 8.98h3.99v2.03h.06c.55-1.04 1.88-2.14 3.86-2.14 4.13 0 4.89 2.72 4.89 6.26V24h-4.16v-7.09c0-1.69-.03-3.87-2.36-3.87-2.36 0-2.72 1.84-2.72 3.74V24H8.34z"/>
-        </svg>
-
-        Follow us on LinkedIn for future roles
-      </a>
-    </div>
-  </div>
-</section>
-
-
-      {/* Culture Photos */}
-      <section className="py-24 px-6 overflow-hidden">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="space-y-4 mt-12">
-              <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&q=80" className="rounded-2xl w-full" alt="Office" />
-              <img src="https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=400&q=80" className="rounded-2xl w-full" alt="Meeting" />
-            </div>
-            <div className="space-y-4">
-              <img src="https://images.unsplash.com/photo-1531545514256-b1400bc00f31?w=400&q=80" className="rounded-2xl w-full" alt="Team" />
-              <img src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=80" className="rounded-2xl w-full" alt="Work" />
-            </div>
-            <div className="space-y-4 mt-8">
-              <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400&q=80" className="rounded-2xl w-full" alt="Happy" />
-              <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&q=80" className="rounded-2xl w-full" alt="Collaboration" />
-            </div>
-            <div className="space-y-4">
-              <img src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=400&q=80" className="rounded-2xl w-full" alt="Strategy" />
-              <div className="bg-primary-100 rounded-2xl w-full aspect-[3/4] flex items-center justify-center p-6 text-center">
-                <div>
-                  <Smile className="w-12 h-12 text-primary-600 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-primary-900">This could be you!</h3>
-                </div>
-              </div>
-            </div>
-          </div>
+      {/* ── BOTTOM CTA ── */}
+      <section style={{ background: '#0f172a', padding: 'clamp(48px,7vw,80px) clamp(16px,4vw,24px)', textAlign: 'center' }}>
+        <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 'clamp(22px,3.5vw,36px)', fontWeight: 800, color: '#fff', marginBottom: 12 }}>
+          Build something that matters
+        </h2>
+        <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.5)', marginBottom: 28, maxWidth: 480, margin: '0 auto 28px' }}>
+          When we're ready to grow our team, we'll be looking for people who are genuinely excited about commerce, AI, and India's creator economy.
+        </p>
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <a href="/contact" style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            background: '#0d9488', color: '#fff', padding: '13px 26px', borderRadius: 12,
+            fontSize: 15, fontWeight: 700, textDecoration: 'none', fontFamily: "'DM Sans', sans-serif",
+            transition: 'background 0.15s',
+          }}
+            onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.background = '#0f766e'}
+            onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.background = '#0d9488'}>
+            Get in Touch <ArrowRight size={16} />
+          </a>
+          <a href="https://www.linkedin.com/company/hypnate/" target="_blank" rel="noopener noreferrer" style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            background: 'rgba(255,255,255,0.08)', color: '#fff',
+            border: '1.5px solid rgba(255,255,255,0.2)',
+            padding: '13px 22px', borderRadius: 12,
+            fontSize: 15, fontWeight: 600, textDecoration: 'none', fontFamily: "'DM Sans', sans-serif",
+          }}>
+            <Linkedin size={16} /> Follow our journey
+          </a>
         </div>
       </section>
     </div>
