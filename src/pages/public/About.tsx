@@ -21,17 +21,16 @@ const TEAM = [
     role: 'Founder & CEO',
     image: '/assets/Hamim.jpeg',
     bio: 'Building Hypnate to give every Indian SMB the power of an enterprise commerce stack — right inside their chat window.',
-    linkedin: 'https://www.linkedin.com/company/hypnate/',
+    linkedin: 'https://www.linkedin.com/in/hamim-quazi-syed-frahuddin/',
     initial: 'H',
   },
   {
     id: 2,
     name: 'Syed Md Farhat Ali Nizami',
     role: 'Co-Founder & CFO',
-    // Using a solid fallback since the original image was reported as corrupted
-    image: null,
+    image: '/assets/farhat.jpeg',
     bio: 'Leading Hypnate\'s financial strategy and operations, ensuring every rupee invested in our platform delivers measurable value.',
-    linkedin: 'https://www.linkedin.com/company/hypnate/',
+    linkedin: 'https://www.linkedin.com/in/smfan/',
     initial: 'F',
   },
 ];

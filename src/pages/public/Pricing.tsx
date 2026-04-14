@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Check, X, Zap, ChevronDown, ChevronUp, ArrowRight,
-  Star, Users, MessageCircle, Store, BarChart3, Headphones,
+  Star, Users, Headphones,
   Shield, Rocket, Gift
 } from 'lucide-react';
 
@@ -138,7 +138,7 @@ const compareRows = [
 ];
 
 const faqs = [
-  { q: 'What is the 50% launch offer?', a: 'We\'re celebrating Hypnate\'s launch with 50% off all plans. This is a time-limited offer for early adopters — both monthly and annual billing. Lock in the discounted rate now and it stays yours as long as your subscription is active.' },
+  { q: 'What is the 50% launch offer?', a: 'We’re celebrating Hypnate’s launch with 50% off all plans. This is a time-limited offer for early adopters — available on both monthly and annual billing. Discounted pricing is valid for your first 12 months.' },
   { q: 'How does HypnateX store hosting work?', a: 'When you build a store through HypnateX, it lives on Hypnate\'s servers — no need for Hostinger, Shopify, or any separate hosting. We handle SSL, CDN, and uptime across all paid plans.' },
   { q: 'What happens if I exceed my conversation limit?', a: 'We never cut you off. Each extra conversation costs ₹0.50. You\'ll see real-time usage in your dashboard so you\'re always in the know.' },
   { q: 'Do I need the WhatsApp Business API separately?', a: 'We guide you through the Meta API setup from your dashboard. It takes about 2–3 business days for Meta to approve, and there\'s no setup fee from our side.' },
@@ -268,7 +268,7 @@ export const Pricing: React.FC = () => {
           {/* Launch offer note */}
           <div className="pr-launch-note">
             <Gift size={16} />
-            <span>Launch pricing is locked in for life — never increases as long as you stay subscribed.</span>
+            <span>Founding users get exclusive pricing for the first 12 months. Offer ends on 31st May 2026.</span>
           </div>
         </section>
 

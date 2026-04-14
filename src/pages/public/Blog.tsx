@@ -62,7 +62,7 @@ const BLOG_POSTS = [
     category: 'Payments',
     author: AUTHORS.hamim,
     date: 'Mar 2, 2026',
-    image: 'https://images.unsplash.com/photo-1556742049-0cfed4f7a07d?w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1604594849809-dfedbc827105?w=800&q=80',
     readTime: '4 min read',
   },
   {
