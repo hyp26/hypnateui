@@ -1,122 +1,42 @@
-import React, { useState, useEffect } from "react";
-import api from "../lib/api";
+import React, { useState } from "react";
+import "./../styles/onboarding.css";
 
-import { Step, BusinessForm, PaymentForm } from "../types/onboarding";
-
-import Stepper from "../components/onboarding/Stepper";
 import BusinessStep from "../components/onboarding/BusinessStep";
 import CatalogStep from "../components/onboarding/CatalogStep";
 import PaymentsStep from "../components/onboarding/PaymentsStep";
 import ChannelsStep from "../components/onboarding/ChannelsStep";
 import SummaryStep from "../components/onboarding/SummaryStep";
+import Stepper from "../components/onboarding/Stepper";
 import Footer from "../components/onboarding/Footer";
 
-const OnboardingPage = () => {
-  const [step, setStep] = useState<Step>(1);
-  const [loading, setLoading] = useState(false);
-  const [loadingData, setLoadingData] = useState(true);
-  const [error, setError] = useState("");
-
-  const [business, setBusiness] = useState<BusinessForm>({
-    businessName: "",
-    industry: "retail",
-    size: "1-10",
-    mobileNo: "",
-    gstNumber: "",
-  });
-
-  const [payment, setPayment] = useState<PaymentForm>({
-    gateway: null,
-    keyId: "",
-    keySecret: "",
-    merchantId: "",
-    salt: "",
-  });
-
-  // 🔥 FETCH EXISTING DATA
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await api.get("/api/onboarding/me");
-        const d = res.data;
-
-        setBusiness({
-          businessName: d.businessName || "",
-          industry: d.industry || "retail",
-          size: d.size || "1-10",
-          mobileNo: d.phone || "",
-          gstNumber: d.gstNumber || "",
-        });
-
-      } catch { }
-      finally {
-        setLoadingData(false);
-      }
-    };
-
-    load();
-  }, []);
-
-  const handleNext = async () => {
-    setError("");
-    setLoading(true);
-
-    try {
-      if (step === 1) {
-        await api.post("/api/onboarding/business", {
-          ...business,
-          phone: business.mobileNo,
-        });
-        setStep(2);
-      }
-
-      else if (step === 2) {
-        setStep(3);
-      }
-
-      else if (step === 3) {
-        await api.post("/api/onboarding/payments", payment);
-        setStep(4);
-      }
-
-      else if (step === 4) {
-        setStep(5);
-      }
-
-      else {
-        await api.post("/api/onboarding/complete");
-      }
-
-    } catch (e: any) {
-      setError(e?.response?.data?.message || "Error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loadingData) return <div>Loading...</div>;
+export default function Onboarding() {
+  const [step, setStep] = useState(1);
 
   return (
-    <div>
-      <Stepper step={step} />
+    <div className="ob-root">
+      <div className="ob-wrap">
+        <div className="ob-inner">
 
-      {step === 1 && (
-        <BusinessStep data={business} setData={setBusiness} error={error} />
-      )}
+          <h1>Store Setup</h1>
 
-      {step === 2 && <CatalogStep />}
+          <Stepper current={step} />
 
-      {step === 3 && (
-        <PaymentsStep data={payment} setData={setPayment} />
-      )}
+          <div className="ob-card">
+            {step === 1 && <BusinessStep />}
+            {step === 2 && <CatalogStep />}
+            {step === 3 && <PaymentsStep />}
+            {step === 4 && <ChannelsStep />}
+            {step === 5 && <SummaryStep />}
+          </div>
 
-      {step === 4 && <ChannelsStep />}
+          <Footer
+            step={step}
+            onNext={() => setStep(s => Math.min(s + 1, 5))}
+            onBack={() => setStep(s => Math.max(s - 1, 1))}
+          />
 
-      {step === 5 && <SummaryStep />}
-
-      <Footer onNext={handleNext} loading={loading} />
+        </div>
+      </div>
     </div>
   );
-};
-
-export default OnboardingPage;
+}

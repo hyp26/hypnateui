@@ -1,5 +1,3 @@
-const Stepper = ({ step }: { step: number }) => {
-    return <div>Step {step} / 5</div>;
-};
-
-export default Stepper;
+export default function Stepper({ current }: any) {
+    return <p>Step {current} / 5</p>;
+}

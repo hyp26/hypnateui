@@ -1,38 +1,24 @@
 import React from "react";
-import { BusinessForm } from "../../types/onboarding";
+import Field from "./Field";
 
-const BusinessStep = ({
-    data,
-    setData,
-    error,
-}: {
-    data: BusinessForm;
-    setData: (d: BusinessForm) => void;
-    error?: string;
-}) => {
+export default function BusinessStep() {
     return (
         <div>
             <h2>Business Info</h2>
 
-            {error && <p style={{ color: "red" }}>{error}</p>}
+            <Field label="Business Name">
+                <input placeholder="Your business name" />
+            </Field>
 
-            <input
-                placeholder="Business Name"
-                value={data.businessName}
-                onChange={(e) =>
-                    setData({ ...data, businessName: e.target.value })
-                }
-            />
+            <div className="ob-form-grid">
+                <Field label="Industry">
+                    <input />
+                </Field>
 
-            <input
-                placeholder="Mobile"
-                value={data.mobileNo}
-                onChange={(e) =>
-                    setData({ ...data, mobileNo: e.target.value })
-                }
-            />
+                <Field label="Size">
+                    <input />
+                </Field>
+            </div>
         </div>
     );
-};
-
-export default BusinessStep;
+}

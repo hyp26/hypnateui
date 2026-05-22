@@ -1,9 +1,8 @@
-const Footer = ({ onNext, loading }: any) => {
+export default function Footer({ step, onNext, onBack }: any) {
     return (
-        <button onClick={onNext} disabled={loading}>
-            {loading ? "Saving..." : "Next"}
-        </button>
+        <div style={{ marginTop: 20 }}>
+            {step > 1 && <button onClick={onBack}>Back</button>}
+            <button onClick={onNext}>Next</button>
+        </div>
     );
-};
-
-export default Footer;
+}

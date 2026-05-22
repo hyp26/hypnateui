@@ -1,20 +1,8 @@
-import React from "react";
-
-const Field = ({
-    label,
-    children,
-}: {
-    label: string;
-    children: React.ReactNode;
-}) => {
+export default function Field({ label, children }: any) {
     return (
         <div style={{ marginBottom: 12 }}>
-            <label style={{ fontSize: 13, fontWeight: 600 }}>
-                {label}
-            </label>
+            <label>{label}</label>
             {children}
         </div>
     );
-};
-
-export default Field;
+}
