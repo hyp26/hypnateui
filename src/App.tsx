@@ -28,7 +28,7 @@ import { AddProduct } from './pages/AddProduct';
 import { Orders } from './pages/Orders';
 import { OrderDetail } from './pages/OrderDetail';
 import { Conversations } from './pages/Conversations';
-import { Onboarding } from './pages/Onboarding';
+import Onboarding from './pages/Onboarding';
 import { Settings } from './pages/Settings';
 import { Payments } from './pages/Payments';
 import { Analytics as DashboardAnalytics } from './pages/Analytics';
