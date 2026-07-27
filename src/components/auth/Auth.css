@@ -1,0 +1,115 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap');
+
+@keyframes auth-fadeup {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes auth-fadein {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes auth-pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.4;
+        transform: scale(0.7);
+    }
+}
+
+@keyframes auth-float {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+@keyframes auth-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.auth-input:focus {
+    border-color: #0d9488 !important;
+    box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
+}
+
+.auth-btn-google:hover {
+    background: #f9fafb !important;
+    border-color: #d1d5db !important;
+}
+
+.auth-link:hover {
+    color: #0f766e !important;
+}
+
+.auth-submit:hover:not(:disabled) {
+    background: #0f766e !important;
+}
+
+.auth-submit:active:not(:disabled) {
+    transform: scale(0.98);
+}
+
+.auth-spinner {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: 2.5px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: auth-spin 0.7s linear infinite;
+}
+
+/* Left brand panel is hidden on small screens, shown from tablet-landscape
+   up. Mobile logo is the inverse. */
+.auth-left-panel {
+    display: none;
+}
+
+.auth-mobile-logo {
+    display: flex;
+}
+
+@media (min-width: 1024px) {
+    .auth-left-panel {
+        display: flex !important;
+    }
+
+    .auth-mobile-logo {
+        display: none !important;
+    }
+}
+
+/* Small phones: tighten card padding so nothing feels cramped */
+@media (max-width: 420px) {
+    .auth-card {
+        padding: 28px 22px !important;
+        border-radius: 16px !important;
+    }
+}
