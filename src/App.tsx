@@ -19,6 +19,7 @@ import { useAuthStore } from './stores/useAuthStore';
 
 // Auth Pages
 import { Login } from './pages/Login';
+import { Signup } from "./pages/Signup";
 import { ForgotPassword } from './pages/ForgotPassword';
 
 // Dashboard Pages
@@ -100,7 +101,7 @@ function App() {
 
         {/* ---------------- AUTH ---------------- */}
         <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
 
         {/* ---------------- ONBOARDING (protected, no sidebar) ---------------- */}
