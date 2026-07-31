@@ -60,7 +60,9 @@ export const Signup: React.FC = () => {
         setIsLoading(true);
         try {
             await signup(name, email, password, businessName, phone);
-            navigate("/onboarding");
+            // Account exists but isn't verified yet — send them to check their
+            // inbox rather than straight into onboarding.
+            navigate("/verify-email", { state: { email } });
         } catch (err: any) {
             setFormError(err.message || "Signup failed. Please try again.");
         } finally {
@@ -170,41 +172,6 @@ export const Signup: React.FC = () => {
                     {isLoading ? <span className="auth-spinner" /> : "Create My Store →"}
                 </button>
             </form>
-
-            <div
-                style={{
-                    marginTop: 14,
-                    background: "#f0fdfa",
-                    border: "1px solid #ccfbf1",
-                    borderRadius: 10,
-                    padding: "10px 14px",
-                    display: "flex",
-                    gap: 10,
-                    alignItems: "flex-start",
-                }}
-            >
-                <div
-                    style={{
-                        width: 20,
-                        height: 20,
-                        borderRadius: "50%",
-                        background: "#0d9488",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0,
-                        marginTop: 1,
-                    }}
-                >
-                    <Check size={11} color="#fff" />
-                </div>
-                <div>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: "#065f46" }}>Founding Member — Free Forever</div>
-                    <div style={{ fontSize: 11, color: "#0f766e", marginTop: 1 }}>
-                        First 50 stores get lifetime free access. No credit card required.
-                    </div>
-                </div>
-            </div>
         </AuthLayout>
     );
 };

@@ -1,0 +1,91 @@
+import type { GatewayConfig } from "../types/onboarding";
+
+export const GATEWAYS: GatewayConfig[] = [
+    {
+        id: "razorpay",
+        name: "Razorpay",
+        logo: "R",
+        gradient: "linear-gradient(135deg,#3b82f6,#1d4ed8)",
+        tagline: "Most popular in India",
+        fees: "2% per transaction",
+        setupUrl: "https://dashboard.razorpay.com/app/keys",
+        setupSteps: [
+            "Go to razorpay.com and create a free account",
+            "Complete KYC verification (takes ~2 days)",
+            "Go to Settings → API Keys → Generate Key",
+            "Copy both Key ID and Key Secret below",
+        ],
+        fields: [
+            { key: "keyId", label: "Key ID", placeholder: "rzp_live_... or rzp_test_...", mono: true, secret: false },
+            { key: "keySecret", label: "Key Secret", placeholder: "••••••••••••••••", mono: true, secret: true },
+        ],
+    },
+    {
+        id: "payu",
+        name: "PayU",
+        logo: "P",
+        gradient: "linear-gradient(135deg,#f97316,#ea580c)",
+        tagline: "Trusted by 5M+ businesses",
+        fees: "1.99% per transaction",
+        setupUrl: "https://onboarding.payu.in",
+        setupSteps: [
+            "Go to payu.in and create a merchant account",
+            "Complete your business verification",
+            "Go to Dashboard → My Account → Merchant Key",
+            "Copy your Merchant Key and Salt below",
+        ],
+        fields: [
+            { key: "merchantId", label: "Merchant Key", placeholder: "Your PayU Merchant Key", mono: true, secret: false },
+            { key: "salt", label: "Salt", placeholder: "Your PayU Salt", mono: true, secret: true },
+        ],
+    },
+    {
+        id: "cashfree",
+        name: "Cashfree",
+        logo: "C",
+        gradient: "linear-gradient(135deg,#16a34a,#15803d)",
+        tagline: "Lowest fees, fast settlements",
+        fees: "1.75% per transaction",
+        setupUrl: "https://merchant.cashfree.com",
+        setupSteps: [
+            "Go to cashfree.com and sign up as a merchant",
+            "Verify your business details and bank account",
+            "Go to Developers → API Keys in your dashboard",
+            "Copy the App ID and Secret Key below",
+        ],
+        fields: [
+            { key: "keyId", label: "App ID", placeholder: "Your Cashfree App ID", mono: true, secret: false },
+            { key: "keySecret", label: "Secret Key", placeholder: "••••••••••••••••", mono: true, secret: true },
+        ],
+    },
+    {
+        id: "skydo",
+        name: "Skydo",
+        logo: "S",
+        gradient: "linear-gradient(135deg,#7c3aed,#5b21b6)",
+        tagline: "Best for international payments",
+        fees: "1.99% + forex savings",
+        setupUrl: "https://skydo.com",
+        setupSteps: [
+            "Go to skydo.com and create a business account",
+            "Complete KYC and bank account linking",
+            "Go to API Settings in your Skydo dashboard",
+            "Copy your API Key and Secret below",
+        ],
+        fields: [
+            { key: "keyId", label: "API Key", placeholder: "Your Skydo API Key", mono: true, secret: false },
+            { key: "keySecret", label: "API Secret", placeholder: "••••••••••••••••", mono: true, secret: true },
+        ],
+    },
+    {
+        id: "cod",
+        name: "Cash on Delivery",
+        logo: "₹",
+        gradient: "linear-gradient(135deg,#64748b,#475569)",
+        tagline: "No setup needed",
+        fees: "Free — collect at delivery",
+        setupUrl: null,
+        setupSteps: [],
+        fields: [],
+    },
+];

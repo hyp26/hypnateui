@@ -1,665 +1,111 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Check, X, ChevronRight, Building2, Upload, CreditCard,
-  Share2, MessageCircle, Instagram, Facebook, Send,
-  Loader2, Sparkles, Bot, Lock, AlertCircle,
-  Eye, EyeOff, ExternalLink, Truck, ArrowRight,
-  SkipForward, CheckCircle2, XCircle, Wand2,
-} from "lucide-react";
+import { Loader2, Sparkles } from "lucide-react";
 import api from "../lib/api";
+import { useAuthStore } from "../stores/useAuthStore";
+import { OnboardingStepper } from "../components/onboarding/Onboardingstepper";
+import { OnboardingFooter } from "../components/onboarding/OnboardingFooter";
+import { BusinessStep } from "../components/onboarding/BusinessStep";
+import { CatalogStep } from "../components/onboarding/CatalogStep";
+import { PaymentsStep } from "../components/onboarding/PaymentsStep";
+import { ChannelsStep } from "../components/onboarding/ChannelsStep";
+import { ChannelModal } from "../components/onboarding/ChannelModal";
+import { SummaryStep } from "../components/onboarding/SummaryStep";
+import { SkipConfirmPopup } from "../components/onboarding/SkipConfirmPopup";
+import "../components/onboarding/onboarding.css";
+import type {
+  AutoTask, BusinessForm, ChannelData, ModalType, PaymentForm, Step,
+} from "../types/onboarding";
 
-type Step = 1 | 2 | 3 | 4 | 5;
-type Gateway = "razorpay" | "payu" | "cashfree" | "skydo" | "cod" | null;
-type ModalType = "whatsapp" | "instagram" | "facebook" | "telegram" | null;
-
-interface BusinessForm { businessName: string; industry: string; size: string; mobileNo: string; gstNumber: string; }
-interface PaymentForm { gateway: Gateway; keyId: string; keySecret: string; merchantId: string; salt: string; }
-interface ChannelData {
-  whatsapp: { connected: boolean; phone: string; apiKey: string };
-  instagram: { connected: boolean }; facebook: { connected: boolean };
-  telegram: { connected: boolean; botToken: string };
-}
-
-const GATEWAYS = [
-  { id: "razorpay" as Gateway, name: "Razorpay", logo: "R", gradient: "linear-gradient(135deg,#3b82f6,#1d4ed8)", tagline: "Most popular in India", fees: "2% per transaction", setupUrl: "https://dashboard.razorpay.com/app/keys", setupSteps: ["Go to razorpay.com and create a free account", "Complete KYC verification (takes ~2 days)", "Go to Settings → API Keys → Generate Key", "Copy both Key ID and Key Secret below"], fields: [{ key: "keyId", label: "Key ID", placeholder: "rzp_live_... or rzp_test_...", mono: true, secret: false }, { key: "keySecret", label: "Key Secret", placeholder: "••••••••••••••••", mono: true, secret: true }] },
-  { id: "payu" as Gateway, name: "PayU", logo: "P", gradient: "linear-gradient(135deg,#f97316,#ea580c)", tagline: "Trusted by 5M+ businesses", fees: "1.99% per transaction", setupUrl: "https://onboarding.payu.in", setupSteps: ["Go to payu.in and create a merchant account", "Complete your business verification", "Go to Dashboard → My Account → Merchant Key", "Copy your Merchant Key and Salt below"], fields: [{ key: "merchantId", label: "Merchant Key", placeholder: "Your PayU Merchant Key", mono: true, secret: false }, { key: "salt", label: "Salt", placeholder: "Your PayU Salt", mono: true, secret: true }] },
-  { id: "cashfree" as Gateway, name: "Cashfree", logo: "C", gradient: "linear-gradient(135deg,#16a34a,#15803d)", tagline: "Lowest fees, fast settlements", fees: "1.75% per transaction", setupUrl: "https://merchant.cashfree.com", setupSteps: ["Go to cashfree.com and sign up as a merchant", "Verify your business details and bank account", "Go to Developers → API Keys in your dashboard", "Copy the App ID and Secret Key below"], fields: [{ key: "keyId", label: "App ID", placeholder: "Your Cashfree App ID", mono: true, secret: false }, { key: "keySecret", label: "Secret Key", placeholder: "••••••••••••••••", mono: true, secret: true }] },
-  { id: "skydo" as Gateway, name: "Skydo", logo: "S", gradient: "linear-gradient(135deg,#7c3aed,#5b21b6)", tagline: "Best for international payments", fees: "1.99% + forex savings", setupUrl: "https://skydo.com", setupSteps: ["Go to skydo.com and create a business account", "Complete KYC and bank account linking", "Go to API Settings in your Skydo dashboard", "Copy your API Key and Secret below"], fields: [{ key: "keyId", label: "API Key", placeholder: "Your Skydo API Key", mono: true, secret: false }, { key: "keySecret", label: "API Secret", placeholder: "••••••••••••••••", mono: true, secret: true }] },
-  { id: "cod" as Gateway, name: "Cash on Delivery", logo: "₹", gradient: "linear-gradient(135deg,#64748b,#475569)", tagline: "No setup needed", fees: "Free — collect at delivery", setupUrl: null, setupSteps: [], fields: [] },
-];
-
-const STEPS_CONFIG = [
-  { id: 1, title: "Business", icon: Building2 },
-  { id: 2, title: "Catalog", icon: Upload },
-  { id: 3, title: "Payments", icon: CreditCard },
-  { id: 4, title: "Channels", icon: Share2 },
-  { id: 5, title: "AI Setup", icon: Sparkles },
-];
-
-const STEP_LABELS: Record<number, string> = {
-  1: "Business Information", 2: "Product Catalog",
-  3: "Payment Setup", 4: "Sales Channels",
-};
-
-const CHANNEL_CFG = {
-  whatsapp: { name: "WhatsApp", desc: "Automate order messages", icon: MessageCircle, gradient: "linear-gradient(135deg,#16a34a,#15803d)", glow: "rgba(22,163,74,0.2)", badge: "Most popular" },
-  instagram: { name: "Instagram", desc: "DM automation & replies", icon: Instagram, gradient: "linear-gradient(135deg,#db2777,#9333ea)", glow: "rgba(219,39,119,0.2)", badge: "High engagement" },
-  facebook: { name: "Facebook", desc: "Messenger automation", icon: Facebook, gradient: "linear-gradient(135deg,#2563eb,#1d4ed8)", glow: "rgba(37,99,235,0.2)", badge: null },
-  telegram: { name: "Telegram", desc: "Bot-powered selling", icon: Send, gradient: "linear-gradient(135deg,#0284c7,#0369a1)", glow: "rgba(2,132,199,0.2)", badge: "Fast setup" },
-};
-
-/* ── FIELD ── */
-const Field = ({ label, required, hint, children }: { label: string; required?: boolean; hint?: string; children: React.ReactNode }) => (
-  <div>
-    <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 6 }}>
-      {label} {required && <span style={{ color: "#ef4444" }}>*</span>}
-      {hint && <span style={{ fontWeight: 400, color: "#94a3b8", fontSize: 12, marginLeft: 4 }}>{hint}</span>}
-    </label>
-    {children}
-  </div>
-);
-
-const inputStyle: React.CSSProperties = {
-  width: "100%", padding: "11px 16px", borderRadius: 12,
-  border: "1.5px solid #e2e8f0", fontSize: 14, color: "#0f172a",
-  outline: "none", background: "#fff", boxSizing: "border-box",
-  transition: "border-color 0.15s, box-shadow 0.15s", fontFamily: "inherit",
-};
-
-const selectStyle: React.CSSProperties = { ...inputStyle, background: "#fff", cursor: "pointer", appearance: "none" as any };
-
-const fi = (e: any) => { e.target.style.borderColor = "#0d9488"; e.target.style.boxShadow = "0 0 0 3px rgba(13,148,136,0.1)"; };
-const fo = (e: any) => { e.target.style.borderColor = "#e2e8f0"; e.target.style.boxShadow = "none"; };
-
-/* ── STEPPER ── */
-const Stepper = ({ current, completed, skipped }: { current: Step; completed: Set<number>; skipped: Set<number> }) => (
-  <div style={{ background: "#fff", borderRadius: 18, padding: "16px 12px", border: "1px solid #f1f5f9", boxShadow: "0 2px 12px rgba(0,0,0,0.04)", marginBottom: 16 }}>
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative" }}>
-      {/* Track bg */}
-      <div style={{ position: "absolute", top: 16, left: "9%", right: "9%", height: 2, background: "#f1f5f9", zIndex: 0 }} />
-      {/* Track fill */}
-      <div style={{ position: "absolute", top: 16, left: "9%", height: 2, background: "linear-gradient(90deg,#0d9488,#34d399)", zIndex: 0, transition: "width 0.5s ease", width: `${Math.max(0, ((current - 1) / 4) * 82)}%` }} />
-
-      {STEPS_CONFIG.map((step) => {
-        const done = completed.has(step.id), skip = skipped.has(step.id), active = current === step.id;
-        const Icon = step.icon;
-        return (
-          <div key={step.id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, zIndex: 1, flex: 1 }}>
-            <div style={{
-              width: 32, height: 32, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
-              background: done ? "linear-gradient(135deg,#0d9488,#34d399)" : skip ? "#fee2e2" : active ? "#f0fdfa" : "#f8fafc",
-              border: `2px solid ${done ? "#0d9488" : skip ? "#fca5a5" : active ? "#0d9488" : "#e2e8f0"}`,
-              boxShadow: active ? "0 0 0 4px rgba(13,148,136,0.12)" : "none",
-              transition: "all 0.3s",
-            }}>
-              {done ? <Check size={13} color="#fff" strokeWidth={2.5} /> : skip ? <X size={12} color="#ef4444" /> : <Icon size={13} color={active ? "#0d9488" : "#94a3b8"} />}
-            </div>
-            {/* Label: hidden on very small, shown on ≥380px */}
-            <span className="ob-step-label" style={{ fontSize: 10, fontWeight: active ? 700 : done ? 600 : 400, color: done ? "#0d9488" : skip ? "#ef4444" : active ? "#0f172a" : "#94a3b8", whiteSpace: "nowrap" }}>
-              {step.title}
-            </span>
-          </div>
-        );
-      })}
-    </div>
-  </div>
-);
-
-/* ── FOOTER ── */
-const Footer = ({ onBack, onSkip, onNext, loading, showBack, showSkip }: any) => (
-  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 28, paddingTop: 20, borderTop: "1px solid #f1f5f9", flexWrap: "wrap", gap: 10 }}>
-    <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-      {showBack && (
-        <button onClick={onBack} style={{ fontSize: 14, fontWeight: 500, color: "#64748b", background: "none", border: "none", cursor: "pointer", padding: "8px 4px", fontFamily: "inherit" }}>
-          ← Back
-        </button>
-      )}
-      {showSkip && (
-        <button onClick={onSkip} style={{ fontSize: 13, fontWeight: 600, color: "#94a3b8", background: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: 10, padding: "8px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontFamily: "inherit" }}>
-          <SkipForward size={13} /> <span className="ob-skip-label">Skip for now</span>
-        </button>
-      )}
-    </div>
-    <button onClick={onNext} disabled={loading} style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 24px", background: loading ? "#94a3b8" : "linear-gradient(135deg,#0d9488,#0f766e)", color: "#fff", borderRadius: 12, fontWeight: 700, fontSize: 14, border: "none", cursor: loading ? "not-allowed" : "pointer", boxShadow: loading ? "none" : "0 4px 16px rgba(13,148,136,0.3)", transition: "all 0.2s", fontFamily: "inherit" }}>
-      {loading ? <><Loader2 size={16} style={{ animation: "spin 0.7s linear infinite" }} /> Saving…</> : <>Next Step <ChevronRight size={16} /></>}
-    </button>
-  </div>
-);
-
-/* ── ERROR BANNER ── */
-const ErrorBanner = ({ error, onClear }: { error: string; onClear: () => void }) => (
-  <div style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "12px 16px", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 12 }}>
-    <AlertCircle size={16} color="#ef4444" style={{ flexShrink: 0, marginTop: 1 }} />
-    <p style={{ fontSize: 13, color: "#dc2626", margin: 0, flex: 1 }}>{error}</p>
-    <button onClick={onClear} style={{ background: "none", border: "none", cursor: "pointer", color: "#fca5a5", flexShrink: 0 }}><X size={14} /></button>
-  </div>
-);
-
-/* ── STEP 1: BUSINESS ── */
-const BusinessStep = ({ form, onChange, error, onClear }: any) => {
-  const set = (k: keyof BusinessForm) => (e: any) => onChange({ ...form, [k]: e.target.value });
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-        <div style={{ width: 48, height: 48, borderRadius: 14, background: "linear-gradient(135deg,#0d9488,#34d399)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 8px 24px rgba(13,148,136,0.25)" }}>
-          <Building2 size={22} color="#fff" />
-        </div>
-        <div>
-          <h2 style={{ fontSize: 20, fontWeight: 800, color: "#0f172a", margin: "0 0 4px", letterSpacing: "-0.3px" }}>Tell us about your business</h2>
-          <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>We personalise your store experience based on your details.</p>
-        </div>
-      </div>
-
-      {error && <ErrorBanner error={error} onClear={onClear} />}
-
-      {/* Full-width name */}
-      <Field label="Business Name" required>
-        <input value={form.businessName} onChange={set("businessName")} style={inputStyle} placeholder="e.g. Rahul Fashion House" onFocus={fi} onBlur={fo} />
-      </Field>
-
-      {/* 2-col on ≥480, 1-col on mobile */}
-      <div className="ob-form-grid">
-        <Field label="Industry" required>
-          <div style={{ position: "relative" }}>
-            <select value={form.industry} onChange={set("industry")} style={selectStyle} onFocus={fi} onBlur={fo}>
-              {[["retail", "Retail"], ["food", "Food & Beverage"], ["fashion", "Fashion"], ["electronics", "Electronics"], ["beauty", "Beauty & Wellness"], ["furniture", "Furniture & Home"], ["services", "Services"], ["other", "Other"]].map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-            </select>
-            <ChevronRight size={13} color="#94a3b8" style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%) rotate(90deg)", pointerEvents: "none" }} />
-          </div>
-        </Field>
-        <Field label="Business Size" required>
-          <div style={{ position: "relative" }}>
-            <select value={form.size} onChange={set("size")} style={selectStyle} onFocus={fi} onBlur={fo}>
-              {[["1-10", "1–10 employees"], ["11-50", "11–50 employees"], ["51-200", "51–200 employees"], ["200+", "200+ employees"]].map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-            </select>
-            <ChevronRight size={13} color="#94a3b8" style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%) rotate(90deg)", pointerEvents: "none" }} />
-          </div>
-        </Field>
-        <Field label="Mobile Number" required>
-          <input value={form.mobileNo} onChange={set("mobileNo")} style={inputStyle} placeholder="+91 98765 43210" onFocus={fi} onBlur={fo} />
-        </Field>
-        <Field label="GST Number" hint="(optional)">
-          <input value={form.gstNumber} onChange={set("gstNumber")} style={{ ...inputStyle, fontFamily: "monospace", textTransform: "uppercase" }} placeholder="27AAPFU0939F1ZV" maxLength={15} onFocus={fi} onBlur={fo} />
-        </Field>
-      </div>
-    </div>
-  );
-};
-
-/* ── STEP 2: CATALOG ── */
-const CatalogStep = ({ fileName, onFile, onClear, error, onErrorClear }: any) => {
-  const fileRef = useRef<HTMLInputElement>(null);
-  const [dragging, setDragging] = useState(false);
-  const handleFile = (f: File) => onFile(f.name, f);
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-        <div style={{ width: 48, height: 48, borderRadius: 14, background: "linear-gradient(135deg,#6366f1,#8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 8px 24px rgba(99,102,241,0.25)" }}>
-          <Upload size={22} color="#fff" />
-        </div>
-        <div>
-          <h2 style={{ fontSize: 20, fontWeight: 800, color: "#0f172a", margin: "0 0 4px", letterSpacing: "-0.3px" }}>Add your products</h2>
-          <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>Upload any file — our AI converts it automatically.</p>
-        </div>
-      </div>
-
-      {error && <ErrorBanner error={error} onClear={onErrorClear} />}
-
-      {!fileName ? (
-        <>
-          <div
-            onClick={() => fileRef.current?.click()}
-            onDragOver={e => { e.preventDefault(); setDragging(true); }}
-            onDragLeave={() => setDragging(false)}
-            onDrop={e => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f); }}
-            style={{ border: `2px dashed ${dragging ? "#6366f1" : "#e2e8f0"}`, borderRadius: 20, padding: "40px 20px", textAlign: "center", cursor: "pointer", background: dragging ? "#f5f3ff" : "#f8fafc", transition: "all 0.2s", position: "relative", overflow: "hidden" }}
-          >
-            <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(#e2e8f0 1px, transparent 1px)", backgroundSize: "24px 24px", opacity: 0.5 }} />
-            <div style={{ position: "relative", zIndex: 1 }}>
-              <div style={{ width: 56, height: 56, borderRadius: 16, background: dragging ? "linear-gradient(135deg,#6366f1,#8b5cf6)" : "#fff", boxShadow: dragging ? "0 12px 32px rgba(99,102,241,0.3)" : "0 4px 16px rgba(0,0,0,0.08)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", transition: "all 0.2s" }}>
-                <Upload size={24} color={dragging ? "#fff" : "#94a3b8"} />
-              </div>
-              <p style={{ fontWeight: 700, fontSize: 16, color: "#0f172a", margin: "0 0 6px" }}>{dragging ? "Drop it!" : "Drop your catalog here"}</p>
-              <p style={{ fontSize: 13, color: "#94a3b8", margin: "0 0 16px" }}>or click to browse files</p>
-              <div style={{ display: "flex", justifyContent: "center", gap: 6, flexWrap: "wrap" }}>
-                {[".csv", ".xlsx", ".xls", ".pdf", ".docx", ".txt"].map(ext => (
-                  <span key={ext} style={{ padding: "3px 8px", background: "#fff", color: "#64748b", fontSize: 10, borderRadius: 6, fontWeight: 700, fontFamily: "monospace", border: "1px solid #e2e8f0" }}>{ext}</span>
-                ))}
-              </div>
-              <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 10 }}>AI auto-converts any format · Max 500 products</p>
-            </div>
-          </div>
-          <input ref={fileRef} type="file" accept=".csv,.xlsx,.xls,.pdf,.doc,.docx,.txt" style={{ display: "none" }} onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
-
-          <div style={{ display: "flex", gap: 12, padding: 16, background: "linear-gradient(135deg,#eff6ff,#f5f3ff)", border: "1px solid #c7d2fe", borderRadius: 14 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg,#6366f1,#8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 4px 12px rgba(99,102,241,0.3)" }}>
-              <Wand2 size={16} color="#fff" />
-            </div>
-            <div>
-              <p style={{ fontSize: 13, fontWeight: 700, color: "#3730a3", margin: "0 0 3px" }}>AI-powered catalog conversion</p>
-              <p style={{ fontSize: 12, color: "#6366f1", margin: 0, lineHeight: 1.6 }}>Upload a PDF, Excel or Word doc — our AI extracts and structures all your products automatically.</p>
-            </div>
-          </div>
-
-          <button onClick={() => {
-            const csv = `name,price,description,category,stock\nSample Product,499,A great product,Retail,100`;
-            const blob = new Blob([csv], { type: "text/csv" });
-            const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "sample_catalog.csv"; a.click();
-          }} style={{ display: "flex", alignItems: "center", gap: 6, color: "#6366f1", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, padding: 0, fontFamily: "inherit" }}>
-            <ExternalLink size={13} /> Download sample CSV template
-          </button>
-        </>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: 16, background: "linear-gradient(135deg,#f0fdfa,#ecfdf5)", border: "2px solid #6ee7b7", borderRadius: 14 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 12, background: "linear-gradient(135deg,#0d9488,#34d399)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 4px 16px rgba(13,148,136,0.3)" }}>
-              <Check size={20} color="#fff" strokeWidth={2.5} />
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontWeight: 700, color: "#065f46", margin: "0 0 2px", fontSize: 14 }}>File ready for import</p>
-              <p style={{ fontSize: 12, color: "#0d9488", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{fileName}</p>
-            </div>
-            <button onClick={onClear} style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", color: "#94a3b8", fontSize: 12, fontWeight: 500, flexShrink: 0 }}>
-              <X size={13} /> Remove
-            </button>
-          </div>
-          <div style={{ display: "flex", gap: 10, padding: 14, background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 12, alignItems: "flex-start" }}>
-            <Bot size={15} color="#0d9488" style={{ flexShrink: 0, marginTop: 1 }} />
-            <p style={{ fontSize: 13, color: "#166534", margin: 0 }}>Hypnate AI will process this file and structure your products after setup completes.</p>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-/* ── STEP 3: PAYMENTS ── */
-const PaymentsStep = ({ form, onChange, error, onClear }: any) => {
-  const [showGuide, setShowGuide] = useState(false);
-  const [showSecret, setShowSecret] = useState<Record<string, boolean>>({});
-  const selectedGw = GATEWAYS.find(g => g.id === form.gateway);
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-        <div style={{ width: 48, height: 48, borderRadius: 14, background: "linear-gradient(135deg,#f59e0b,#d97706)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 8px 24px rgba(245,158,11,0.25)" }}>
-          <CreditCard size={22} color="#fff" />
-        </div>
-        <div>
-          <h2 style={{ fontSize: 20, fontWeight: 800, color: "#0f172a", margin: "0 0 4px", letterSpacing: "-0.3px" }}>Setup Payments</h2>
-          <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>Choose how you want to accept payments from customers.</p>
-        </div>
-      </div>
-
-      {error && <ErrorBanner error={error} onClear={onClear} />}
-
-      {!form.gateway ? (
-        /* Gateway selection: 2-col on ≥480, 1-col on mobile */
-        <div className="ob-gw-grid">
-          {GATEWAYS.map(gw => (
-            <button key={String(gw.id)}
-              onClick={() => onChange({ gateway: gw.id, keyId: "", keySecret: "", merchantId: "", salt: "" })}
-              style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px", borderRadius: 14, border: "1.5px solid #f1f5f9", background: "#fff", cursor: "pointer", textAlign: "left", transition: "all 0.2s", boxShadow: "0 2px 8px rgba(0,0,0,0.04)", fontFamily: "inherit", width: "100%" }}
-              onMouseEnter={e => { const b = e.currentTarget; b.style.borderColor = "#0d9488"; b.style.boxShadow = "0 8px 24px rgba(13,148,136,0.12)"; b.style.transform = "translateY(-2px)"; }}
-              onMouseLeave={e => { const b = e.currentTarget; b.style.borderColor = "#f1f5f9"; b.style.boxShadow = "0 2px 8px rgba(0,0,0,0.04)"; b.style.transform = "translateY(0)"; }}
-            >
-              <div style={{ width: 44, height: 44, borderRadius: 12, background: gw.gradient, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 900, color: "#fff", flexShrink: 0, boxShadow: "0 4px 12px rgba(0,0,0,0.15)" }}>
-                {gw.logo}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontWeight: 700, color: "#0f172a", fontSize: 13, margin: "0 0 2px" }}>{gw.name}</p>
-                <p style={{ fontSize: 11, color: "#64748b", margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{gw.tagline}</p>
-                <p style={{ fontSize: 11, fontWeight: 700, color: "#0d9488", margin: 0 }}>{gw.fees}</p>
-              </div>
-              <ArrowRight size={13} color="#cbd5e1" style={{ flexShrink: 0 }} />
-            </button>
-          ))}
-        </div>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <button onClick={() => onChange({ gateway: null, keyId: "", keySecret: "", merchantId: "", salt: "" })} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#64748b", background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "inherit", fontWeight: 500 }}>
-            ← Change payment method
-          </button>
-
-          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: 14, borderRadius: 14, background: "linear-gradient(135deg,#f0fdfa,#ecfdf5)", border: "2px solid #6ee7b7", flexWrap: "wrap" }}>
-            <div style={{ width: 48, height: 48, borderRadius: 12, background: selectedGw!.gradient, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 900, color: "#fff", flexShrink: 0 }}>
-              {selectedGw!.logo}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontWeight: 800, color: "#0f172a", fontSize: 14, margin: "0 0 2px" }}>{selectedGw!.name}</p>
-              <p style={{ fontSize: 12, color: "#0d9488", margin: 0 }}>{selectedGw!.fees}</p>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 700, color: "#16a34a", background: "#dcfce7", padding: "5px 10px", borderRadius: 20, border: "1px solid #bbf7d0", flexShrink: 0 }}>
-              <Check size={11} /> Selected
-            </div>
-          </div>
-
-          {form.gateway === "cod" ? (
-            <div style={{ display: "flex", gap: 12, padding: 16, background: "linear-gradient(135deg,#f0fdf4,#ecfdf5)", border: "1.5px solid #bbf7d0", borderRadius: 14, alignItems: "flex-start" }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: "linear-gradient(135deg,#16a34a,#15803d)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <Truck size={18} color="#fff" />
-              </div>
-              <div>
-                <p style={{ fontWeight: 700, color: "#166534", margin: "0 0 4px", fontSize: 14 }}>Cash on Delivery enabled</p>
-                <p style={{ fontSize: 13, color: "#16a34a", margin: 0, lineHeight: 1.6 }}>Customers pay when they receive their order. No gateway or technical setup required.</p>
-              </div>
-            </div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <div style={{ background: "#fffbeb", border: "1.5px solid #fcd34d", borderRadius: 12, overflow: "hidden" }}>
-                <button onClick={() => setShowGuide(s => !s)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "11px 14px", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: "#92400e" }}>How to get your {selectedGw!.name} API keys</span>
-                  <ChevronRight size={13} color="#d97706" style={{ transform: showGuide ? "rotate(90deg)" : "none", transition: "transform 0.2s", flexShrink: 0 }} />
-                </button>
-                {showGuide && (
-                  <div style={{ padding: "0 14px 14px" }}>
-                    {selectedGw!.setupSteps.map((step, i) => (
-                      <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 10 }}>
-                        <div style={{ width: 20, height: 20, borderRadius: "50%", background: "#fcd34d", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
-                          <span style={{ fontSize: 10, fontWeight: 800, color: "#78350f" }}>{i + 1}</span>
-                        </div>
-                        <p style={{ fontSize: 13, color: "#92400e", margin: 0, lineHeight: 1.5 }}>{step}</p>
-                      </div>
-                    ))}
-                    {selectedGw!.setupUrl && (
-                      <a href={selectedGw!.setupUrl} target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 700, color: "#0d9488", textDecoration: "none", marginTop: 4 }}>
-                        Open {selectedGw!.name} dashboard <ExternalLink size={12} />
-                      </a>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <div style={{ display: "flex", gap: 10, padding: "10px 12px", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 10, alignItems: "flex-start" }}>
-                <Lock size={13} color="#64748b" style={{ flexShrink: 0, marginTop: 1 }} />
-                <p style={{ fontSize: 12, color: "#64748b", margin: 0 }}>Your keys are encrypted before storage. We never expose them in plain text.</p>
-              </div>
-
-              {selectedGw!.fields.map(field => (
-                <Field key={field.key} label={field.label}>
-                  <div style={{ position: "relative" }}>
-                    <input
-                      type={field.secret && !showSecret[field.key] ? "password" : "text"}
-                      value={(form as any)[field.key]}
-                      onChange={e => onChange({ ...form, [field.key]: e.target.value })}
-                      style={{ ...inputStyle, fontFamily: field.mono ? "monospace" : "inherit", paddingRight: field.secret ? 44 : 16 }}
-                      placeholder={field.placeholder}
-                      onFocus={fi} onBlur={fo}
-                    />
-                    {field.secret && (
-                      <button type="button" onClick={() => setShowSecret(s => ({ ...s, [field.key]: !s[field.key] }))} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#94a3b8" }}>
-                        {showSecret[field.key] ? <EyeOff size={14} /> : <Eye size={14} />}
-                      </button>
-                    )}
-                  </div>
-                </Field>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-};
-
-/* ── STEP 4: CHANNEL CARD ── */
-const ChannelCard = ({ channelKey, cfg, connected, onClick }: { channelKey: string; cfg: any; connected: boolean; onClick: () => void }) => {
-  const Icon = cfg.icon;
-  return (
-    <button onClick={onClick} style={{
-      padding: "16px 12px 14px", borderRadius: 16,
-      border: `1.5px solid ${connected ? "transparent" : "#f1f5f9"}`,
-      background: connected ? cfg.gradient : "#fff",
-      cursor: connected ? "default" : "pointer", transition: "all 0.25s",
-      position: "relative", textAlign: "center",
-      boxShadow: connected ? `0 8px 24px ${cfg.glow}` : "0 2px 8px rgba(0,0,0,0.04)",
-      fontFamily: "inherit", width: "100%",
-    }}
-      onMouseEnter={e => { if (!connected) { const b = e.currentTarget; b.style.borderColor = "#0d9488"; b.style.boxShadow = "0 8px 24px rgba(13,148,136,0.1)"; b.style.transform = "translateY(-2px)"; } }}
-      onMouseLeave={e => { if (!connected) { const b = e.currentTarget; b.style.borderColor = "#f1f5f9"; b.style.boxShadow = "0 2px 8px rgba(0,0,0,0.04)"; b.style.transform = "translateY(0)"; } }}
-    >
-      {cfg.badge && !connected && (
-        <div style={{ position: "absolute", top: -8, left: "50%", transform: "translateX(-50%)", background: "linear-gradient(135deg,#0d9488,#34d399)", color: "#fff", fontSize: 8, fontWeight: 800, padding: "2px 8px", borderRadius: 20, whiteSpace: "nowrap", letterSpacing: "0.04em", textTransform: "uppercase" }}>
-          {cfg.badge}
-        </div>
-      )}
-      {connected && (
-        <div style={{ position: "absolute", top: 8, right: 8, width: 22, height: 22, borderRadius: "50%", background: "rgba(255,255,255,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <Check size={11} color="#fff" strokeWidth={2.5} />
-        </div>
-      )}
-      <div style={{ width: 46, height: 46, borderRadius: 14, background: connected ? "rgba(255,255,255,0.2)" : cfg.gradient, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px", boxShadow: connected ? "none" : `0 6px 20px ${cfg.glow}`, transition: "all 0.2s" }}>
-        <Icon size={22} color="#fff" />
-      </div>
-      <p style={{ fontWeight: 700, fontSize: 13, margin: "0 0 3px", color: connected ? "#fff" : "#0f172a" }}>{cfg.name}</p>
-      <p style={{ fontSize: 11, margin: 0, color: connected ? "rgba(255,255,255,0.8)" : "#94a3b8", fontWeight: connected ? 600 : 400 }}>
-        {connected ? "Connected ✓" : cfg.desc}
-      </p>
-    </button>
-  );
-};
-
-/* ── CHANNEL MODAL ── */
-const ChannelModal = ({ type, onClose, onConnect }: { type: ModalType; onClose: () => void; onConnect: (type: string, data: any) => void }) => {
-  const [phone, setPhone] = useState(""); const [apiKey, setApiKey] = useState(""); const [botToken, setBotToken] = useState("");
-  const [loading, setLoading] = useState(false); const [error, setError] = useState("");
-  if (!type) return null;
-  const cfg = CHANNEL_CFG[type as keyof typeof CHANNEL_CFG];
-
-  const handleConnect = async () => {
-    setError(""); setLoading(true);
-    await new Promise(r => setTimeout(r, 600));
-    try {
-      if (type === "whatsapp") { if (!phone || !apiKey) { setError("Phone and API key are required"); setLoading(false); return; } onConnect("whatsapp", { phone, apiKey }); }
-      else if (type === "telegram") { if (!botToken || !botToken.includes(":")) { setError("Invalid bot token format"); setLoading(false); return; } onConnect("telegram", { botToken }); }
-      else { onConnect(type, { mock: true }); }
-      onClose();
-    } finally { setLoading(false); }
-  };
-
-  return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(15,23,42,0.6)", backdropFilter: "blur(6px)", display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 1000, padding: "0" }}
-      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      {/* Sheet slides up from bottom on mobile, centered on desktop */}
-      <div style={{ background: "#fff", borderRadius: "20px 20px 0 0", padding: "24px 20px", width: "100%", maxWidth: 480, boxShadow: "0 -8px 40px rgba(0,0,0,0.2)", maxHeight: "90vh", overflowY: "auto" }}
-        className="ob-modal-sheet">
-        {/* Drag handle */}
-        <div style={{ width: 36, height: 4, borderRadius: 2, background: "#e2e8f0", margin: "0 auto 20px" }} />
-
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
-          <div style={{ width: 42, height: 42, borderRadius: 12, background: cfg.gradient, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 6px 18px ${cfg.glow}`, flexShrink: 0 }}>
-            <cfg.icon size={20} color="#fff" />
-          </div>
-          <div style={{ flex: 1 }}>
-            <h3 style={{ fontSize: 16, fontWeight: 800, color: "#0f172a", margin: 0 }}>Connect {cfg.name}</h3>
-            <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>{cfg.desc}</p>
-          </div>
-          <button onClick={onClose} style={{ width: 30, height: 30, borderRadius: 8, background: "#f8fafc", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <X size={14} color="#64748b" />
-          </button>
-        </div>
-
-        {error && (
-          <div style={{ display: "flex", gap: 8, padding: "10px 12px", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 10, marginBottom: 14 }}>
-            <AlertCircle size={13} color="#ef4444" style={{ flexShrink: 0, marginTop: 1 }} />
-            <p style={{ fontSize: 12, color: "#dc2626", margin: 0 }}>{error}</p>
-          </div>
-        )}
-
-        {type === "whatsapp" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <div style={{ padding: 12, background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 10, fontSize: 13, color: "#166534", lineHeight: 1.6 }}>
-              You need a Facebook Business Manager account and a number not registered on WhatsApp personal.
-            </div>
-            <Field label="Phone Number" required>
-              <input value={phone} onChange={e => setPhone(e.target.value)} style={inputStyle} placeholder="+91 98765 43210" onFocus={fi} onBlur={fo} />
-            </Field>
-            <Field label="WhatsApp Business API Key" required>
-              <input value={apiKey} onChange={e => setApiKey(e.target.value)} style={{ ...inputStyle, fontFamily: "monospace" }} placeholder="EAAG..." onFocus={fi} onBlur={fo} />
-              <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 4 }}>Found in your Meta Developer Portal.</p>
-            </Field>
-          </div>
-        )}
-        {type === "telegram" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <div style={{ padding: 12, background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 10, fontSize: 13, color: "#0c4a6e", lineHeight: 1.6 }}>
-              Message <strong>@BotFather</strong> on Telegram, type <code>/newbot</code>, follow the steps, and paste your token below.
-            </div>
-            <Field label="Bot Token" required>
-              <input value={botToken} onChange={e => setBotToken(e.target.value)} style={{ ...inputStyle, fontFamily: "monospace" }} placeholder="123456:ABC-DEF1234..." onFocus={fi} onBlur={fo} />
-            </Field>
-          </div>
-        )}
-        {(type === "instagram" || type === "facebook") && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <div style={{ padding: 12, background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 10, fontSize: 13, color: "#1e3a8a", lineHeight: 1.6 }}>
-              We need permission to manage your Pages and read messages to automate replies.
-            </div>
-            <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>You will be redirected to {type === "instagram" ? "Instagram" : "Facebook"} to authorize Hypnate.</p>
-          </div>
-        )}
-
-        <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
-          <button onClick={onClose} style={{ flex: 1, padding: "11px 12px", border: "1.5px solid #e2e8f0", borderRadius: 12, fontSize: 13, fontWeight: 600, color: "#374151", background: "#fff", cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
-          <button onClick={handleConnect} disabled={loading} style={{ flex: 2, padding: "11px 12px", borderRadius: 12, fontSize: 13, fontWeight: 700, color: "#fff", border: "none", cursor: loading ? "not-allowed" : "pointer", background: cfg.gradient, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: `0 4px 16px ${cfg.glow}`, fontFamily: "inherit" }}>
-            {loading ? <Loader2 size={14} style={{ animation: "spin 0.7s linear infinite" }} /> : null}
-            {type === "instagram" || type === "facebook" ? `Continue with ${type === "instagram" ? "Instagram" : "Facebook"}` : "Connect"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-/* ── STEP 5: SUMMARY ── */
-const SummaryStep = ({ completed, skipped, autoProgress, autoTasks }: any) => (
-  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", padding: "8px 0 12px", gap: 24 }}>
-    <div style={{ position: "relative" }}>
-      <div style={{ width: 76, height: 76, borderRadius: "50%", background: "linear-gradient(135deg,#f0fdfa,#ccfbf1)", border: "2px solid #6ee7b7", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 1, boxShadow: "0 0 0 10px rgba(13,148,136,0.06)" }}>
-        <Bot size={36} color="#0d9488" style={{ animation: "bob 2s ease infinite" }} />
-      </div>
-      <div style={{ position: "absolute", inset: -10, borderRadius: "50%", border: "2px dashed #0d9488", opacity: 0.2, animation: "rotateSlow 8s linear infinite" }} />
-    </div>
-
-    <div>
-      <h2 style={{ fontSize: 22, fontWeight: 800, color: "#0f172a", margin: "0 0 6px", letterSpacing: "-0.4px" }}>Setting up your store</h2>
-      <p style={{ color: "#94a3b8", margin: 0, fontSize: 14 }}>Hypnate AI is configuring your workspace...</p>
-    </div>
-
-    <div style={{ width: "100%", maxWidth: 480 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-        <span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 500 }}>Progress</span>
-        <span style={{ fontSize: 12, color: "#0d9488", fontWeight: 700 }}>{autoProgress}%</span>
-      </div>
-      <div style={{ height: 8, background: "#f1f5f9", borderRadius: 4, overflow: "hidden", marginBottom: 16 }}>
-        <div style={{ height: "100%", width: `${autoProgress}%`, background: "linear-gradient(90deg,#0d9488,#34d399)", borderRadius: 4, transition: "width 0.3s ease", boxShadow: "0 0 8px rgba(13,148,136,0.4)" }} />
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8, textAlign: "left" }}>
-        {autoTasks.map((task: any, i: number) => (
-          <div key={task.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", background: task.done ? "#f0fdf4" : i === autoTasks.findIndex((t: any) => !t.done) ? "#f0fdfa" : "#f8fafc", borderRadius: 10, border: `1px solid ${task.done ? "#bbf7d0" : "#f1f5f9"}`, transition: "all 0.3s" }}>
-            {task.done
-              ? <div style={{ width: 22, height: 22, borderRadius: "50%", background: "linear-gradient(135deg,#16a34a,#22c55e)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Check size={11} color="#fff" strokeWidth={2.5} /></div>
-              : i === autoTasks.findIndex((t: any) => !t.done)
-                ? <div style={{ width: 22, height: 22, borderRadius: "50%", background: "#0d9488", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Loader2 size={12} color="#fff" style={{ animation: "spin 0.7s linear infinite" }} /></div>
-                : <div style={{ width: 22, height: 22, borderRadius: "50%", background: "#f1f5f9", flexShrink: 0 }} />
-            }
-            <span style={{ fontSize: 13, fontWeight: task.done ? 400 : 600, color: task.done ? "#94a3b8" : "#0f172a", textDecoration: task.done ? "line-through" : "none" }}>{task.label}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-
-    <div style={{ width: "100%", maxWidth: 480, background: "#fff", borderRadius: 16, padding: "16px", border: "1px solid #f1f5f9", boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
-      <p style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.07em", margin: "0 0 12px", textAlign: "left" }}>Setup Summary</p>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        {[1, 2, 3, 4].map(step => {
-          const isCompleted = completed.has(step), isSkipped = skipped.has(step);
-          return (
-            <div key={step} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", background: isCompleted ? "#f0fdf4" : isSkipped ? "#fef2f2" : "#f8fafc", borderRadius: 10, border: `1px solid ${isCompleted ? "#bbf7d0" : isSkipped ? "#fecaca" : "#f1f5f9"}` }}>
-              <span style={{ fontSize: 13, fontWeight: 500, color: "#374151" }}>{STEP_LABELS[step]}</span>
-              {isCompleted
-                ? <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, color: "#16a34a", background: "#dcfce7", padding: "2px 8px", borderRadius: 20, flexShrink: 0 }}><CheckCircle2 size={10} /> Done</span>
-                : isSkipped
-                  ? <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, color: "#dc2626", background: "#fee2e2", padding: "2px 8px", borderRadius: 20, flexShrink: 0 }}><XCircle size={10} /> Skipped</span>
-                  : <span style={{ fontSize: 12, color: "#94a3b8" }}>—</span>}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  </div>
-);
-
-/* ── SKIP POPUP ── */
-const SkipConfirmPopup = ({ skippedSteps, onContinue, onComplete }: any) => (
-  <div style={{ position: "fixed", inset: 0, background: "rgba(15,23,42,0.6)", backdropFilter: "blur(6px)", zIndex: 1000, display: "flex", alignItems: "flex-end", justifyContent: "center", padding: 0 }}>
-    <div style={{ background: "#fff", borderRadius: "20px 20px 0 0", padding: "28px 24px", maxWidth: 480, width: "100%", boxShadow: "0 -8px 40px rgba(0,0,0,0.2)" }}>
-      <div style={{ width: 36, height: 4, borderRadius: 2, background: "#e2e8f0", margin: "0 auto 20px" }} />
-      <div style={{ width: 52, height: 52, borderRadius: "50%", background: "linear-gradient(135deg,#fff7ed,#fef3c7)", border: "2px solid #fcd34d", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
-        <AlertCircle size={24} color="#f97316" />
-      </div>
-      <h3 style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", textAlign: "center", margin: "0 0 8px", letterSpacing: "-0.3px" }}>You're almost there!</h3>
-      <p style={{ fontSize: 14, color: "#64748b", textAlign: "center", lineHeight: 1.7, margin: "0 0 12px" }}>Some steps were skipped during setup:</p>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center", marginBottom: 14 }}>
-        {skippedSteps.map((s: number) => (
-          <span key={s} style={{ background: "#fef2f2", color: "#dc2626", fontSize: 12, fontWeight: 600, padding: "4px 10px", borderRadius: 20, border: "1px solid #fecaca" }}>{STEP_LABELS[s]}</span>
-        ))}
-      </div>
-      <p style={{ fontSize: 13, color: "#94a3b8", textAlign: "center", margin: "0 0 20px", lineHeight: 1.7 }}>Complete them now for the best experience, or go to the dashboard and finish later.</p>
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        <button onClick={onComplete} style={{ width: "100%", padding: "13px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#0d9488,#0f766e)", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 16px rgba(13,148,136,0.3)" }}>Complete Setup</button>
-        <button onClick={onContinue} style={{ width: "100%", padding: "13px", borderRadius: 12, border: "1.5px solid #e2e8f0", background: "#fff", color: "#374151", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Go to Dashboard</button>
-      </div>
-    </div>
-  </div>
-);
-
-/* ── MAIN ── */
 export const Onboarding: React.FC = () => {
   const navigate = useNavigate();
-  const [currentStep, setCurrentStep] = useState<Step>(1);
+  const user = useAuthStore((s) => s.user);
+
+  const [currentStep, setCurrentStepRaw] = useState<Step>(1);
   const [completed, setCompleted] = useState<Set<number>>(new Set());
   const [skipped, setSkipped] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showSkipPopup, setShowSkipPopup] = useState(false);
-  const [businessForm, setBusinessForm] = useState<BusinessForm>({ businessName: "", industry: "retail", size: "1-10", mobileNo: "", gstNumber: "" });
+
+  // Prefilled from what was captured at signup, so the person never has to
+  // retype their business name or mobile number.
+  // NOTE: adjust these two field paths if your `/api/auth/profile` response
+  // shapes them differently (e.g. `user.phone` vs `user.seller.phone`).
+  const [businessForm, setBusinessForm] = useState<BusinessForm>({
+    businessName: (user as any)?.seller?.businessName || "",
+    industry: "retail",
+    size: "1-10",
+    mobileNo: (user as any)?.phone || (user as any)?.seller?.phone || "",
+    gstNumber: "",
+  });
+
   const [catalogFile, setCatalogFile] = useState<File | null>(null);
   const [catalogName, setCatalogName] = useState<string | null>(null);
   const [paymentForm, setPaymentForm] = useState<PaymentForm>({ gateway: null, keyId: "", keySecret: "", merchantId: "", salt: "" });
-  const [channels, setChannels] = useState<ChannelData>({ whatsapp: { connected: false, phone: "", apiKey: "" }, instagram: { connected: false }, facebook: { connected: false }, telegram: { connected: false, botToken: "" } });
+  const [channels, setChannels] = useState<ChannelData>({
+    whatsapp: { connected: false, phone: "", apiKey: "" },
+    instagram: { connected: false },
+    facebook: { connected: false },
+    telegram: { connected: false, botToken: "" },
+  });
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const [autoProgress, setAutoProgress] = useState(0);
-  const [autoTasks, setAutoTasks] = useState([
+  const [autoTasks, setAutoTasks] = useState<AutoTask[]>([
     { id: 1, label: "Syncing Product Catalog...", done: false },
     { id: 2, label: "Configuring AI Chatbots...", done: false },
     { id: 3, label: "Verifying Payment Keys...", done: false },
     { id: 4, label: "Generating Store Links...", done: false },
   ]);
 
+  // Clearing the error whenever the step changes (in either direction) stops
+  // a stale banner from one step following the person into the next.
+  const setCurrentStep = (updater: Step | ((c: Step) => Step)) => {
+    setError("");
+    setCurrentStepRaw(updater);
+  };
+
   useEffect(() => {
     if (currentStep !== 5) return;
-    const prog = setInterval(() => setAutoProgress(p => { if (p >= 100) { clearInterval(prog); return 100; } return p + 1; }), 50);
-    const tasks = setInterval(() => setAutoTasks(prev => { const i = prev.findIndex(t => !t.done); if (i === -1) { clearInterval(tasks); return prev; } const next = [...prev]; next[i] = { ...next[i], done: true }; return next; }), 1200);
+    const prog = setInterval(() => setAutoProgress((p) => { if (p >= 100) { clearInterval(prog); return 100; } return p + 1; }), 50);
+    const tasks = setInterval(() => setAutoTasks((prev) => {
+      const i = prev.findIndex((t) => !t.done);
+      if (i === -1) { clearInterval(tasks); return prev; }
+      const next = [...prev];
+      next[i] = { ...next[i], done: true };
+      return next;
+    }), 1200);
     return () => { clearInterval(prog); clearInterval(tasks); };
   }, [currentStep]);
 
-  const markCompleted = (step: number) => { setCompleted(s => new Set(s).add(step)); setSkipped(s => { const n = new Set(s); n.delete(step); return n; }); };
-  const markSkipped = (step: number) => { setSkipped(s => new Set(s).add(step)); setCompleted(s => { const n = new Set(s); n.delete(step); return n; }); };
+  const markCompleted = (step: number) => {
+    setCompleted((s) => new Set(s).add(step));
+    setSkipped((s) => { const n = new Set(s); n.delete(step); return n; });
+  };
+
+  const markSkipped = (step: number) => {
+    setSkipped((s) => new Set(s).add(step));
+    setCompleted((s) => { const n = new Set(s); n.delete(step); return n; });
+  };
 
   const handleNext = async () => {
-    setError(""); setLoading(true);
+    setError("");
+    setLoading(true);
     try {
       if (currentStep === 1) {
         if (!businessForm.businessName.trim()) { setError("Business name is required"); return; }
         if (!businessForm.mobileNo.trim()) { setError("Mobile number is required"); return; }
         await api.post("/api/onboarding/business", { ...businessForm, phone: businessForm.mobileNo });
-        markCompleted(1); setCurrentStep(2);
+        markCompleted(1);
+        setCurrentStep(2);
       } else if (currentStep === 2) {
-        if (catalogFile) { const fd = new FormData(); fd.append("file", catalogFile); await api.post("/api/onboarding/catalog-file", fd, { headers: { "Content-Type": "multipart/form-data" } }); }
-        markCompleted(2); setCurrentStep(3);
+        if (catalogFile) {
+          const fd = new FormData();
+          fd.append("file", catalogFile);
+          await api.post("/api/onboarding/catalog-file", fd, { headers: { "Content-Type": "multipart/form-data" } });
+        }
+        markCompleted(2);
+        setCurrentStep(3);
       } else if (currentStep === 3) {
         if (paymentForm.gateway && paymentForm.gateway !== "cod") {
           const payload: any = { gateway: paymentForm.gateway };
@@ -671,7 +117,8 @@ export const Onboarding: React.FC = () => {
         } else if (paymentForm.gateway === "cod") {
           await api.post("/api/onboarding/payments", { gateway: "cod" });
         }
-        markCompleted(3); setCurrentStep(4);
+        markCompleted(3);
+        setCurrentStep(4);
       } else if (currentStep === 4) {
         const connected: any = {};
         if (channels.whatsapp.connected) connected.whatsapp = { phone: channels.whatsapp.phone, apiKey: channels.whatsapp.apiKey };
@@ -679,7 +126,8 @@ export const Onboarding: React.FC = () => {
         if (channels.instagram.connected) connected.instagram = {};
         if (channels.facebook.connected) connected.facebook = {};
         if (Object.keys(connected).length > 0) await api.post("/api/onboarding/channels", { channels: connected });
-        markCompleted(4); setCurrentStep(5);
+        markCompleted(4);
+        setCurrentStep(5);
       } else if (currentStep === 5) {
         if (skipped.size > 0) { setShowSkipPopup(true); return; }
         await api.post("/api/onboarding/complete");
@@ -687,76 +135,24 @@ export const Onboarding: React.FC = () => {
       }
     } catch (err: any) {
       setError(err?.response?.data?.message || "Something went wrong. Please try again.");
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSkip = () => { markSkipped(currentStep); setCurrentStep(c => (Math.min(c + 1, 5)) as Step); };
+  const handleSkip = () => { markSkipped(currentStep); setCurrentStep((c) => Math.min(c + 1, 5) as Step); };
   const handlePopupContinue = async () => { setShowSkipPopup(false); await api.post("/api/onboarding/complete"); navigate("/dashboard"); };
-  const handlePopupComplete = () => { setShowSkipPopup(false); const first = [1, 2, 3, 4].find(s => skipped.has(s)); if (first) setCurrentStep(first as Step); };
+  const handlePopupComplete = () => {
+    setShowSkipPopup(false);
+    const first = [1, 2, 3, 4].find((s) => skipped.has(s));
+    if (first) setCurrentStep(first as Step);
+  };
 
   return (
     <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-        .ob-root { font-family: 'Plus Jakarta Sans', sans-serif; }
-        @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
-        @keyframes rotateSlow { to{transform:rotate(360deg)} }
-        @keyframes spin { to{transform:rotate(360deg)} }
-        @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-
-        /* Responsive layout */
-        .ob-wrap { display: flex; justify-content: center; padding: 16px 16px 48px; }
-        .ob-inner { width: 100%; max-width: 680px; animation: fadeUp 0.4s ease both; }
-
-        /* Card padding: smaller on mobile */
-        .ob-card { background: #fff; border-radius: 20px; padding: 24px 20px; border: 1px solid rgba(0,0,0,0.06); box-shadow: 0 4px 32px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04); }
-
-        /* Step header: page title row */
-        .ob-page-header { margin-bottom: 16px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-
-        /* 2-col form grid collapses to 1-col on narrow */
-        .ob-form-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
-
-        /* Gateway grid */
-        .ob-gw-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
-
-        /* Channel cards grid */
-        .ob-channel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
-        /* Stepper labels */
-        .ob-step-label { display: none; }
-
-        /* Modal: centered on desktop, bottom sheet on mobile */
-        .ob-modal-sheet { border-radius: 20px 20px 0 0; }
-
-        @media (min-width: 420px) {
-          .ob-step-label { display: block; }
-        }
-
-        @media (min-width: 480px) {
-          .ob-wrap { padding: 24px 20px 56px; }
-          .ob-card { padding: 28px 28px; }
-          .ob-form-grid { grid-template-columns: 1fr 1fr; }
-          .ob-gw-grid { grid-template-columns: 1fr 1fr; }
-        }
-
-        @media (min-width: 640px) {
-          .ob-wrap { padding: 32px 24px 56px; }
-          .ob-card { padding: 36px 40px; }
-        }
-
-        @media (min-width: 600px) {
-          /* Modal becomes centered dialog on bigger screens */
-          .ob-modal-overlay { align-items: center !important; padding: 20px !important; }
-          .ob-modal-sheet { border-radius: 20px !important; max-width: 420px; }
-        }
-      `}</style>
-
       <div className="ob-root" style={{ background: "linear-gradient(160deg,#f0fdfa 0%,#f8fafc 40%,#f5f3ff 100%)", minHeight: "100vh" }}>
         <div className="ob-wrap">
           <div className="ob-inner">
-
-            {/* Page header */}
             <div className="ob-page-header">
               <div>
                 <h1 style={{ fontSize: "clamp(20px, 5vw, 28px)", fontWeight: 800, color: "#0f172a", margin: "0 0 4px", letterSpacing: "-0.5px" }}>Store Setup</h1>
@@ -767,52 +163,63 @@ export const Onboarding: React.FC = () => {
               </div>
             </div>
 
-            <Stepper current={currentStep} completed={completed} skipped={skipped} />
+            <OnboardingStepper current={currentStep} completed={completed} skipped={skipped} />
 
-            {/* Main card */}
             <div className="ob-card">
-              {currentStep === 1 && <BusinessStep form={businessForm} onChange={setBusinessForm} error={error} onClear={() => setError("")} />}
-              {currentStep === 2 && <CatalogStep fileName={catalogName} onFile={(name: string, file: File) => { setCatalogName(name); setCatalogFile(file); }} onClear={() => { setCatalogName(null); setCatalogFile(null); }} error={error} onErrorClear={() => setError("")} />}
-              {currentStep === 3 && <PaymentsStep form={paymentForm} onChange={setPaymentForm} error={error} onClear={() => setError("")} />}
-
+              {currentStep === 1 && (
+                <BusinessStep form={businessForm} onChange={setBusinessForm} error={error} onClear={() => setError("")} />
+              )}
+              {currentStep === 2 && (
+                <CatalogStep
+                  fileName={catalogName}
+                  onFile={(name, file) => { setCatalogName(name); setCatalogFile(file); }}
+                  onClear={() => { setCatalogName(null); setCatalogFile(null); }}
+                  error={error}
+                  onErrorClear={() => setError("")}
+                />
+              )}
+              {currentStep === 3 && (
+                <PaymentsStep form={paymentForm} onChange={setPaymentForm} error={error} onClear={() => setError("")} />
+              )}
               {currentStep === 4 && (
-                <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-                  <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-                    <div style={{ width: 48, height: 48, borderRadius: 14, background: "linear-gradient(135deg,#ec4899,#db2777)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 8px 24px rgba(236,72,153,0.25)" }}>
-                      <Share2 size={22} color="#fff" />
-                    </div>
-                    <div>
-                      <h2 style={{ fontSize: 20, fontWeight: 800, color: "#0f172a", margin: "0 0 4px", letterSpacing: "-0.3px" }}>Connect Channels</h2>
-                      <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>Link social accounts to automate selling and support.</p>
-                    </div>
-                  </div>
-                  {error && <ErrorBanner error={error} onClear={() => setError("")} />}
-                  <div className="ob-channel-grid">
-                    {(Object.keys(CHANNEL_CFG) as (keyof typeof CHANNEL_CFG)[]).map(key => (
-                      <ChannelCard key={key} channelKey={key} cfg={CHANNEL_CFG[key]} connected={channels[key].connected} onClick={() => !channels[key].connected && setActiveModal(key as ModalType)} />
-                    ))}
-                  </div>
-                  <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>This step is optional — you can connect channels later from Settings.</p>
-                </div>
+                <ChannelsStep channels={channels} error={error} onClear={() => setError("")} onOpenChannel={setActiveModal} />
+              )}
+              {currentStep === 5 && (
+                <SummaryStep completed={completed} skipped={skipped} autoProgress={autoProgress} autoTasks={autoTasks} />
               )}
 
-              {currentStep === 5 && <SummaryStep completed={completed} skipped={skipped} autoProgress={autoProgress} autoTasks={autoTasks} />}
-
               {currentStep < 5 ? (
-                <Footer
-                  onBack={currentStep > 1 ? () => setCurrentStep(c => (c - 1) as Step) : undefined}
+                <OnboardingFooter
+                  onBack={currentStep > 1 ? () => setCurrentStep((c) => (c - 1) as Step) : undefined}
                   onSkip={currentStep > 1 ? handleSkip : undefined}
-                  onNext={handleNext} loading={loading}
-                  showBack={currentStep > 1} showSkip={currentStep > 1}
+                  onNext={handleNext}
+                  loading={loading}
+                  showBack={currentStep > 1}
+                  showSkip={currentStep > 1}
                 />
               ) : (
                 <div style={{ display: "flex", justifyContent: "center", marginTop: 28, paddingTop: 20, borderTop: "1px solid #f1f5f9" }}>
                   <button
                     onClick={handleNext}
                     disabled={autoProgress < 100 || loading}
-                    style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 40px", background: autoProgress < 100 ? "#cbd5e1" : "linear-gradient(135deg,#0d9488,#0f766e)", color: "#fff", borderRadius: 14, fontWeight: 800, fontSize: 15, border: "none", cursor: autoProgress < 100 ? "not-allowed" : "pointer", transition: "all 0.3s", boxShadow: autoProgress >= 100 ? "0 8px 28px rgba(13,148,136,0.35)" : "none", fontFamily: "inherit", letterSpacing: "-0.2px" }}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 10, padding: "14px 40px",
+                      background: autoProgress < 100 ? "#cbd5e1" : "linear-gradient(135deg,#0d9488,#0f766e)",
+                      color: "#fff", borderRadius: 14, fontWeight: 800, fontSize: 15, border: "none",
+                      cursor: autoProgress < 100 ? "not-allowed" : "pointer", transition: "all 0.3s",
+                      boxShadow: autoProgress >= 100 ? "0 8px 28px rgba(13,148,136,0.35)" : "none",
+                      fontFamily: "inherit", letterSpacing: "-0.2px",
+                    }}
                   >
-                    {loading ? <Loader2 size={17} style={{ animation: "spin 0.7s linear infinite" }} /> : autoProgress < 100 ? "Please wait..." : <><Sparkles size={17} /> Launch Dashboard</>}
+                    {loading ? (
+                      <Loader2 size={17} style={{ animation: "spin 0.7s linear infinite" }} />
+                    ) : autoProgress < 100 ? (
+                      "Please wait..."
+                    ) : (
+                      <>
+                        <Sparkles size={17} /> Launch Dashboard
+                      </>
+                    )}
                   </button>
                 </div>
               )}
@@ -821,20 +228,23 @@ export const Onboarding: React.FC = () => {
         </div>
       </div>
 
-      {/* Channel modal with bottom-sheet on mobile */}
       {activeModal && (
         <div
           className="ob-modal-overlay"
           style={{ position: "fixed", inset: 0, background: "rgba(15,23,42,0.6)", backdropFilter: "blur(6px)", display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 1000 }}
-          onClick={e => { if (e.target === e.currentTarget) setActiveModal(null); }}
+          onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }}
         >
-          <ChannelModal type={activeModal} onClose={() => setActiveModal(null)} onConnect={(type, data) => setChannels(prev => ({ ...prev, [type]: { ...prev[type as keyof ChannelData], connected: true, ...data } }))} />
+          <ChannelModal
+            type={activeModal}
+            onClose={() => setActiveModal(null)}
+            onConnect={(type, data) => setChannels((prev) => ({ ...prev, [type]: { ...prev[type as keyof ChannelData], connected: true, ...data } }))}
+          />
         </div>
       )}
 
       {showSkipPopup && (
         <SkipConfirmPopup
-          skippedSteps={[1, 2, 3, 4].filter(s => skipped.has(s))}
+          skippedSteps={[1, 2, 3, 4].filter((s) => skipped.has(s))}
           onContinue={handlePopupContinue}
           onComplete={handlePopupComplete}
         />

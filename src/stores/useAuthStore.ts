@@ -10,6 +10,7 @@ interface User {
   role: string;
   sellerId?: number | null;
   seller?: any;
+  emailVerified?: boolean;
 }
 
 interface AuthState {
@@ -27,6 +28,10 @@ interface AuthState {
   loadProfile: () => Promise<void>;
   logout: () => Promise<void>;
   setUser: (user: User | null) => void;
+
+  // Email verification (post-signup)
+  verifyEmail: (token: string) => Promise<void>;
+  resendVerificationEmail: (email: string) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -78,6 +83,43 @@ export const useAuthStore = create<AuthState>()(
       },
 
       /* --------------------------------------------------
+       * VERIFY EMAIL (post-signup)
+       * -------------------------------------------------- */
+      verifyEmail: async (token) => {
+        const res = await fetch(`${API}/api/auth/verify-email`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ token }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.message || "This verification link is invalid or has expired.");
+        }
+
+        const data = await res.json().catch(() => ({}));
+        set((state) => ({
+          user: data.user || (state.user ? { ...state.user, emailVerified: true } : state.user),
+          isAuthenticated: true,
+        }));
+      },
+
+      resendVerificationEmail: async (email) => {
+        const res = await fetch(`${API}/api/auth/resend-verification`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ email }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.message || "Could not resend the verification email. Please try again.");
+        }
+      },
+
+      /* --------------------------------------------------
        * LOAD PROFILE (on app boot)
        * -------------------------------------------------- */
       loadProfile: async () => {
@@ -119,7 +161,7 @@ export const useAuthStore = create<AuthState>()(
         await fetch(`${API}/api/auth/logout`, {
           method: "POST",
           credentials: "include", // ✅ clears httpOnly cookies server-side
-        }).catch(() => {}); // fire and forget
+        }).catch(() => { }); // fire and forget
 
         set({ user: null, isAuthenticated: false });
       },

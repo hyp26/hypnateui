@@ -1,0 +1,152 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+.ob-root {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+@keyframes bob {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+@keyframes rotateSlow {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive layout */
+.ob-wrap {
+    display: flex;
+    justify-content: center;
+    padding: 16px 16px 48px;
+}
+
+.ob-inner {
+    width: 100%;
+    max-width: 680px;
+    animation: fadeUp 0.4s ease both;
+}
+
+/* Card padding: smaller on mobile */
+.ob-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 24px 20px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 4px 32px rgba(0, 0, 0, 0.06), 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+/* Step header: page title row */
+.ob-page-header {
+    margin-bottom: 16px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* 2-col form grid collapses to 1-col on narrow */
+.ob-form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+}
+
+/* Gateway grid */
+.ob-gw-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+/* Channel cards grid */
+.ob-channel-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+/* Stepper labels */
+.ob-step-label {
+    display: none;
+}
+
+/* Modal: centered on desktop, bottom sheet on mobile */
+.ob-modal-sheet {
+    border-radius: 20px 20px 0 0;
+}
+
+@media (min-width: 420px) {
+    .ob-step-label {
+        display: block;
+    }
+}
+
+@media (min-width: 480px) {
+    .ob-wrap {
+        padding: 24px 20px 56px;
+    }
+
+    .ob-card {
+        padding: 28px 28px;
+    }
+
+    .ob-form-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .ob-gw-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (min-width: 640px) {
+    .ob-wrap {
+        padding: 32px 24px 56px;
+    }
+
+    .ob-card {
+        padding: 36px 40px;
+    }
+}
+
+@media (min-width: 600px) {
+
+    /* Modal becomes centered dialog on bigger screens */
+    .ob-modal-overlay {
+        align-items: center !important;
+        padding: 20px !important;
+    }
+
+    .ob-modal-sheet {
+        border-radius: 20px !important;
+        max-width: 420px;
+    }
+}
