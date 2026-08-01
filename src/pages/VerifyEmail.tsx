@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { CheckCircle2, Loader2, Mail, XCircle } from "lucide-react";
 import { useAuthStore } from "../stores/useAuthStore";
@@ -24,23 +24,26 @@ export const VerifyEmail: React.FC = () => {
     const [resending, setResending] = useState(false);
     const [resendMessage, setResendMessage] = useState("");
 
+    // The verification token is single-use, so this request must fire exactly
+    // once. React 18 StrictMode intentionally double-invokes effects in
+    // development — without this guard, the second invocation would send the
+    // already-consumed token and show a false "invalid or expired" error even
+    // though the first request already succeeded.
+    const hasAttempted = useRef(false);
+
     useEffect(() => {
-        if (!token) return;
-        let cancelled = false;
+        if (!token || hasAttempted.current) return;
+        hasAttempted.current = true;
 
         (async () => {
             try {
                 await verifyEmail(token);
-                if (!cancelled) setState("success");
+                setState("success");
             } catch (err: any) {
-                if (!cancelled) {
-                    setErrorMessage(err.message || "This verification link is invalid or has expired.");
-                    setState("error");
-                }
+                setErrorMessage(err.message || "This verification link is invalid or has expired.");
+                setState("error");
             }
         })();
-
-        return () => { cancelled = true; };
     }, [token, verifyEmail]);
 
     useEffect(() => {
