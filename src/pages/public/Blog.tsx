@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Search, Calendar, ArrowRight, Send, Clock, AlertCircle, CheckCircle } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { cn } from '../../lib/utils';
+import { publicApi } from '../../lib/api';
 
 const AUTHORS = {
   hamim: { name: 'Hamim Quazi Syed Frahuddin', role: 'Founder & CEO, Hypnate', initials: 'HQ' },
@@ -14,7 +15,7 @@ const BLOG_POSTS = [
     id: 1,
     slug: 'whatsapp-commerce-guide-2026',
     title: 'The Complete Guide to WhatsApp Commerce in 2026',
-    excerpt: 'Discover how Indian D2C brands are shifting from websites to conversational commerce and increasing conversion rates by 3x on WhatsApp Business API.',
+    excerpt: 'Discover how Indian D2C brands are shifting from websites to conversational commerce on WhatsApp Business API.',
     category: 'Commerce',
     author: AUTHORS.hamim,
     date: 'Jan 15, 2026',
@@ -25,7 +26,7 @@ const BLOG_POSTS = [
     id: 2,
     slug: 'ai-customer-support-automation',
     title: 'Automating Customer Support without Losing the Human Touch',
-    excerpt: 'Learn how to train AI agents to handle 80% of your queries while keeping your brand voice authentic and your customers happy.',
+    excerpt: 'Learn how to train AI agents to handle common customer queries while keeping your brand voice authentic and your customers supported.',
     category: 'AI Technology',
     author: AUTHORS.farhat,
     date: 'Jan 28, 2026',
@@ -69,7 +70,7 @@ const BLOG_POSTS = [
     id: 6,
     slug: 'scaling-d2c-brand',
     title: 'Scaling a D2C Brand from Zero to ₹1 Crore Revenue',
-    excerpt: 'Case study: How a small Patna-based fashion brand used Hypnate to scale their WhatsApp and Instagram sales with a team of just two people.',
+    excerpt: 'Case study: How a small Patna-based fashion brand used Hypnate to organize WhatsApp and Instagram sales with a lean team.',
     category: 'Case Study',
     author: AUTHORS.farhat,
     date: 'Mar 14, 2026',
@@ -93,11 +94,36 @@ const ALLOWED_TOPICS = [
 export const Blog = () => {
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [newsletterStatus, setNewsletterStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+  const [newsletterMessage, setNewsletterMessage] = useState('');
 
   // Public submission form state
   const [form, setForm] = useState({ name: '', email: '', title: '', topic: '', summary: '', content: '' });
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+
+  const handleNewsletterSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (newsletterStatus === 'submitting') return;
+
+    const email = newsletterEmail.trim().toLowerCase();
+    if (!email) return;
+
+    setNewsletterStatus('submitting');
+    setNewsletterMessage('');
+
+    try {
+      await publicApi.subscribeNewsletter({ email });
+      setNewsletterStatus('success');
+      setNewsletterMessage('You’re subscribed. Thanks for joining us.');
+      setNewsletterEmail('');
+    } catch (err: any) {
+      setNewsletterStatus('error');
+      setNewsletterMessage(err?.response?.data?.message || 'We could not subscribe you right now. Please try again.');
+    }
+  };
 
   const filteredPosts = BLOG_POSTS.filter(post => {
     const matchesCategory = activeCategory === 'All' || post.category === activeCategory;
@@ -106,14 +132,42 @@ export const Blog = () => {
     return matchesCategory && matchesSearch;
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (submitting) return;
+
+    const name = form.name.trim();
+    const email = form.email.trim().toLowerCase();
+    const title = form.title.trim();
+    const topic = form.topic.trim();
+    const summary = form.summary.trim();
+    const content = form.content.trim();
+
+    if (!name || !email || !title || !topic || !summary || !content) return;
+    if (content.length < 500) {
+      setSubmitError('Please provide at least 500 characters of article content.');
+      return;
+    }
+
+
     setSubmitting(true);
-    // Simulate submission (no backend)
-    setTimeout(() => {
-      setSubmitting(false);
+    setSubmitError('');
+
+    try {
+      await publicApi.submitBlogArticle({
+        name,
+        email,
+        title,
+        topic,
+        summary,
+        content,
+      });
       setSubmitted(true);
-    }, 1200);
+    } catch (err: any) {
+      setSubmitError(err?.response?.data?.message || 'We could not submit your article right now. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -249,7 +303,7 @@ export const Blog = () => {
               Share your expertise with our community
             </h2>
             <p style={{ fontSize: 15, color: '#64748b', lineHeight: 1.7, maxWidth: 540, margin: '0 auto' }}>
-              Are you a D2C seller, marketer, or commerce expert? Write for the Hypnate blog and reach thousands of Indian social sellers.
+              Are you a D2C seller, marketer, or commerce expert? Write for the Hypnate blog and reach Indian social sellers.
             </p>
           </div>
 
@@ -294,7 +348,7 @@ export const Blog = () => {
               <p style={{ fontSize: 15, color: '#64748b', lineHeight: 1.65, maxWidth: 400, margin: '0 auto 20px' }}>
                 Thank you for contributing. Our editorial team will review your submission and reach out within 5–7 business days.
               </p>
-              <button onClick={() => { setSubmitted(false); setForm({ name: '', email: '', title: '', topic: '', summary: '', content: '' }); }}
+              <button onClick={() => { setSubmitted(false); setSubmitError(''); setForm({ name: '', email: '', title: '', topic: '', summary: '', content: '' }); }}
                 style={{ background: '#0d9488', color: '#fff', border: 'none', padding: '10px 24px', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
                 Submit another article
               </button>
@@ -343,6 +397,12 @@ export const Blog = () => {
                 By submitting, you confirm this is original work and grant Hypnate the right to publish it on our blog with full author credit. Hypnate reserves the right to edit for clarity and style.
               </div>
 
+              {submitError && (
+                <div role="alert" style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', borderRadius: 10, padding: '10px 14px', marginBottom: 16, fontSize: 13, lineHeight: 1.5 }}>
+                  {submitError}
+                </div>
+              )}
+
               <button type="submit" disabled={submitting} style={{
                 width: '100%', padding: '13px', background: '#0d9488', color: '#fff',
                 border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 700,
@@ -362,10 +422,26 @@ export const Blog = () => {
         <div className="max-w-4xl mx-auto text-center">
           <h2 style={{ fontFamily: "'Sora', sans-serif" }} className="text-2xl sm:text-3xl font-bold mb-4">Get smarter about social commerce</h2>
           <p className="text-primary-200 mb-8 text-sm sm:text-base">Join merchants receiving our weekly tips and trends.</p>
-          <form className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto" onSubmit={e => e.preventDefault()}>
-            <input type="email" placeholder="Enter your email" className="flex-1 px-5 sm:px-6 py-3 rounded-full text-gray-900 focus:outline-none text-sm sm:text-base" />
-            <Button className="rounded-full px-6 sm:px-8 bg-secondary-500 hover:bg-secondary-600 border-0 whitespace-nowrap">Subscribe</Button>
+          <form className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto" onSubmit={handleNewsletterSubmit}>
+            <input
+              type="email"
+              required
+              value={newsletterEmail}
+              onChange={e => setNewsletterEmail(e.target.value)}
+              placeholder="Enter your email"
+              disabled={newsletterStatus === 'submitting'}
+              aria-label="Email address for newsletter subscription"
+              className="flex-1 px-5 sm:px-6 py-3 rounded-full text-gray-900 focus:outline-none text-sm sm:text-base disabled:opacity-60"
+            />
+            <Button type="submit" disabled={newsletterStatus === 'submitting'} className="rounded-full px-6 sm:px-8 bg-secondary-500 hover:bg-secondary-600 border-0 whitespace-nowrap">
+              {newsletterStatus === 'submitting' ? 'Subscribing…' : 'Subscribe'}
+            </Button>
           </form>
+          {newsletterMessage && (
+            <p role={newsletterStatus === 'error' ? 'alert' : 'status'} className={`mt-4 text-sm ${newsletterStatus === 'error' ? 'text-red-200' : 'text-primary-100'}`}>
+              {newsletterMessage}
+            </p>
+          )}
         </div>
       </section>
     </div>

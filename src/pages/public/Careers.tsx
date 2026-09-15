@@ -15,7 +15,7 @@ function useInView() {
 }
 
 const BENEFITS = [
-  { icon: Rocket, color: '#f59e0b', bg: '#fef3c7', title: 'High Impact', desc: 'Your work will directly impact thousands of merchants across India. No bureaucracy, no waiting.' },
+  { icon: Rocket, color: '#f59e0b', bg: '#fef3c7', title: 'High Impact', desc: 'Your work will directly contribute to the tools Indian merchants use to manage social commerce. No bureaucracy, no waiting.' },
   { icon: Heart, color: '#e1306c', bg: '#fce7f3', title: 'Health First', desc: 'Comprehensive health insurance for you and your immediate family from day one.' },
   { icon: Globe, color: '#0ea5e9', bg: '#e0f2fe', title: 'Remote Friendly', desc: 'Work from anywhere in India. We trust you to deliver great results, not just log hours.' },
   { icon: Coffee, color: '#0d9488', bg: '#f0fdfa', title: 'Learning Budget', desc: 'Annual stipend for courses, books, and conferences. We invest in your growth.' },
@@ -36,7 +36,6 @@ export const Careers = () => {
   const [notifySubmitted, setNotifySubmitted] = useState(false);
   const benefitsSection = useInView();
   const rolesSection = useInView();
-  const cultureSection = useInView();
 
   useEffect(() => { const t = setTimeout(() => setHeroVis(true), 80); return () => clearTimeout(t); }, []);
 
@@ -236,33 +235,6 @@ export const Careers = () => {
             >
               <Linkedin size={16} /> Follow us on LinkedIn
             </a>
-          </div>
-        </div>
-      </section>
-
-      {/* ── CULTURE PHOTOS ── */}
-      <section style={{ padding: 'clamp(60px,8vw,100px) clamp(16px,4vw,24px)', overflow: 'hidden' }}>
-        <div ref={cultureSection.ref} style={{
-          maxWidth: 1100, margin: '0 auto',
-          opacity: cultureSection.inView ? 1 : 0, transform: cultureSection.inView ? 'none' : 'translateY(28px)',
-          transition: 'opacity 0.7s ease, transform 0.7s ease',
-        }}>
-          <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 'clamp(20px,3vw,32px)', fontWeight: 800, color: '#0f172a', textAlign: 'center', marginBottom: 36 }}>
-            Life at Hypnate
-          </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px,1fr))', gap: 14 }}>
-            {[
-              { src: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&q=80', alt: 'Team collaboration' },
-              { src: 'https://images.unsplash.com/photo-1531746790731-6c087fecd65a?w=400&q=80', alt: 'Deep work' },
-              { src: 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400&q=80', alt: 'Happy team' },
-              { src: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400&q=80', alt: 'Office energy' },
-            ].map((img, i) => (
-              <div key={i} style={{ borderRadius: 16, overflow: 'hidden', aspectRatio: '4/3' }}>
-                <img src={img.src} alt={img.alt} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s' }}
-                  onMouseEnter={e => (e.currentTarget as HTMLImageElement).style.transform = 'scale(1.05)'}
-                  onMouseLeave={e => (e.currentTarget as HTMLImageElement).style.transform = 'scale(1)'} />
-              </div>
-            ))}
           </div>
         </div>
       </section>

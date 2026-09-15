@@ -28,9 +28,9 @@ const plans: Plan[] = [
   {
     id: 'starter',
     name: 'Starter',
-    tagline: 'For solo sellers & new D2C founders.',
-    desc: 'Everything you need to start selling on WhatsApp and Instagram — conversations, orders, and a real website.',
-    monthlyPrice: 799,
+    tagline: 'For solo sellers & early-stage D2C brands.',
+    desc: 'Core tools to manage chat-first selling and day-to-day commerce workflows.',
+    monthlyPrice: 999,
     highlight: false,
     cta: 'Start Free Trial',
     ctaLink: '/signup?plan=starter',
@@ -38,22 +38,7 @@ const plans: Plan[] = [
     accentBg: '#f0fdfa',
     icon: <Zap size={22} />,
     features: [
-      {
-        category: 'Inbox',
-        items: ['1 WhatsApp number', '1 Instagram DM', '800 AI conversations/mo', 'Unified inbox (WA + IG)', '5 quick reply templates', 'Mobile app access'],
-      },
-      {
-        category: 'Commerce',
-        items: ['Up to 100 products', 'Manual order management', '500 customer profiles', 'Payment link in chat', '7-day analytics'],
-      },
-      {
-        category: 'HypnateX Store',
-        items: ['1 store — hosted on Hypnate servers', 'yourstore.hypnate.in subdomain', '6 starter themes', '10GB storage · 5,000 visitors/mo', 'SSL included'],
-      },
-      {
-        category: 'Support',
-        items: ['Email support (48hr)', 'Help center access'],
-      },
+      { category: 'Included', items: ['Up to 500 orders', 'Telegram + WhatsApp', 'Basic dashboard', '2 staff accounts', 'Email support'] },
     ],
   },
   {
@@ -61,8 +46,8 @@ const plans: Plan[] = [
     name: 'Pro',
     badge: '⭐ Most Popular',
     tagline: 'For growing D2C brands.',
-    desc: 'Unlock all 4 platforms, automation, custom domain, and auto-syncing store.',
-    monthlyPrice: 2199,
+    desc: 'More channels, deeper analytics and stronger automation for growing teams.',
+    monthlyPrice: 1999,
     highlight: true,
     cta: 'Start Free Trial',
     ctaLink: '/signup?plan=pro',
@@ -70,30 +55,15 @@ const plans: Plan[] = [
     accentBg: '#0d9488',
     icon: <Star size={22} />,
     features: [
-      {
-        category: 'Inbox',
-        items: ['1 WhatsApp number', 'Instagram + Facebook + Telegram', 'Unlimited AI conversations', '3 team members', 'Broadcast to 5,000 contacts/mo', '5 chatbot automation flows', 'Abandoned cart recovery'],
-      },
-      {
-        category: 'Commerce',
-        items: ['Unlimited products', 'Advanced order management', 'Unlimited customer profiles', '90-day analytics (all channels)', 'Bulk order CSV export', 'COD confirmation via WhatsApp'],
-      },
-      {
-        category: 'HypnateX Store',
-        items: ['1 store on Hypnate servers', 'Custom domain (yourbrand.com)', 'All 12 themes', 'Auto-sync catalog', 'Remove "Powered by Hypnate"', 'AI-generated SEO meta tags', '25GB storage · 25,000 visitors/mo'],
-      },
-      {
-        category: 'Support',
-        items: ['Priority email (12hr)', 'WhatsApp support chat', 'Monthly strategy call (30 min)'],
-      },
+      { category: 'Included', items: ['Unlimited orders', 'Telegram + WhatsApp + Instagram + Messenger', 'Advanced analytics', '10 staff accounts', 'Payment link generation'] },
     ],
   },
   {
     id: 'business',
     name: 'Business',
     tagline: 'For established brands & agencies.',
-    desc: 'Multi-number, multi-store, multi-team. The full stack for serious sellers.',
-    monthlyPrice: 5499,
+    desc: 'Expanded team, website-builder and integration capabilities for more complex operations.',
+    monthlyPrice: 4999,
     highlight: false,
     cta: 'Start Free Trial',
     ctaLink: '/signup?plan=business',
@@ -101,53 +71,33 @@ const plans: Plan[] = [
     accentBg: '#f8fafc',
     icon: <Users size={22} />,
     features: [
-      {
-        category: 'Inbox',
-        items: ['3 WhatsApp numbers', 'All 4 platforms (WA + IG + FB + TG)', 'Unlimited AI conversations', '5 team members + role permissions', 'Unlimited chatbot flows', 'Broadcast to unlimited contacts', 'Sentiment analysis on chats'],
-      },
-      {
-        category: 'Commerce',
-        items: ['Everything in Pro', 'Multi-location inventory', 'Custom order statuses & pipeline', 'Revenue forecasting dashboard', 'Customer lifetime value tracking', 'API webhooks for custom integrations'],
-      },
-      {
-        category: 'HypnateX Store',
-        items: ['3 store websites (multi-brand)', 'Custom domain on all 3 stores', 'All themes + early access', 'Auto-sync on all 3 stores', '100GB storage · 100,000 visitors/mo', 'Unlimited store rebuilds'],
-      },
-      {
-        category: 'Support',
-        items: ['Dedicated account manager', '4hr response SLA', 'Onboarding call included', 'Quarterly business review call'],
-      },
+      { category: 'Included', items: ['Everything in Pro', 'HypnateX website builder', 'Priority support', 'Unlimited staff', 'Custom integrations'] },
     ],
   },
 ];
 
 const compareRows = [
   { feature: 'WhatsApp Numbers', starter: '1', pro: '1', business: '3' },
-  { feature: 'Platforms', starter: 'WA + IG', pro: 'WA+IG+FB+TG', business: 'All 4' },
-  { feature: 'AI Conversations/mo', starter: '800', pro: 'Unlimited', business: 'Unlimited' },
-  { feature: 'Team Members', starter: '1', pro: '3', business: '5' },
-  { feature: 'Products', starter: '100', pro: 'Unlimited', business: 'Unlimited' },
-  { feature: 'HypnateX Stores', starter: '1', pro: '1', business: '3' },
-  { feature: 'Store Hosting', starter: true, pro: true, business: true },
-  { feature: 'Custom Domain', starter: false, pro: true, business: true },
-  { feature: 'Auto-sync Catalog', starter: false, pro: true, business: true },
-  { feature: 'Remove Branding', starter: false, pro: true, business: true },
-  { feature: 'Broadcast Messages', starter: false, pro: '5,000/mo', business: 'Unlimited' },
-  { feature: 'API Access', starter: false, pro: false, business: true },
-  { feature: 'Support', starter: 'Email', pro: 'Priority + WA', business: 'Dedicated' },
+  { feature: 'Platforms', starter: 'Telegram + WhatsApp', pro: 'Telegram + WhatsApp + Instagram + Messenger', business: 'All Pro platforms' },
+  { feature: 'Orders', starter: 'Up to 500', pro: 'Unlimited', business: 'Unlimited' },
+  { feature: 'Team Members', starter: '2', pro: '10', business: 'Unlimited' },
+  { feature: 'Advanced Analytics', starter: false, pro: true, business: true },
+  { feature: 'Payment Link Generation', starter: false, pro: true, business: true },
+  { feature: 'HypnateX Website Builder', starter: false, pro: false, business: true },
+  { feature: 'Priority Support', starter: false, pro: false, business: true },
+  { feature: 'Custom Integrations', starter: false, pro: false, business: true },
 ];
 
 const faqs = [
-  { q: 'What is the 50% launch offer?', a: 'We’re celebrating Hypnate’s launch with 50% off all plans. This is a time-limited offer for early adopters — available on both monthly and annual billing. Discounted pricing is valid for your first 12 months.' },
-  { q: 'How does HypnateX store hosting work?', a: 'When you build a store through HypnateX, it lives on Hypnate\'s servers — no need for Hostinger, Shopify, or any separate hosting. We handle SSL, CDN, and uptime across all paid plans.' },
-  { q: 'What happens if I exceed my conversation limit?', a: 'We never cut you off. Each extra conversation costs ₹0.50. You\'ll see real-time usage in your dashboard so you\'re always in the know.' },
-  { q: 'Do I need the WhatsApp Business API separately?', a: 'We guide you through the Meta API setup from your dashboard. It takes about 2–3 business days for Meta to approve, and there\'s no setup fee from our side.' },
-  { q: 'Can I use my own domain on Starter?', a: 'Custom domains are available on Pro and Business. On Starter, your store lives at yourstore.hypnate.in — a real, shareable link your customers can bookmark.' },
-  { q: 'Is there a setup fee or contract?', a: 'No setup fees, no contracts. Monthly plans can be cancelled anytime. Annual plans come with a 14-day money-back guarantee.' },
-  { q: 'Can agencies use Business for multiple clients?', a: 'Yes — Business includes 3 separate HypnateX stores, each with its own custom domain and catalog. For unlimited stores, contact us about our Enterprise plan.' },
+  { q: 'What pricing is available during the pilot period?', a: 'Pilot pricing is currently shown on this page for early merchants. Pricing and included features may change before or at the public launch.' },
+  { q: 'How does annual billing work?', a: 'Annual billing is shown at a 20% discount compared with the equivalent monthly price. The exact amount is displayed before checkout.' },
+  { q: 'What happens if I exceed my order allowance?', a: 'Your plan limits are shown on this page. We will surface applicable usage or upgrade options in the product rather than silently charging an unlisted fee.' },
+  { q: 'Do I need the WhatsApp Business API separately?', a: 'Hypnate guides you through the supported Meta setup. Approval and verification timings are controlled by Meta and can vary.' },
+  { q: 'Can I use my own domain?', a: 'Custom-domain availability depends on the plan shown on this page. Check the current plan details before subscribing.' },
+  { q: 'Is there a setup fee or contract?', a: 'There is no separate setup fee stated on this pricing page. Subscription cancellation and billing terms are governed by the Terms of Service.' },
+  { q: 'Can agencies use Business for multiple clients?', a: 'Business is designed for larger teams and agencies. Contact us to discuss multi-brand or custom integration requirements.' },
 ];
 
-const LAUNCH_DISCOUNT = 0.5; // 50% off
 
 export const Pricing: React.FC = () => {
   const [billing, setBilling] = useState<BillingCycle>('yearly');
@@ -156,8 +106,7 @@ export const Pricing: React.FC = () => {
 
   useEffect(() => { const t = setTimeout(() => setVisible(true), 80); return () => clearTimeout(t); }, []);
 
-  const getOriginal = (monthly: number) => billing === 'yearly' ? Math.round(monthly * 0.8) : monthly;
-  const getLaunch = (monthly: number) => Math.round(getOriginal(monthly) * (1 - LAUNCH_DISCOUNT));
+  const getPrice = (monthly: number) => billing === 'yearly' ? Math.round(monthly * 0.8) : monthly;
 
   return (
     <>
@@ -171,7 +120,7 @@ export const Pricing: React.FC = () => {
             {/* Launch banner */}
             <div className="pr-launch-banner">
               <Rocket size={16} />
-              <span>🚀 Launch Offer — <strong>50% OFF all plans</strong> for early adopters</span>
+              <span>Pilot pricing for early merchants</span>
             </div>
 
             <h1 className="pr-hero-title">
@@ -199,8 +148,7 @@ export const Pricing: React.FC = () => {
         <section className="pr-cards-section">
           <div className="pr-cards-grid">
             {plans.map((plan, i) => {
-              const original = getOriginal(plan.monthlyPrice);
-              const launch = getLaunch(plan.monthlyPrice);
+              const price = getPrice(plan.monthlyPrice);
               return (
                 <div
                   key={plan.id}
@@ -225,18 +173,20 @@ export const Pricing: React.FC = () => {
 
                   {/* Price with strikethrough */}
                   <div className="pr-price-wrap">
-                    <div className="pr-original-price" style={{ color: plan.highlight ? 'rgba(255,255,255,0.45)' : '#94a3b8' }}>
-                      ₹{original.toLocaleString()}/mo
-                    </div>
+                    {billing === 'yearly' && (
+                      <div className="pr-original-price" style={{ color: plan.highlight ? 'rgba(255,255,255,0.45)' : '#94a3b8' }}>
+                        ₹{plan.monthlyPrice.toLocaleString()}/mo
+                      </div>
+                    )}
                     <div className="pr-price-row">
                       <span className="pr-currency" style={{ color: plan.highlight ? 'rgba(255,255,255,0.6)' : '#94a3b8' }}>₹</span>
-                      <span className="pr-amount" style={{ color: plan.highlight ? '#fff' : '#0f172a' }}>{launch.toLocaleString()}</span>
+                      <span className="pr-amount" style={{ color: plan.highlight ? '#fff' : '#0f172a' }}>{price.toLocaleString()}</span>
                       <span className="pr-period" style={{ color: plan.highlight ? 'rgba(255,255,255,0.6)' : '#94a3b8' }}>/mo</span>
-                      <span className="pr-discount-pill">50% OFF</span>
+                      {billing === 'yearly' && <span className="pr-discount-pill">20% OFF</span>}
                     </div>
                     {billing === 'yearly' && (
                       <p className="pr-annual" style={{ color: plan.highlight ? 'rgba(255,255,255,0.55)' : '#94a3b8' }}>
-                        ₹{(launch * 12).toLocaleString()} billed annually
+                        ₹{(price * 12).toLocaleString()} billed annually
                       </p>
                     )}
                   </div>
@@ -265,10 +215,10 @@ export const Pricing: React.FC = () => {
             })}
           </div>
 
-          {/* Launch offer note */}
+          {/* Pilot pricing note */}
           <div className="pr-launch-note">
             <Gift size={16} />
-            <span>Founding users get exclusive pricing for the first 12 months. Offer ends on 31st May 2026.</span>
+            <span>Pilot pricing is subject to change before or at public launch. Your final price is shown before checkout.</span>
           </div>
         </section>
 
@@ -334,9 +284,9 @@ export const Pricing: React.FC = () => {
               <Link to="/contact" className="pr-btn-secondary">Talk to our team</Link>
             </div>
             <div className="pr-trust-row">
-              <span><Shield size={13} /> No setup fees</span>
-              <span><Check size={13} /> 14-day money-back</span>
-              <span><Headphones size={13} /> WhatsApp support</span>
+              <span><Shield size={13} /> No separate setup fee</span>
+              <span><Check size={13} /> Cancel anytime on monthly plans</span>
+              <span><Headphones size={13} /> Support included</span>
             </div>
           </div>
         </section>

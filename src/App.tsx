@@ -52,7 +52,6 @@ import { FAQ } from './pages/public/FAQ';
 import { Terms } from './pages/public/Term';
 import { Privacy } from './pages/public/Privacy';
 import { Refund } from './pages/public/Refund';
-import { Changelog } from './pages/public/Changelog';
 
 // i18n
 import './i18n/config';
@@ -92,7 +91,6 @@ function App() {
           {/* Company */}
           <Route path="/careers" element={<Careers />} />
           <Route path="/faq" element={<FAQ />} />
-          <Route path="/changelog" element={<Changelog />} />
 
           {/* Legal */}
           <Route path="/terms" element={<Terms />} />

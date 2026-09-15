@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { MessageCircle, ShoppingBag, CreditCard, ArrowRight, Instagram, Bot, BarChart } from 'lucide-react';
 import { HypnateDemoPlayer } from '../../components/public/HypnateDemoPlayer';
+import { SoftwareApplicationStructuredData } from '../../components/public/StructuredData';
 
 export const Home = () => {
     return (
         <div className="overflow-hidden">
+            <SoftwareApplicationStructuredData />
             {/* Hero Section */}
             <section className="relative pt-16 pb-24 px-4 sm:px-6 bg-gradient-to-b from-primary-50/50 to-white">
                 <div className="max-w-7xl mx-auto text-center relative z-10">
@@ -55,7 +57,7 @@ export const Home = () => {
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center mb-10 sm:mb-16">
                         <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">Everything you need to grow</h2>
-                        <p className="text-gray-500 max-w-xl mx-auto text-base sm:text-lg">Hypnate replaces 5 different tools with one unified platform.</p>
+                        <p className="text-gray-500 max-w-xl mx-auto text-base sm:text-lg">Hypnate brings conversations, orders, payments, and customer workflows into one platform.</p>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
@@ -64,8 +66,8 @@ export const Home = () => {
                             { icon: Instagram, title: 'Instagram DM Sales', desc: 'Automate replies to DMs and comments. Convert followers into buyers.', color: 'bg-pink-100 text-pink-600' },
                             { icon: ShoppingBag, title: 'Order Management', desc: 'Track orders from placement to delivery with automated status updates.', color: 'bg-blue-100 text-blue-600' },
                             { icon: CreditCard, title: 'Instant Payments', desc: 'Send payment links and verify transactions automatically via Razorpay.', color: 'bg-purple-100 text-purple-600' },
-                            { icon: Bot, title: 'AI Sales Agent', desc: 'A 24/7 AI agent that answers product questions, handles objections, and closes orders while you sleep.', color: 'bg-yellow-100 text-yellow-600' },
-                            { icon: BarChart, title: 'Real-time Analytics', desc: 'Know exactly which channel drives revenue, which products sell, and where customers drop off — updated live.', color: 'bg-teal-100 text-teal-600' },
+                            { icon: Bot, title: 'AI Sales Agent', desc: 'An AI sales assistant that helps answer product questions, handle objections, and support order conversations.', color: 'bg-yellow-100 text-yellow-600' },
+                            { icon: BarChart, title: 'Real-time Analytics', desc: 'See channel performance, product sales, and customer conversion signals in one dashboard.', color: 'bg-teal-100 text-teal-600' },
                         ].map((feature, idx) => (
                             <div key={idx} className="p-5 sm:p-8 rounded-xl sm:rounded-2xl bg-gray-50 border border-gray-100 hover:border-primary-200 hover:shadow-lg transition-all group">
                                 <div className={`w-11 h-11 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center mb-4 sm:mb-6 ${feature.color} group-hover:scale-110 transition-transform`}>
@@ -95,9 +97,9 @@ export const Home = () => {
                         <div className="sm:hidden absolute top-0 left-1/2 -translate-x-1/2 w-0.5 h-full bg-gray-800 -z-10"></div>
 
                         {[
-                            { step: '01', title: 'Connect Accounts', desc: 'Link your WhatsApp Business API and social accounts in one click.' },
+                            { step: '01', title: 'Connect Accounts', desc: 'Connect your supported business and social accounts from one dashboard.' },
                             { step: '02', title: 'Upload Catalog', desc: 'Import your products via CSV or sync with your existing store.' },
-                            { step: '03', title: 'Start Selling', desc: 'Automate conversations and watch your sales grow on autopilot.' },
+                            { step: '03', title: 'Start Selling', desc: 'Automate supported conversations and manage sales workflows from one dashboard.' },
                         ].map((item, idx) => (
                             <div key={idx} className="relative flex flex-col items-center">
                                 <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gray-800 border-4 border-gray-900 flex items-center justify-center text-2xl sm:text-3xl font-bold text-primary-400 z-10 relative mb-5 sm:mb-8">
@@ -121,9 +123,9 @@ export const Home = () => {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8">
                         {[
-                            { title: 'Be among the first', text: "We're onboarding early businesses to shape the future of AI commerce." },
+                            { title: 'Be among the first', text: "We're onboarding early businesses and using their feedback to shape Hypnate." },
                             { title: 'Direct feedback loop', text: "Help us build the perfect AI commerce platform with your insights." },
-                            { title: 'Founding perks', text: "Early users get lifetime benefits and priority support." },
+                            { title: 'Founding perks', text: "Early users get access to our early-adopter program and product feedback loop." },
                         ].map((t, idx) => (
                             <div key={idx} className="bg-white p-6 sm:p-8 rounded-xl sm:rounded-2xl shadow-sm border border-gray-100">
                                 <p className="text-gray-700 mb-4 sm:mb-6 italic text-sm sm:text-base">"{t.text}"</p>

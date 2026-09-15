@@ -43,10 +43,11 @@ const VALUES = [
 ];
 
 const MILESTONES = [
-  { year: 'Sep 2025', label: 'Hypnate founded', desc: 'Two founders, one mission — build the operating system for social commerce in India.' },
-  { year: 'Nov 2025', label: 'First beta users', desc: 'First cohort of D2C merchants onboarded to the Hypnate platform for closed beta testing.' },
-  { year: 'Jan 2026', label: 'Public launch', desc: 'Hypnate goes live with WhatsApp Commerce, AI Sales Agent, and HypnateX Store.' },
-  { year: '2026+', label: 'What\'s next', desc: 'Expanding to 10,000 merchants and building India\'s largest social commerce platform.' },
+  { year: 'Sep 2025', label: 'The idea', desc: 'The idea for Hypnate began in Patna. We started researching the problem, speaking with businesses, and validating whether chat-first commerce was a real need.' },
+  { year: 'Oct 2025', label: 'Building begins', desc: 'After the initial research, we started building the first version of Hypnate and turning the idea into a working product.' },
+  { year: 'Feb 2026', label: 'Company & co-founder', desc: 'Hypnate Solutions Pvt Ltd was registered, and our co-founder joined the journey to build the company together.' },
+  // { year: 'Sep 2026', label: 'Beta testing', desc: 'We are preparing the product for beta testing with early merchants, gathering feedback and validating the workflows before a wider launch.' },
+  // { year: 'Oct 2026', label: 'Public launch', desc: 'Our planned public launch — opening Hypnate to businesses beyond the initial beta group.' },
 ];
 
 export const About = () => {
@@ -131,8 +132,8 @@ export const About = () => {
               background: 'linear-gradient(to top, rgba(13,148,136,0.9), transparent)',
               padding: '24px 20px 20px',
             }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>Founded in Patna, Bihar</div>
-              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)' }}>Building for Bharat, September 2025</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>Started in Patna, Bihar</div>
+              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)' }}>The journey began in September 2025</div>
             </div>
           </div>
 
@@ -143,9 +144,9 @@ export const About = () => {
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {[
-                'In September 2025, we noticed a shift. Small businesses in India weren\'t building websites — they were building communities on WhatsApp and Instagram.',
-                'But managing hundreds of DMs, tracking orders manually, collecting payments, and sending updates was a nightmare. They needed a tool that worked where they worked.',
-                'That\'s why we built Hypnate. To give every merchant — from a Patna saree seller to a Mumbai skincare brand — the power of an enterprise e-commerce stack, right inside their chat window.',
+                'The idea for Hypnate started in September 2025. Before writing the product, we spent time researching the problem and talking to businesses to understand whether this was a real need.',
+                'In October 2025, we started building. The goal was simple: create commerce infrastructure around the conversations where Indian businesses already interact with customers.',
+                'In February 2026, we registered Hypnate Solutions Pvt Ltd and brought our co-founder into the journey. Since then, we have been turning the early idea into a product we can test with real merchants.',
               ].map((text, i) => (
                 <p key={i} style={{ fontSize: 16, color: '#64748b', lineHeight: 1.75, margin: 0 }}>{text}</p>
               ))}
@@ -311,7 +312,7 @@ export const About = () => {
           <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 'clamp(22px,3.5vw,34px)', fontWeight: 800, color: '#0f172a', marginBottom: 8, textAlign: 'center' }}>
             Our Journey
           </h2>
-          <p style={{ fontSize: 15, color: '#64748b', textAlign: 'center', marginBottom: 48 }}>From an idea in Patna to a platform for thousands.</p>
+          <p style={{ fontSize: 15, color: '#64748b', textAlign: 'center', marginBottom: 48 }}>From an idea in Patna to a platform for chat-first commerce.</p>
 
           <div style={{ position: 'relative' }}>
             {/* Vertical line */}

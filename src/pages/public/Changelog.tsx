@@ -3,16 +3,15 @@ import { Sparkles, Wrench, Bug, Rocket, Zap, Shield, LayoutDashboard, MessageSqu
 
 const CHANGES = [
   {
-    version: 'v1.0.0',
-    date: 'April 16, 2026',
-    title: 'Official Launch — Hypnate is Live',
-    type: 'launch',
-    emoji: '🚀',
+    version: 'v0.9.5',
+    date: 'September 2026',
+    title: 'Beta Preparation & Website Readiness',
+    type: 'major',
+    emoji: '🧪',
     items: [
-      { type: 'feature', text: 'Public launch of Hypnate — the all-in-one WhatsApp & Instagram commerce platform for Indian D2C brands.' },
-      { type: 'feature', text: 'Full merchant onboarding flow: business info → catalog upload → payment gateway → social channel connection → AI setup.' },
-      { type: 'feature', text: 'Zara AI chatbot live on hypnate.in — guides visitors through qualification, onboarding, and conversion automatically.' },
-      { type: 'feature', text: 'Staging environment fully separated from production. Coming soon page live at hypnate.in during pre-launch.' },
+      { type: 'improvement', text: 'Preparing Hypnate for beta testing with early merchants.' },
+      { type: 'improvement', text: 'Website content and launch messaging reviewed for consistency ahead of the planned public launch.' },
+      { type: 'improvement', text: 'Public website forms are being connected to real submission workflows instead of simulated success states.' },
     ]
   },
   {
@@ -109,7 +108,7 @@ const CHANGES = [
     type: 'minor',
     emoji: '💳',
     items: [
-      { type: 'feature', text: 'Pricing page with Founding Member at 50% off (as a lauching offer), Starter ₹799/mo, Pro ₹2,199/mo, Business ₹5,499/mo, Enterprise ₹13,999/mo.' },
+      { type: 'improvement', text: 'Pricing page introduced with plan comparison and billing-cycle selection.' },
       { type: 'feature', text: 'Overage model: ₹0.50 per extra conversation, ₹99 per 5k extra visitors, ₹299 per extra team member.' },
       { type: 'feature', text: 'Coming Soon production page, email capture, animated grid background and feature pills.' },
       { type: 'improvement', text: 'Production and staging environments separated — hypnate.in shows coming soon, staging.hypnate.in runs the full app.' },

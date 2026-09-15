@@ -52,9 +52,9 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
         {/* Logo + mobile close button */}
         <div className="p-5 border-b border-primary-800 flex items-center justify-between">
           <img
-            src="/assets/logo.svg"
+            src="/assets/hypnate-wordmark-light.png"
             alt="Hypnate Logo"
-            className="h-12 w-auto object-contain"
+            className="h-10 w-auto object-contain"
           />
           <button
             onClick={onClose}

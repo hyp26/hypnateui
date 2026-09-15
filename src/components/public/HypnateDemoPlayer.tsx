@@ -22,7 +22,7 @@ const SidebarItem: React.FC<{ label: string; active?: boolean; short?: string }>
 const Sidebar: React.FC<{ active: string }> = ({ active }) => (
     <div style={{ width: 120, background: "#1e293b", flexShrink: 0, borderRight: "1px solid #334155", display: "flex", flexDirection: "column", padding: "8px 6px" }} className="hdp-sidebar">
         <div style={{ padding: "3px 3px 8px", marginBottom: 5, borderBottom: "1px solid #334155" }}>
-            <img src="/assets/logo.svg" alt="Hypnate" style={{ width: "88%", height: "auto", display: "block" }} />
+            <img src="/assets/hypnate-wordmark-light.png" alt="Hypnate" style={{ width: "92%", height: "auto", display: "block" }} />
         </div>
         {["Dashboard", "Conversations", "Products", "Orders", "Payments", "Analytics"].map(l => (
             <SidebarItem key={l} label={l} active={active === l} />

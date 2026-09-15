@@ -1,19 +1,6 @@
 import React, { useState } from 'react';
-import { Mail, MapPin, MessageSquare, CheckCircle, Send } from 'lucide-react';
-
-interface ContactMessage {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  subject: string;
-  message: string;
-  sentAt: string;
-}
-
-// Store messages locally in memory (no backend)
-const messageStore: ContactMessage[] = [];
+import { Mail, MapPin, MessageSquare, CheckCircle, Send, AlertCircle } from 'lucide-react';
+import { publicApi } from '../../lib/api';
 
 export const Contact = () => {
   const [form, setForm] = useState({
@@ -21,24 +8,40 @@ export const Contact = () => {
   });
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
   const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }));
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (submitting) return;
+
+    const payload = {
+      firstName: form.firstName.trim(),
+      lastName: form.lastName.trim(),
+      email: form.email.trim().toLowerCase(),
+      phone: form.phone.trim(),
+      subject: form.subject.trim(),
+      message: form.message.trim(),
+    };
+
+    if (!payload.firstName || !payload.lastName || !payload.email || !payload.subject || !payload.message) {
+      setError('Please complete all required fields.');
+      return;
+    }
+
+    setError('');
     setSubmitting(true);
-    // Save to local in-memory store (simulating DB without backend)
-    setTimeout(() => {
-      const entry: ContactMessage = {
-        id: Date.now().toString(),
-        ...form,
-        sentAt: new Date().toISOString(),
-      };
-      messageStore.push(entry);
-      console.log('Message saved locally:', entry); // Dev visibility
-      setSubmitting(false);
+
+    try {
+      await publicApi.submitContact(payload);
       setSubmitted(true);
-    }, 900);
+    } catch (err: any) {
+      const message = err?.response?.data?.message || 'We could not send your message right now. Please try again.';
+      setError(message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -79,7 +82,7 @@ export const Contact = () => {
                 {
                   icon: <Mail size={20} />,
                   label: 'Email Us',
-                  lines: ['hypnate.2026@gmail.com'],
+                  lines: ['hello@hypnate.in'],
                   sub: 'We reply within 24 hours on business days',
                 },
                 {
@@ -148,7 +151,7 @@ export const Contact = () => {
                   Thanks for reaching out. We'll get back to you within 24 hours. You can also WhatsApp us for a faster response.
                 </p>
                 <button
-                  onClick={() => { setSubmitted(false); setForm({ firstName: '', lastName: '', email: '', phone: '', subject: '', message: '' }); }}
+                  onClick={() => { setSubmitted(false); setError(''); setForm({ firstName: '', lastName: '', email: '', phone: '', subject: '', message: '' }); }}
                   style={{ background: '#0d9488', color: '#fff', border: 'none', padding: '10px 22px', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}
                 >
                   Send another message
@@ -210,6 +213,13 @@ export const Contact = () => {
                   <div style={{ background: '#f8fafc', borderRadius: 10, padding: '10px 14px', fontSize: 12, color: '#94a3b8', lineHeight: 1.55 }}>
                     💬 For faster support, you can also reach us directly on WhatsApp: <strong style={{ color: '#0f172a' }}>+91 7970959155</strong>
                   </div>
+
+                  {error && (
+                    <div role="alert" style={{ display: 'flex', alignItems: 'flex-start', gap: 8, background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', borderRadius: 10, padding: '10px 14px', fontSize: 13, lineHeight: 1.5 }}>
+                      <AlertCircle size={16} style={{ flexShrink: 0, marginTop: 1 }} />
+                      <span>{error}</span>
+                    </div>
+                  )}
 
                   <button
                     type="submit"

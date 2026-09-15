@@ -73,7 +73,7 @@ export const Signup: React.FC = () => {
     return (
         <AuthLayout
             title="Create your account"
-            subtitle="Start your free store — no credit card needed."
+            subtitle="Create your account and get started with Hypnate."
             footer={
                 <>
                     Already have an account?{" "}

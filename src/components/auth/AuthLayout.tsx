@@ -287,7 +287,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ title, subtitle, childre
                 />
 
                 <div style={{ position: "relative", animation: "auth-fadeup 0.6s ease both" }}>
-                    <img src="/assets/logo.svg" alt="Hypnate" style={{ height: 48 }} />
+                    <img src="/assets/hypnate-wordmark-light.png" alt="Hypnate" style={{ height: 42, width: "auto", display: "block" }} />
                 </div>
 
                 <div
@@ -334,8 +334,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ title, subtitle, childre
                             <span style={{ color: "#0d9488" }}>Grow faster.</span>
                         </h1>
                         <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", marginTop: 14, lineHeight: 1.65, maxWidth: 360 }}>
-                            Your AI agent handles WhatsApp orders, tracks inventory and collects payments — while you focus on your
-                            products.
+                            Manage conversations, orders, inventory and payments from one workspace while you focus on your products.
                         </p>
                     </div>
 
@@ -347,8 +346,8 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ title, subtitle, childre
                 <div style={{ position: "relative", display: "flex", flexWrap: "wrap", gap: 8 }}>
                     <FeaturePill icon={<ShoppingBag size={13} />} text="Order management" delay={300} />
                     <FeaturePill icon={<MessageCircle size={13} />} text="Unified inbox" delay={400} />
-                    <FeaturePill icon={<TrendingUp size={13} />} text="Live analytics" delay={500} />
-                    <FeaturePill icon={<Zap size={13} />} text="AI automation" delay={600} />
+                    <FeaturePill icon={<TrendingUp size={13} />} text="Commerce analytics" delay={500} />
+                    <FeaturePill icon={<Zap size={13} />} text="AI-assisted workflows" delay={600} />
                 </div>
             </div>
 
@@ -378,7 +377,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ title, subtitle, childre
                     }}
                 >
                     <div className="auth-mobile-logo" style={{ justifyContent: "center", marginBottom: 24 }}>
-                        <img src="/assets/logo.svg" alt="Hypnate" style={{ height: 36 }} />
+                        <img src="/assets/hypnate-logo.png" alt="Hypnate" style={{ height: 36 }} />
                     </div>
 
                     <div style={{ marginBottom: 24 }}>

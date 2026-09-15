@@ -4,6 +4,7 @@ import { Button } from '../ui/Button';
 import { Menu, X, Instagram, Facebook, Twitter, Linkedin } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { DemoChatWidget } from '../public/DemoChatWidget';
+import { OrganizationStructuredData, WebSiteStructuredData } from '../public/StructuredData';
 
 export const PublicLayout = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -37,6 +38,8 @@ export const PublicLayout = () => {
 
   return (
     <div className="min-h-screen bg-white flex flex-col font-sans">
+      <OrganizationStructuredData />
+      <WebSiteStructuredData />
 
       {/* Navbar */}
       <nav className={cn(
@@ -49,7 +52,7 @@ export const PublicLayout = () => {
 
           {/* Logo */}
           <Link to="/" className="relative z-50 shrink-0">
-            <img src="/assets/logo.svg" alt="Hypnate Logo" className="h-10 sm:h-12 w-auto object-contain" />
+            <img src="/assets/hypnate-logo.png" alt="Hypnate Logo" className="h-10 sm:h-12 w-auto object-contain" />
           </Link>
 
           {/* Desktop nav */}
@@ -130,7 +133,7 @@ export const PublicLayout = () => {
       <footer className="bg-gray-900 text-gray-300 py-12 sm:py-16 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 sm:gap-12 mb-10 sm:mb-12">
           <div className="col-span-2 md:col-span-1">
-            <img src="/assets/logo.svg" alt="Hypnate Logo" className="h-20 sm:h-28 w-auto object-contain" />
+            <img src="/assets/hypnate-logo-light.png" alt="Hypnate Logo" className="h-12 sm:h-14 w-auto max-w-[280px] object-contain object-left" />
             <p className="mt-4 sm:mt-6 text-sm text-gray-400 leading-relaxed">
               Empowering Indian SMBs with AI-driven social commerce tools. Sell smarter on WhatsApp, Instagram, and Facebook.
             </p>
@@ -147,7 +150,6 @@ export const PublicLayout = () => {
               <li><Link to="/features" className="hover:text-primary-400 transition-colors">Features</Link></li>
               <li><Link to="/pricing" className="hover:text-primary-400 transition-colors">Pricing</Link></li>
               <li><Link to="/faq" className="hover:text-primary-400 transition-colors">FAQ</Link></li>
-              <li><Link to="/changelog" className="hover:text-primary-400 transition-colors">Changelog</Link></li>
             </ul>
           </div>
           <div>

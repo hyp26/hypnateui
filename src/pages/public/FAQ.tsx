@@ -1,30 +1,31 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, Search } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { FAQStructuredData } from '../../components/public/StructuredData';
 
 const FAQS = [
   {
     category: 'Getting Started',
     questions: [
-      { q: 'What do I need to start using Hypnate?', a: 'To get started, you need a valid phone number (not currently connected to WhatsApp personal app) and a Facebook Business Manager account. We guide you through the verification process.' },
-      { q: 'Is there a free trial?', a: 'Yes! We offer a 14-day free trial on all plans. No credit card is required to start.' },
-      { q: 'Can I use my existing WhatsApp number?', a: 'Yes, but you will need to delete your personal WhatsApp account associated with that number to migrate it to the WhatsApp Business API. We recommend getting a new number for business use.' }
+      { q: 'What do I need to start using Hypnate?', a: 'To get started, you need a business phone number and the required Meta business setup for the channels you want to connect. We guide you through the supported verification process.' },
+      { q: 'Is there a free trial?', a: 'Trial or pilot availability is shown with the current plan and signup terms. Any applicable payment-method requirement is shown before you start.' },
+      { q: 'Can I use my existing WhatsApp number?', a: 'Whether an existing number can be used depends on its current WhatsApp setup and the Meta onboarding path. We guide you through the supported setup; a separate business number may be the simplest option.' }
     ]
   },
   {
     category: 'Billing & Pricing',
     questions: [
       { q: 'Are there any setup fees?', a: 'No, Hypnate does not charge any setup fees. However, Meta (Facebook) may charge for conversation fees directly.' },
-      { q: 'What are WhatsApp conversation charges?', a: 'WhatsApp charges per 24-hour conversation session. The first 1,000 service conversations each month are free. Hypnate does not mark up these fees.' },
+      { q: 'What are WhatsApp conversation charges?', a: 'WhatsApp charges per 24-hour conversation session. Conversation charges are set by Meta and may apply depending on the conversation type. Check the current Meta pricing for the latest details.' },
       { q: 'Can I cancel my subscription anytime?', a: 'Absolutely. You can cancel your monthly subscription at any time from your dashboard settings.' }
     ]
   },
   {
     category: 'Features & AI',
     questions: [
-      { q: 'How does the AI agent work?', a: 'Our AI is trained on your product catalog and past conversations. It can answer FAQs, check stock, and even take orders. You can intervene at any time.' },
-      { q: 'Does it support languages other than English?', a: 'Yes! Hypnate supports real-time translation for Hindi, Hinglish, and 10+ other Indian regional languages.' },
-      { q: 'Is my data secure?', a: 'Yes. We use enterprise-grade encryption and are GDPR compliant. We do not sell your customer data to third parties.' }
+      { q: 'How does the AI agent work?', a: 'Our AI can use your configured catalog and business information to assist with FAQs, product questions, and supported order workflows. Human agents can intervene when needed.' },
+      { q: 'Does it support languages other than English?', a: 'Hypnate is designed to support conversations in English, Hindi, and other supported languages as the product evolves.' },
+      { q: 'Is my data secure?', a: 'We use security controls including encryption and secure authentication to protect platform data. See our Privacy Policy for details on how data is handled.' }
     ]
   }
 ];
@@ -60,8 +61,11 @@ const AccordionItem = ({ question, answer }: { question: string, answer: string 
 };
 
 export const FAQ = () => {
+  const structuredQuestions = FAQS.flatMap(section => section.questions);
+
   return (
     <div className="bg-white min-h-screen">
+      <FAQStructuredData questions={structuredQuestions} />
       <section className="bg-gray-50 pt-20 pb-16 px-6">
         <div className="max-w-3xl mx-auto text-center">
           <h1 className="text-4xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h1>

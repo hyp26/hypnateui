@@ -2,6 +2,7 @@ import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Calendar, ArrowLeft, Facebook, Twitter, Linkedin, Share2, Clock } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
+import { BlogPostingStructuredData } from '../../components/public/StructuredData';
 
 const AUTHORS = {
   hamim: { name: 'Hamim Quazi Syed Frahuddin', role: 'Founder & CEO, Hypnate', initials: 'HQ' },
@@ -16,7 +17,7 @@ const ARTICLES: Record<string, any> = {
     category: 'Commerce',
     readTime: '8 min read',
     image: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=1200&q=80',
-    content: `<p class="lead">The way we sell is changing. It's no longer about browsing static catalogs on websites — it's about having conversations. And in India, those conversations happen on WhatsApp.</p><p>With over 500 million WhatsApp users in India, your customers are already there. The question is: are you selling to them where they are?</p><h2>Why Conversational Commerce Wins</h2><p>Traditional e-commerce has a friction problem. A customer sees your Instagram ad, visits your website, creates an account, enters an OTP, adds to cart, then abandons — because the checkout was too complicated.</p><p>With WhatsApp Commerce, the entire journey lives in one chat window. Customer asks about a product, AI replies instantly, order is placed in the same conversation. The result? <strong>3x higher conversion rates</strong> and dramatically lower cart abandonment.</p><h2>What WhatsApp Business API Unlocks</h2><p>The free WhatsApp Business app has limits. The API — which Hypnate connects you to — unlocks interactive buttons, automated catalog browsing, broadcast campaigns to opted-in customers, and AI-powered responses at scale.</p><h2>Getting Started with Hypnate</h2><p>Connect your WhatsApp Business API number in your Hypnate dashboard, upload your product catalog, and your AI sales agent is live within minutes. It handles product queries, order placement, payment collection, and post-purchase updates — automatically.</p><blockquote>"We went from missing 60% of our DMs to closing 90% of conversations that came in. Hypnate changed everything." — Early Hypnate User</blockquote><h2>The Bottom Line</h2><p>2026 is the year of chat commerce in India. The brands that adapt now will own the next decade. Start with your WhatsApp number, let AI handle the heavy lifting, and watch your sales grow without growing your team.</p>`,
+    content: `<p class="lead">The way we sell is changing. It's no longer about browsing static catalogs on websites — it's about having conversations. And in India, those conversations happen on WhatsApp.</p><p>WhatsApp is already a familiar customer channel for many Indian businesses. The question is: are you selling to them where they are?</p><h2>Why Conversational Commerce Wins</h2><p>Traditional e-commerce has a friction problem. A customer sees your Instagram ad, visits your website, creates an account, enters an OTP, adds to cart, then abandons — because the checkout was too complicated.</p><p>With WhatsApp Commerce, the entire journey lives in one chat window. Customer asks about a product, AI replies instantly, order is placed in the same conversation. The goal is to reduce friction by keeping discovery, questions, and ordering inside the conversation.</p><h2>What WhatsApp Business API Unlocks</h2><p>The free WhatsApp Business app has limits. The API — which Hypnate connects you to — unlocks interactive buttons, automated catalog browsing, broadcast campaigns to opted-in customers, and AI-powered responses at scale.</p><h2>Getting Started with Hypnate</h2><p>Connect your WhatsApp Business API number in your Hypnate dashboard, upload your product catalog, and your AI sales agent is live within minutes. It handles product queries, order placement, payment collection, and post-purchase updates — automatically.</p><h2>The Bottom Line</h2><p>2026 is the year of chat commerce in India. The brands that adapt now will own the next decade. Start with your WhatsApp number, let AI handle the heavy lifting, and watch your sales grow without growing your team.</p>`,
   },
   'ai-customer-support-automation': {
     title: 'Automating Customer Support without Losing the Human Touch',
@@ -25,7 +26,7 @@ const ARTICLES: Record<string, any> = {
     category: 'AI Technology',
     readTime: '6 min read',
     image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=1200&q=80',
-    content: `<p class="lead">The fear with AI is always the same: "Will it make my brand feel robotic?" Done right, the answer is no. Done right, customers don't know they're talking to AI — until you tell them.</p><p>At Hypnate, we've built AI agents that handle over 80% of support queries with a response time under 3 seconds, while maintaining the warmth of a human conversation.</p><h2>Training AI on Your Brand Voice</h2><p>Generic AI sounds generic. Hypnate trains your agent on your actual product catalog, your FAQs, your pricing, and your preferred tone. A kurta seller in Jaipur sounds different from a tech gadget brand in Bangalore — your AI should too.</p><h2>The 80/20 Rule of Support</h2><p>In most D2C businesses, 80% of customer queries are repetitive: "Is this in stock?", "What's the return policy?", "When will it ship?" AI handles all of these instantly, 24/7. The remaining 20% — complaints, complex issues, bulk orders — escalates to your human team with full context.</p><h2>Smart Escalation</h2><p>Hypnate's AI recognizes frustration signals in messages. If a customer says "I'm very upset" or sends repeated messages without a reply, it automatically flags the conversation and notifies a human agent — before the customer has to ask.</p><blockquote>"My team now only handles the conversations that actually need a human. Everything else is taken care of." — Hypnate Customer</blockquote><h2>Conclusion</h2><p>AI in customer support isn't about replacing humans. It's about letting humans do what they're best at: building relationships, solving complex problems, and growing the business.</p>`,
+    content: `<p class="lead">The fear with AI is always the same: "Will it make my brand feel robotic?" Done right, the answer is no. Done right, customers don't know they're talking to AI — until you tell them.</p><p>At Hypnate, we're building AI agents to handle common support queries while maintaining the context and tone of a human conversation.</p><h2>Training AI on Your Brand Voice</h2><p>Generic AI sounds generic. Hypnate trains your agent on your actual product catalog, your FAQs, your pricing, and your preferred tone. A kurta seller in Jaipur sounds different from a tech gadget brand in Bangalore — your AI should too.</p><h2>The 80/20 Rule of Support</h2><p>Many D2C support conversations are repetitive: "Is this in stock?", "What's the return policy?", "When will it ship?" AI can help handle these routine questions while complex issues can be escalated to a human team.</p><h2>Smart Escalation</h2><p>Hypnate's AI recognizes frustration signals in messages. If a customer says "I'm very upset" or sends repeated messages without a reply, it automatically flags the conversation and notifies a human agent — before the customer has to ask.</p><h2>Conclusion</h2><p>AI in customer support isn't about replacing humans. It's about letting humans do what they're best at: building relationships, solving complex problems, and growing the business.</p>`,
   },
 };
 
@@ -56,8 +57,20 @@ export const BlogArticle = () => {
     }
   };
 
+  const articleUrl = `${window.location.origin}/blog/${slug || ''}`;
+  const datePublished = new Date(`${post.date} 00:00:00`).toISOString();
+
   return (
     <div className="bg-white min-h-screen" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+      {slug && ARTICLES[slug] && (
+        <BlogPostingStructuredData
+          title={post.title}
+          author={post.author.name}
+          datePublished={datePublished}
+          image={post.image}
+          url={articleUrl}
+        />
+      )}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Sora:wght@700;800&family=DM+Sans:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap');
         .article-body { font-family: 'Lora', Georgia, serif; }

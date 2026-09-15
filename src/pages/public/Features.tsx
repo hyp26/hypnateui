@@ -29,15 +29,15 @@ const FEATURES = [
     bg: '#dcfce7',
     label: 'WhatsApp Commerce',
     headline: 'Your entire store lives inside the chat',
-    body: 'Turn your WhatsApp Business number into a fully automated storefront. Customers browse your catalog, place orders, and get updates — all without leaving the app. Hypnate connects your product catalog directly to WhatsApp, so every "Price please?" becomes a confirmed sale.',
+    body: 'Use your WhatsApp Business channel as a commerce workflow. Customers can browse supported catalog content, ask questions, and place orders through chat. Hypnate connects supported catalog data to your conversation workflow.',
     points: [
-      'Interactive product catalogs with images & pricing',
-      'Automated cart recovery messages',
+      'Interactive catalog content with images and pricing',
+      'Supported follow-up messages for incomplete purchases',
       'Order confirmation & shipping updates via WhatsApp',
-      'Broadcast campaigns to segmented contact lists',
-      'Handles COD confirmation and payment link dispatch',
+      'Audience-based messaging on supported channels',
+      'Supports COD and payment-link workflows where configured',
     ],
-    stat: { value: '3×', label: 'Higher conversion vs website links' },
+    stat: { value: 'Conversational', label: 'Commerce workflow' },
     dark: false,
   },
   {
@@ -46,15 +46,15 @@ const FEATURES = [
     color: '#e1306c',
     bg: '#fce7f3',
     label: 'Instagram & Facebook DM Sales',
-    headline: 'Convert followers into buyers automatically',
+    headline: 'Turn conversations into assisted sales workflows',
     body: 'When someone comments "Price?" or DMs you on Instagram, Hypnate\'s AI instantly responds with product info, handles objections, and closes the sale. No more missed DMs. No more manual replies at midnight.',
     points: [
-      'Auto-reply to DMs, comments and story replies',
+      'AI-assisted replies on supported DM and comment workflows',
       'Unified inbox for Instagram, Facebook & Telegram',
       'AI that matches your brand\'s tone and language',
       'Smart handoff to human agent when needed',
     ],
-    stat: { value: '80%', label: 'Of DMs handled without human touch' },
+    stat: { value: 'AI-assisted', label: 'DM and comment workflows' },
     dark: true,
   },
   {
@@ -63,16 +63,16 @@ const FEATURES = [
     color: '#2563eb',
     bg: '#dbeafe',
     label: 'Order Management',
-    headline: 'From chat to confirmed order in seconds',
-    body: 'Every conversation that leads to a sale is automatically converted into a structured order card in your dashboard. Track status, assign to team members, export CSV reports, and send WhatsApp shipping alerts — all from one place.',
+    headline: 'From conversation to structured order',
+    body: 'Supported sales conversations can be converted into structured order records in your dashboard. Track status, assign conversations or work to team members, export reports, and manage customer updates from one place.',
     points: [
-      'Automatic order creation from chat conversations',
+      'Order creation from supported chat conversations',
       'Real-time status tracking (Pending → Delivered)',
       'Bulk export to CSV for accounting & logistics',
       'COD verification flow via WhatsApp',
       'Custom order statuses for your workflow',
     ],
-    stat: { value: '0', label: 'Orders lost due to manual tracking errors' },
+    stat: { value: 'Automated', label: 'Order workflow support' },
     dark: false,
   },
   {
@@ -81,16 +81,16 @@ const FEATURES = [
     color: '#7c3aed',
     bg: '#ede9fe',
     label: 'Instant Payments',
-    headline: 'Payment links sent before the customer can think twice',
-    body: 'As soon as an order is confirmed, Hypnate auto-generates a Razorpay payment link and sends it directly in the chat. Customers pay via UPI, card, or netbanking without leaving WhatsApp. Payments are tracked and reconciled in your dashboard live.',
+    headline: 'Create and share payment links from your commerce workflow',
+    body: 'For supported payment workflows, Hypnate can create and share Razorpay payment links from the order flow. Payment status can be tracked in the dashboard, subject to the connected payment provider and channel setup.',
     points: [
-      'Razorpay & UPI integration out of the box',
-      'Auto-send payment link on order confirmation',
-      'Real-time paid vs pending dashboard',
-      'Automatic payment failure follow-up',
-      'Invoices generated and sent automatically',
+      'Razorpay payment-link workflow for supported accounts',
+      'Payment-link dispatch from supported order workflows',
+      'Paid and pending payment status in the dashboard',
+      'Payment follow-up workflow on supported configurations',
+      'Invoice workflows on supported configurations',
     ],
-    stat: { value: '94%', label: 'Payment completion rate in-chat' },
+    stat: { value: 'Integrated', label: 'Payment-link workflow' },
     dark: false,
   },
   {
@@ -99,16 +99,16 @@ const FEATURES = [
     color: '#f59e0b',
     bg: '#fef3c7',
     label: 'AI Sales Agent',
-    headline: 'A sales rep that never sleeps, never misses',
+    headline: 'AI assistance for sales conversations',
     body: 'Hypnate\'s AI agent is trained on your product catalog, pricing, FAQs, and brand tone. It handles size queries, stock checks, upselling, discount negotiations, and post-purchase support — 24 hours a day, in English and Hindi.',
     points: [
-      'Trained on your exact catalog & FAQs',
-      'Responds in Hindi, English, or Hinglish',
-      'Handles objections and negotiates smartly',
-      'Upsells related products contextually',
-      'Smart escalation to human agents',
+      'Uses your configured catalog and FAQs as business context',
+      'Supports configured language preferences, including Hindi and English',
+      'Assists with product questions and common objections',
+      'Can suggest related products when configured',
+      'Human handoff when configured or needed',
     ],
-    stat: { value: '24/7', label: 'Always-on without extra staff cost' },
+    stat: { value: 'AI-assisted', label: 'Sales and support conversations' },
     dark: true,
   },
   {
@@ -118,15 +118,15 @@ const FEATURES = [
     bg: '#f0fdfa',
     label: 'Real-time Analytics',
     headline: 'Know exactly what\'s working and what isn\'t',
-    body: 'Your Hypnate dashboard shows live revenue, order volumes, top-selling products, and channel performance — updated every minute. Stop guessing which Instagram post drove sales. Start knowing.',
+    body: 'Your Hypnate dashboard brings revenue, order volumes, top-selling products, and channel performance into one place. Use the available analytics to understand channel and product performance.',
     points: [
       'Revenue by channel (WhatsApp, Instagram, Facebook)',
       'Top products by units sold and revenue',
       'Conversion funnel from chat to payment',
-      'Customer repeat rate and LTV tracking',
-      'Team performance and response time metrics',
+      'Customer and sales performance insights where available',
+      'Team and response metrics where available',
     ],
-    stat: { value: 'Live', label: 'Data updated every 60 seconds' },
+    stat: { value: 'Centralized', label: 'Commerce analytics dashboard' },
     dark: false,
   },
 ];
@@ -135,9 +135,9 @@ const MINI_FEATURES = [
   { icon: Bell, label: 'Abandoned Cart Recovery', desc: 'Auto-send reminders to customers who didn\'t complete checkout.' },
   { icon: Users, label: 'Team Inbox', desc: 'Assign conversations to team members with role-based access.' },
   { icon: Package, label: 'Inventory Alerts', desc: 'Get WhatsApp alerts when any product goes below your stock threshold.' },
-  { icon: RefreshCw, label: 'Auto Catalog Sync', desc: 'Product updates in Hypnate reflect instantly across all channels.' },
-  { icon: Globe, label: 'Multi-language AI', desc: 'AI replies in Hindi, English, or Hinglish based on customer preference.' },
-  { icon: Star, label: 'CSAT Surveys', desc: 'Post-purchase satisfaction surveys sent automatically via WhatsApp.' },
+  { icon: RefreshCw, label: 'Auto Catalog Sync', desc: 'Supported catalog updates can be shared across connected channels.' },
+  { icon: Globe, label: 'Multi-language AI', desc: 'AI can respond using configured language preferences on supported workflows.' },
+  { icon: Star, label: 'CSAT Surveys', desc: 'Post-purchase feedback workflows can be enabled where supported.' },
 ];
 
 function FeatureSection({ feature, index }: { feature: typeof FEATURES[0]; index: number }) {
@@ -354,7 +354,7 @@ export const Features = () => {
             fontSize: 'clamp(15px, 2.5vw, 19px)', color: 'rgba(255,255,255,0.55)',
             lineHeight: 1.7, marginBottom: 40, maxWidth: 560, margin: '0 auto 40px',
           }}>
-            Hypnate replaces your manual order tracking, missed DMs, and payment follow-ups with one fully automated platform — purpose-built for WhatsApp, Instagram & Facebook commerce.
+            Hypnate brings order tracking, conversation management, and payment workflows into one platform for supported WhatsApp, Instagram, and Facebook commerce use cases.
           </p>
 
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -476,7 +476,7 @@ export const Features = () => {
           Ready to see it in action?
         </h2>
         <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.7)', marginBottom: 36 }}>
-          14-day free trial. No credit card required.
+          Current trial terms are shown at signup and checkout.
         </p>
         <Link to="/signup">
           <button style={{

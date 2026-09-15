@@ -36,7 +36,7 @@ export const PublicHeader = () => {
 
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 shrink-0">
-          <img src="/assets/logo.svg" alt="Hypnate" className="h-8 w-auto" />
+          <img src="/assets/hypnate-logo.png" alt="Hypnate" className="h-8 w-auto" />
         </Link>
 
         {/* Desktop Nav */}
