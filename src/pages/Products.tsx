@@ -8,7 +8,7 @@ import { ProductGridCard } from "../components/products/GridCard";
 import { ProductListRow } from "../components/products/ListRow";
 import { ProductsLoadingState, ProductsEmptyState } from "../components/products/StateViews";
 import { ProductsPagination } from "../components/products/Pagination";
-import "../components/products/products.css";
+import '../styles/products.css';
 
 export const Products: React.FC = () => {
   const { products, total, page, limit, loading, fetchProducts, deleteProduct } = useProductStore();

@@ -5,7 +5,7 @@ import api from "../lib/api";
 import { calcDiscountPercent } from "../utils/format";
 import { ProductImagePanel } from "../components/products/ImagePanel";
 import { ProductInfoPanel } from "../components/products/InfoPanel";
-import "../components/products/products.css";
+import '../styles/products.css';
 import type { Product } from "../types/product";
 
 export const ProductView: React.FC = () => {

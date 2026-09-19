@@ -15,16 +15,16 @@ const FAQS = [
   {
     category: 'Billing & Pricing',
     questions: [
-      { q: 'Are there any setup fees?', a: 'No, Hypnate does not charge any setup fees. However, Meta (Facebook) may charge for conversation fees directly.' },
-      { q: 'What are WhatsApp conversation charges?', a: 'WhatsApp charges per 24-hour conversation session. Conversation charges are set by Meta and may apply depending on the conversation type. Check the current Meta pricing for the latest details.' },
-      { q: 'Can I cancel my subscription anytime?', a: 'Absolutely. You can cancel your monthly subscription at any time from your dashboard settings.' }
+      { q: 'Are there any setup fees?', a: 'Hypnate does not list a separate setup fee in its current pricing. Third-party platforms and services connected to your account may have their own charges.' },
+      { q: 'What are WhatsApp messaging charges?', a: 'Meta applies its own WhatsApp Business Platform pricing and messaging policies. Charges can vary by message or conversation type, market, and the pricing Meta currently publishes. Check Meta’s current pricing for the latest rates.' },
+      { q: 'How do I cancel my subscription?', a: 'Cancellation and billing options are governed by the plan and checkout terms shown for your account. Contact us if you need help with a cancellation or billing request.' }
     ]
   },
   {
     category: 'Features & AI',
     questions: [
       { q: 'How does the AI agent work?', a: 'Our AI can use your configured catalog and business information to assist with FAQs, product questions, and supported order workflows. Human agents can intervene when needed.' },
-      { q: 'Does it support languages other than English?', a: 'Hypnate is designed to support conversations in English, Hindi, and other supported languages as the product evolves.' },
+      { q: 'Does it support languages other than English?', a: 'Hypnate can support English and Hindi in supported AI workflows. Language availability may vary by feature and configuration.' },
       { q: 'Is my data secure?', a: 'We use security controls including encryption and secure authentication to protect platform data. See our Privacy Policy for details on how data is handled.' }
     ]
   }
@@ -100,7 +100,7 @@ export const FAQ = () => {
       <section className="py-16 px-6 bg-primary-50">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Still have questions?</h2>
-          <p className="text-gray-600 mb-8">Can't find the answer you're looking for? Please chat to our friendly team.</p>
+          <p className="text-gray-600 mb-8">Can't find the answer you're looking for? Contact the team and we'll help with your question.</p>
           <div className="flex justify-center gap-4">
             <button className="bg-primary-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors">
               Contact Support

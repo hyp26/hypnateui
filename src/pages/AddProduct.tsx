@@ -7,7 +7,7 @@ import { ImageDropField } from "../components/products/ImageDropField";
 import { SizePicker } from "../components/products/SizePicker";
 import { ProductBasicInfoCard } from "../components/products/BasicInfoCard";
 import { ProductPricingCard } from "../components/products/PricingCard";
-import "../components/products/productForm.css";
+import '../styles/productForm.css';
 
 export const AddProduct: React.FC = () => {
   const navigate = useNavigate();

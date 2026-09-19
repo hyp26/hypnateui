@@ -2,12 +2,12 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
 const SCENES = [
-    { id: "dashboard", title: "Dashboard — Your store at a glance", sub: "Real-time revenue, orders and active conversations." },
-    { id: "whatsapp", title: "WhatsApp AI — Orders captured automatically", sub: "Customer sends a message → AI replies, takes the order, logs it." },
-    { id: "products", title: "Products — Catalog, always up to date", sub: "Inventory updates automatically after every sale." },
-    { id: "orders", title: "Orders — Every sale tracked perfectly", sub: "From chat to structured order card in seconds." },
-    { id: "payments", title: "Payments — Collect money without friction", sub: "Payment links sent automatically via WhatsApp." },
-    { id: "analytics", title: "Analytics — Know your numbers", sub: "Revenue trends, top products, channel performance — live." },
+    { id: "dashboard", title: "Dashboard — Example overview", sub: "Illustrative dashboard preview using example data." },
+    { id: "whatsapp", title: "WhatsApp — Example assisted conversation", sub: "Illustrative example of a supported commerce conversation." },
+    { id: "products", title: "Products — Example catalog & inventory", sub: "Illustrative catalog and inventory view." },
+    { id: "orders", title: "Orders — Example order tracking", sub: "Illustrative order-management workflow." },
+    { id: "payments", title: "Payments — Example payment workflow", sub: "Illustrative payment-link workflow." },
+    { id: "analytics", title: "Analytics — Example commerce overview", sub: "Illustrative analytics view using example data." },
 ];
 
 const SCENE_DURATION = 6000;
@@ -50,21 +50,21 @@ const StatCard: React.FC<{ val: string; label: string; note?: string; noteColor?
 const SceneDashboard: React.FC = () => {
     const bars = [40, 55, 35, 68, 50, 82, 100];
     return (
-        <SceneBox title="Dashboard — Live overview">
+        <SceneBox title="Dashboard — Example overview">
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 5, marginBottom: 8 }}>
-                <StatCard val="₹24,800" label="Today revenue" note="+18% yesterday" noteColor="#0d9488" />
-                <StatCard val="12" label="Orders today" note="+4 this hour" noteColor="#2563eb" />
-                <StatCard val="7" label="Active chats" note="3 need reply" noteColor="#9333ea" />
+                <StatCard val="₹24,800" label="Example revenue" note="Illustrative" noteColor="#0d9488" />
+                <StatCard val="12" label="Example orders" note="Illustrative" noteColor="#2563eb" />
+                <StatCard val="7" label="Example chats" note="Illustrative" noteColor="#9333ea" />
             </div>
             <div style={{ background: "#fff", borderRadius: 7, padding: "8px 8px 5px", border: "1px solid #f1f5f9", marginBottom: 7 }}>
-                <div style={{ fontSize: 8, color: "#94a3b8", marginBottom: 6 }}>Revenue this week</div>
+                <div style={{ fontSize: 8, color: "#94a3b8", marginBottom: 6 }}>Example revenue trend</div>
                 <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 50 }}>
                     {bars.map((h, i) => <div key={i} style={{ flex: 1, height: `${h}%`, background: "#0d9488", opacity: 0.25 + (h / 160), borderRadius: "2px 2px 0 0" }} />)}
                 </div>
             </div>
             {[
-                { title: "New order — Priya Sharma · ₹2,199", sub: "WhatsApp · AI captured", c: "#0d9488" },
-                { title: "Payment pending — Rahul · ₹899", sub: "Link sent automatically", c: "#f59e0b" },
+                { title: "Example order · ₹2,199", sub: "WhatsApp · Example workflow", c: "#0d9488" },
+                { title: "Example payment · ₹899", sub: "Payment-link workflow", c: "#f59e0b" },
             ].map((n, i) => (
                 <div key={i} style={{ background: "#fff", borderRadius: 6, padding: "6px 8px", borderLeft: `3px solid ${n.c}`, border: `1px solid #f1f5f9`, borderLeftWidth: 3, borderLeftColor: n.c, marginBottom: 4 }}>
                     <div style={{ fontSize: 9, fontWeight: 700, color: "#0f172a" }}>{n.title}</div>
@@ -78,17 +78,17 @@ const SceneDashboard: React.FC = () => {
 const SceneWhatsApp: React.FC = () => {
     const msgs = [
         { from: "customer", text: "Hi! Do you have the cotton kurta in size M?" },
-        { from: "bot", text: "Hi Priya! Yes — ₹1,299. Shall I place the order?", ai: true },
-        { from: "customer", text: "Yes please! COD ok?" },
-        { from: "bot", text: "Done! Order #1042 placed — Cotton Kurta (M) · COD ₹1,299. Tracking once shipped!", ai: true },
-        { from: "system", text: "Order #1042 created automatically" },
+        { from: "bot", text: "Yes — ₹1,299. Shall I add it to the order?", ai: true },
+        { from: "customer", text: "Yes please. COD ok?" },
+        { from: "bot", text: "Order added to the example workflow — Cotton Kurta (M) · COD ₹1,299.", ai: true },
+        { from: "system", text: "Example order created" },
     ];
     return (
-        <SceneBox title="WhatsApp — AI handles the conversation">
+        <SceneBox title="WhatsApp — Example assisted conversation">
             <div style={{ background: "#e5ddd5", borderRadius: 7, padding: 7, display: "flex", flexDirection: "column", gap: 4 }}>
                 <div style={{ background: "#075e54", borderRadius: "5px 5px 0 0", padding: "6px 8px", margin: "-7px -7px 7px", display: "flex", alignItems: "center", gap: 6 }}>
                     <div style={{ width: 20, height: 20, borderRadius: "50%", background: "#25d366", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 700, color: "#fff" }}>P</div>
-                    <div><div style={{ fontSize: 10, fontWeight: 700, color: "#fff" }}>Priya Sharma</div><div style={{ fontSize: 8, color: "rgba(255,255,255,.5)" }}>Online</div></div>
+                    <div><div style={{ fontSize: 10, fontWeight: 700, color: "#fff" }}>Example customer</div><div style={{ fontSize: 8, color: "rgba(255,255,255,.5)" }}>Online</div></div>
                 </div>
                 {msgs.map((m, i) => {
                     if (m.from === "system") return <div key={i} style={{ background: "rgba(0,0,0,.1)", borderRadius: 5, padding: "2px 7px", alignSelf: "center", color: "#555", fontSize: 8, textAlign: "center" }}>{m.text}</div>;
@@ -130,12 +130,12 @@ const SceneProducts: React.FC = () => {
 
 const SceneOrders: React.FC = () => {
     const orders = [
-        { id: "#1042", status: "Confirmed", sBg: "#dcfce7", sCol: "#166534", customer: "Priya Sharma", amount: "₹1,299" },
-        { id: "#1041", status: "Shipped", sBg: "#dbeafe", sCol: "#1e40af", customer: "Rahul Verma", amount: "₹899" },
-        { id: "#1040", status: "Pending", sBg: "#fef3c7", sCol: "#92400e", customer: "Anjali Gupta", amount: "₹2,199" },
+        { id: "#1042", status: "Confirmed", sBg: "#dcfce7", sCol: "#166534", customer: "Example customer", amount: "₹1,299" },
+        { id: "#1041", status: "Shipped", sBg: "#dbeafe", sCol: "#1e40af", customer: "Example customer", amount: "₹899" },
+        { id: "#1040", status: "Pending", sBg: "#fef3c7", sCol: "#92400e", customer: "Example customer", amount: "₹2,199" },
     ];
     return (
-        <SceneBox title="Orders — Every sale tracked">
+        <SceneBox title="Orders — Example order tracking">
             {orders.map(o => (
                 <div key={o.id} style={{ background: "#fff", borderRadius: 7, border: "1px solid #f1f5f9", overflow: "hidden", marginBottom: 6 }}>
                     <div style={{ background: "#f8fafc", padding: "5px 8px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #f1f5f9" }}>
@@ -157,16 +157,16 @@ const SceneOrders: React.FC = () => {
 
 const ScenePayments: React.FC = () => {
     const txns = [
-        { name: "Priya Sharma", amt: "₹1,299", paid: true },
-        { name: "Rahul Verma", amt: "₹899", paid: true },
-        { name: "Anjali Gupta", amt: "₹2,199", paid: false },
+        { name: "Example customer", amt: "₹1,299", paid: true },
+        { name: "Example customer", amt: "₹899", paid: true },
+        { name: "Example customer", amt: "₹2,199", paid: false },
     ];
     return (
-        <SceneBox title="Payments — Collected & tracked">
+        <SceneBox title="Payments — Example payment workflow">
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 5, marginBottom: 8 }}>
-                <StatCard val="₹24,800" label="Collected today" />
-                <StatCard val="₹2,199" label="Pending" note="1 pending" noteColor="#f59e0b" />
-                <StatCard val="16" label="Transactions" />
+                <StatCard val="₹24,800" label="Example collected" />
+                <StatCard val="₹2,199" label="Example pending" note="Example" noteColor="#f59e0b" />
+                <StatCard val="16" label="Example transactions" />
             </div>
             <div style={{ background: "#fff", borderRadius: 7, padding: "2px 8px", border: "1px solid #f1f5f9" }}>
                 {txns.map((t, i) => (
@@ -187,21 +187,21 @@ const SceneAnalytics: React.FC = () => {
     const bars = [30, 50, 42, 65, 48, 78, 90];
     const channels = [{ name: "WhatsApp", pct: 65, color: "#25d366" }, { name: "Instagram", pct: 25, color: "#e1306c" }, { name: "Facebook", pct: 10, color: "#1877f2" }];
     return (
-        <SceneBox title="Analytics — Know your numbers">
+        <SceneBox title="Analytics — Example commerce overview">
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 5, marginBottom: 8 }}>
-                <StatCard val="₹62,400" label="Revenue (30d)" note="+22%" noteColor="#0d9488" />
-                <StatCard val="48" label="Orders" note="+8 this week" noteColor="#2563eb" />
-                <StatCard val="18.5%" label="Conv rate" note="+2.1%" noteColor="#9333ea" />
+                <StatCard val="₹62,400" label="Example revenue" note="Illustrative" noteColor="#0d9488" />
+                <StatCard val="48" label="Example orders" note="Illustrative" noteColor="#2563eb" />
+                <StatCard val="18.5%" label="Example conversion" note="Illustrative" noteColor="#9333ea" />
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 6, marginBottom: 7 }}>
                 <div style={{ background: "#fff", borderRadius: 7, padding: "7px 8px", border: "1px solid #f1f5f9" }}>
-                    <div style={{ fontSize: 8, color: "#94a3b8", marginBottom: 6 }}>Revenue — 7 days</div>
+                    <div style={{ fontSize: 8, color: "#94a3b8", marginBottom: 6 }}>Example revenue trend</div>
                     <div style={{ display: "flex", alignItems: "flex-end", gap: 2, height: 44 }}>
                         {bars.map((h, i) => <div key={i} style={{ flex: 1, height: `${h}%`, background: "#0d9488", opacity: 0.25 + (h / 150), borderRadius: "2px 2px 0 0" }} />)}
                     </div>
                 </div>
                 <div style={{ background: "#fff", borderRadius: 7, padding: "7px 8px", border: "1px solid #f1f5f9" }}>
-                    <div style={{ fontSize: 8, color: "#94a3b8", marginBottom: 6 }}>By channel</div>
+                    <div style={{ fontSize: 8, color: "#94a3b8", marginBottom: 6 }}>Example channel mix</div>
                     {channels.map(c => (
                         <div key={c.name} style={{ marginBottom: 5 }}>
                             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 8, marginBottom: 2 }}>
@@ -260,6 +260,7 @@ export const HypnateDemoPlayer: React.FC = () => {
                         <span style={{ background: "#ef4444" }} /><span style={{ background: "#f59e0b" }} /><span style={{ background: "#22c55e" }} />
                     </div>
                     <div className="hdp-url">hypnate.in/dashboard</div>
+                    <div className="hdp-demo-label">ILLUSTRATIVE PREVIEW · EXAMPLE DATA</div>
                     <div style={{ width: 40 }} />
                 </div>
 

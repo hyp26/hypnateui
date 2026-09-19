@@ -3,8 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import {
   MessageCircle, ShoppingBag, CreditCard, BarChart3,
-  Bot, Instagram, ArrowRight, Check, Zap, Package,
-  Bell, Users, RefreshCw, Globe, Star
+  Bot, Instagram, ArrowRight, Check, Zap, Package
 } from 'lucide-react';
 
 // Simple intersection observer hook for scroll animations
@@ -28,7 +27,7 @@ const FEATURES = [
     color: '#25d366',
     bg: '#dcfce7',
     label: 'WhatsApp Commerce',
-    headline: 'Your entire store lives inside the chat',
+    headline: 'Bring your store into the chat workflow',
     body: 'Use your WhatsApp Business channel as a commerce workflow. Customers can browse supported catalog content, ask questions, and place orders through chat. Hypnate connects supported catalog data to your conversation workflow.',
     points: [
       'Interactive catalog content with images and pricing',
@@ -47,7 +46,7 @@ const FEATURES = [
     bg: '#fce7f3',
     label: 'Instagram & Facebook DM Sales',
     headline: 'Turn conversations into assisted sales workflows',
-    body: 'When someone comments "Price?" or DMs you on Instagram, Hypnate\'s AI instantly responds with product info, handles objections, and closes the sale. No more missed DMs. No more manual replies at midnight.',
+    body: 'Hypnate can assist with product questions and supported DM and comment workflows, with human handoff when needed.',
     points: [
       'AI-assisted replies on supported DM and comment workflows',
       'Unified inbox for Instagram, Facebook & Telegram',
@@ -67,12 +66,12 @@ const FEATURES = [
     body: 'Supported sales conversations can be converted into structured order records in your dashboard. Track status, assign conversations or work to team members, export reports, and manage customer updates from one place.',
     points: [
       'Order creation from supported chat conversations',
-      'Real-time status tracking (Pending → Delivered)',
+      'Order status tracking (Pending → Delivered)',
       'Bulk export to CSV for accounting & logistics',
-      'COD verification flow via WhatsApp',
+      'COD workflows on supported configurations',
       'Custom order statuses for your workflow',
     ],
-    stat: { value: 'Automated', label: 'Order workflow support' },
+    stat: { value: 'Structured', label: 'Order workflow support' },
     dark: false,
   },
   {
@@ -80,7 +79,7 @@ const FEATURES = [
     icon: CreditCard,
     color: '#7c3aed',
     bg: '#ede9fe',
-    label: 'Instant Payments',
+    label: 'Payment Links',
     headline: 'Create and share payment links from your commerce workflow',
     body: 'For supported payment workflows, Hypnate can create and share Razorpay payment links from the order flow. Payment status can be tracked in the dashboard, subject to the connected payment provider and channel setup.',
     points: [
@@ -100,7 +99,7 @@ const FEATURES = [
     bg: '#fef3c7',
     label: 'AI Sales Agent',
     headline: 'AI assistance for sales conversations',
-    body: 'Hypnate\'s AI agent is trained on your product catalog, pricing, FAQs, and brand tone. It handles size queries, stock checks, upselling, discount negotiations, and post-purchase support — 24 hours a day, in English and Hindi.',
+    body: 'Hypnate\'s AI can use configured product and business information to assist with product questions and supported customer conversations.',
     points: [
       'Uses your configured catalog and FAQs as business context',
       'Supports configured language preferences, including Hindi and English',
@@ -116,15 +115,15 @@ const FEATURES = [
     icon: BarChart3,
     color: '#0d9488',
     bg: '#f0fdfa',
-    label: 'Real-time Analytics',
-    headline: 'Know exactly what\'s working and what isn\'t',
+    label: 'Commerce Analytics',
+    headline: 'Understand your commerce performance',
     body: 'Your Hypnate dashboard brings revenue, order volumes, top-selling products, and channel performance into one place. Use the available analytics to understand channel and product performance.',
     points: [
-      'Revenue by channel (WhatsApp, Instagram, Facebook)',
-      'Top products by units sold and revenue',
-      'Conversion funnel from chat to payment',
-      'Customer and sales performance insights where available',
-      'Team and response metrics where available',
+      'Revenue and order activity by connected channel',
+      'Top products by available sales data',
+      'Order and payment activity where available',
+      'Customer and sales insights where available',
+      'Available team and response metrics',
     ],
     stat: { value: 'Centralized', label: 'Commerce analytics dashboard' },
     dark: false,
@@ -132,12 +131,12 @@ const FEATURES = [
 ];
 
 const MINI_FEATURES = [
-  { icon: Bell, label: 'Abandoned Cart Recovery', desc: 'Auto-send reminders to customers who didn\'t complete checkout.' },
-  { icon: Users, label: 'Team Inbox', desc: 'Assign conversations to team members with role-based access.' },
-  { icon: Package, label: 'Inventory Alerts', desc: 'Get WhatsApp alerts when any product goes below your stock threshold.' },
-  { icon: RefreshCw, label: 'Auto Catalog Sync', desc: 'Supported catalog updates can be shared across connected channels.' },
-  { icon: Globe, label: 'Multi-language AI', desc: 'AI can respond using configured language preferences on supported workflows.' },
-  { icon: Star, label: 'CSAT Surveys', desc: 'Post-purchase feedback workflows can be enabled where supported.' },
+  { icon: Package, label: 'Catalog Management', desc: 'Keep products, pricing and inventory information organized in one workspace.' },
+  { icon: ShoppingBag, label: 'Customer Management', desc: 'Keep customer information and commerce history together where supported.' },
+  { icon: CreditCard, label: 'Payment Tracking', desc: 'View available payment status information alongside commerce activity.' },
+  { icon: MessageCircle, label: 'Channel Workflows', desc: 'Bring supported messaging channels into one commerce workflow.' },
+  { icon: BarChart3, label: 'Commerce Reports', desc: 'Review available sales and order information from the dashboard.' },
+  { icon: ArrowRight, label: 'CSV Export', desc: 'Export supported commerce data for accounting or operational workflows.' },
 ];
 
 function FeatureSection({ feature, index }: { feature: typeof FEATURES[0]; index: number }) {
@@ -279,12 +278,12 @@ function FeatureSection({ feature, index }: { feature: typeof FEATURES[0]; index
             </div>
             <div style={{
               display: 'inline-flex', alignItems: 'center', gap: 6,
-              background: '#16a34a22', color: '#16a34a',
+              background: feature.dark ? 'rgba(255,255,255,0.08)' : '#f8fafc',
+              color: feature.dark ? 'rgba(255,255,255,0.72)' : '#64748b',
               fontSize: 12, fontWeight: 600,
               padding: '4px 12px', borderRadius: 100,
             }}>
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#16a34a', flexShrink: 0 }} />
-              Active & Running
+              Hypnate workflow
             </div>
           </div>
         </div>
@@ -341,12 +340,12 @@ export const Features = () => {
             color: '#fff', lineHeight: 1.1, marginBottom: 20,
             letterSpacing: '-1px', fontFamily: "'Sora', sans-serif",
           }}>
-            Every feature your brand needs{' '}
+            Features for chat-first commerce{' '}
             <span style={{
               background: 'linear-gradient(135deg, #0d9488, #34d399)',
               WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
             }}>
-              to sell on chat
+              workflows
             </span>
           </h1>
 
@@ -367,7 +366,7 @@ export const Features = () => {
                 boxShadow: '0 8px 32px rgba(13,148,136,0.4)',
                 fontFamily: "'DM Sans', sans-serif",
               }}>
-                Start Free Trial <ArrowRight size={16} />
+                Get Started <ArrowRight size={16} />
               </button>
             </Link>
             <Link to="/pricing">
@@ -487,7 +486,7 @@ export const Features = () => {
             fontFamily: "'DM Sans', sans-serif",
             boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
           }}>
-            Get Started for Free <ArrowRight size={17} />
+            Get Started <ArrowRight size={17} />
           </button>
         </Link>
       </section>
