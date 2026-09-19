@@ -38,7 +38,7 @@ import { Analytics as DashboardAnalytics } from './pages/Analytics';
 import { EditProduct } from './pages/EditProduct';
 import { ProductView } from './pages/ProductView';
 import Customers from './pages/Customers';
-import { HypnateX } from './pages/HypnateX'; // ✅ added
+import { HypnateX } from './pages/HypnateX';
 
 // Public Website Pages
 import { Home } from './pages/public/Home';
@@ -46,8 +46,6 @@ import { About } from './pages/public/About';
 import { Pricing } from './pages/public/Pricing';
 import { Contact } from './pages/public/Contact';
 import { Features } from './pages/public/Features';
-import { Blog } from './pages/public/Blog';
-import { BlogArticle } from './pages/public/BlogArticle';
 import { Careers } from './pages/public/Careers';
 import { FAQ } from './pages/public/FAQ';
 import { Terms } from './pages/public/Term';
@@ -113,10 +111,6 @@ function App() {
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/features" element={<Features />} />
-
-          {/* Blog */}
-          <Route path="/blog" element={<Blog />} />
-          <Route path="/blog/:slug" element={<BlogArticle />} />
 
           {/* Company */}
           <Route path="/careers" element={<Careers />} />

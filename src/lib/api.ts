@@ -118,42 +118,9 @@ export interface ContactSubmission {
   message: string;
 }
 
-export interface NewsletterSubscription {
-  email: string;
-}
-
-export interface BlogArticleSubmission {
-  name: string;
-  email: string;
-  title: string;
-  topic: string;
-  summary: string;
-  content: string;
-}
-
 export const publicApi = {
   submitContact: async (payload: ContactSubmission) => {
     const res = await api.post('/api/contact', payload);
-    return res.data;
-  },
-
-  subscribeNewsletter: async (payload: NewsletterSubscription) => {
-    const path = process.env.REACT_APP_NEWSLETTER_API_PATH || '/api/newsletter/subscribe';
-    const res = await api.post(path, payload);
-    return res.data;
-  },
-
-  submitBlogArticle: async (payload: BlogArticleSubmission) => {
-    const nameParts = payload.name.trim().split(/\s+/);
-    const firstName = nameParts.shift() || 'Blog';
-    const lastName = nameParts.join(' ') || 'Contributor';
-    const res = await api.post('/api/contact', {
-      firstName,
-      lastName,
-      email: payload.email.trim().toLowerCase(),
-      subject: `Blog submission: ${payload.title.trim()}`,
-      message: `Topic: ${payload.topic.trim()}\n\nSummary:\n${payload.summary.trim()}\n\nArticle content:\n${payload.content.trim()}`,
-    });
     return res.data;
   },
 

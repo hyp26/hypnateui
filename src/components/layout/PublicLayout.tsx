@@ -31,7 +31,6 @@ export const PublicLayout = () => {
     { label: 'Home', path: '/' },
     { label: 'Features', path: '/features' },
     { label: 'Pricing', path: '/pricing' },
-    { label: 'Blog', path: '/blog' },
     { label: 'About', path: '/about' },
     { label: 'Contact', path: '/contact' },
   ];
@@ -157,7 +156,6 @@ export const PublicLayout = () => {
             <ul className="space-y-3 sm:space-y-4 text-sm">
               <li><Link to="/about" className="hover:text-primary-400 transition-colors">About Us</Link></li>
               <li><Link to="/careers" className="hover:text-primary-400 transition-colors">Careers</Link></li>
-              <li><Link to="/blog" className="hover:text-primary-400 transition-colors">Blog</Link></li>
               <li><Link to="/contact" className="hover:text-primary-400 transition-colors">Contact</Link></li>
             </ul>
           </div>
