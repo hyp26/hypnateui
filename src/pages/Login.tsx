@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../stores/useAuthStore";
 import { AuthLayout } from "../components/auth/AuthLayout";
 import {
@@ -23,6 +23,7 @@ export const Login: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const login = useAuthStore((s) => s.login);
+  const navigate = useNavigate();
 
   const validate = (): boolean => {
     const emailCheck = validateEmail(email);
@@ -47,7 +48,7 @@ export const Login: React.FC = () => {
 
     try {
       await login(email, password);
-      window.location.href = "/dashboard";
+      navigate("/dashboard", { replace: true });
     } catch (err: any) {
       setFormError(err?.message || "Something went wrong. Please try again.");
     } finally {

@@ -16,6 +16,7 @@ interface User {
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
+  authInitialized: boolean;
 
   login: (email: string, password: string) => Promise<void>;
   signup: (
@@ -28,6 +29,7 @@ interface AuthState {
   loadProfile: () => Promise<void>;
   logout: () => Promise<void>;
   setUser: (user: User | null) => void;
+  setAuthInitialized: (value: boolean) => void;
 
   // Email verification (post-signup)
   verifyEmail: (token: string) => Promise<void>;
@@ -39,7 +41,9 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       user: null,
       isAuthenticated: false,
+      authInitialized: false,
       setUser: (user) => set({ user }),
+      setAuthInitialized: (value) => set({ authInitialized: value }),
 
       /* --------------------------------------------------
        * LOGIN
@@ -120,38 +124,81 @@ export const useAuthStore = create<AuthState>()(
       },
 
       /* --------------------------------------------------
-       * LOAD PROFILE (on app boot)
+       * LOAD PROFILE (session bootstrap)
        * -------------------------------------------------- */
       loadProfile: async () => {
-        const res = await fetch(`${API}/api/auth/profile`, {
-          credentials: "include", // ✅ cookie sent automatically
-        });
+        try {
+          const res = await fetch(`${API}/api/auth/profile`, {
+            credentials: "include",
+          });
 
-        if (!res.ok) {
-          // Try refreshing the token once before giving up
-          const refreshed = await tryRefreshToken();
-          if (!refreshed) {
-            set({ user: null, isAuthenticated: false });
+          if (res.ok) {
+            const profile = await res.json();
+            set({
+              user: profile,
+              isAuthenticated: true,
+              authInitialized: true,
+            });
             return;
           }
 
-          // Retry profile after refresh
+          // Only attempt refresh when the API explicitly says the
+          // access token expired. Do not turn unrelated 4xx responses
+          // into refresh attempts.
+          let body: { code?: string } = {};
+          try {
+            body = await res.json();
+          } catch {
+            // Ignore malformed/non-JSON error bodies.
+          }
+
+          if (res.status !== 401 || body.code !== "TOKEN_EXPIRED") {
+            set({
+              user: null,
+              isAuthenticated: false,
+              authInitialized: true,
+            });
+            return;
+          }
+
+          const refreshed = await tryRefreshToken();
+
+          if (!refreshed) {
+            set({
+              user: null,
+              isAuthenticated: false,
+              authInitialized: true,
+            });
+            return;
+          }
+
           const retryRes = await fetch(`${API}/api/auth/profile`, {
             credentials: "include",
           });
 
           if (!retryRes.ok) {
-            set({ user: null, isAuthenticated: false });
+            set({
+              user: null,
+              isAuthenticated: false,
+              authInitialized: true,
+            });
             return;
           }
 
           const profile = await retryRes.json();
-          set({ user: profile, isAuthenticated: true });
-          return;
-        }
 
-        const profile = await res.json();
-        set({ user: profile, isAuthenticated: true });
+          set({
+            user: profile,
+            isAuthenticated: true,
+            authInitialized: true,
+          });
+        } catch {
+          set({
+            user: null,
+            isAuthenticated: false,
+            authInitialized: true,
+          });
+        }
       },
 
       /* --------------------------------------------------

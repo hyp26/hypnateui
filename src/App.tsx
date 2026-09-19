@@ -4,6 +4,7 @@ import {
   Routes,
   Route,
   Navigate,
+  useLocation,
 } from 'react-router-dom';
 
 // Vercel
@@ -61,19 +62,48 @@ import './i18n/config';
  * -------------------------------------------------- */
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  const authInitialized = useAuthStore((state) => state.authInitialized);
+
+  if (!authInitialized) {
+    return null;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
   return <>{children}</>;
 };
 
-function App() {
+const AuthBootstrap = () => {
+  const location = useLocation();
   const loadProfile = useAuthStore((state) => state.loadProfile);
+  const setAuthInitialized = useAuthStore((state) => state.setAuthInitialized);
 
   React.useEffect(() => {
-    loadProfile();
-  }, [loadProfile]);
+    /*
+     * Do not bootstrap auth on the login/signup screens.
+     *
+     * This prevents the initial unauthenticated profile check from
+     * racing a just-completed login and clearing the authenticated
+     * Zustand state.
+     */
+    if (location.pathname === "/login" || location.pathname === "/signup") {
+      setAuthInitialized(true);
+      return;
+    }
 
+    setAuthInitialized(false);
+    void loadProfile();
+  }, [location.pathname, loadProfile, setAuthInitialized]);
+
+  return null;
+};
+
+function App() {
   return (
     <Router>
+      <AuthBootstrap />
       <Routes>
 
         {/* ---------------- PUBLIC MARKETING SITE ---------------- */}
