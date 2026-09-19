@@ -4,7 +4,11 @@ import { Button } from '../ui/Button';
 import { Menu, X, Instagram, Facebook, Twitter, Linkedin } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { DemoChatWidget } from '../public/DemoChatWidget';
-import { OrganizationStructuredData, WebSiteStructuredData } from '../public/StructuredData';
+import {
+  BreadcrumbListStructuredData,
+  OrganizationStructuredData,
+  WebSiteStructuredData,
+} from '../public/StructuredData';
 
 export const PublicLayout = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -35,10 +39,34 @@ export const PublicLayout = () => {
     { label: 'Contact', path: '/contact' },
   ];
 
+  const breadcrumbLabels: Record<string, string> = {
+    '/about': 'About',
+    '/pricing': 'Pricing',
+    '/features': 'Features',
+    '/contact': 'Contact',
+    '/careers': 'Careers',
+    '/faq': 'FAQ',
+    '/terms': 'Terms of Service',
+    '/privacy': 'Privacy Policy',
+    '/refund': 'Refund Policy',
+  };
+
+  const breadcrumbName = breadcrumbLabels[location.pathname];
+  const breadcrumbItems = breadcrumbName
+    ? [
+        { name: 'Home', path: '/' },
+        { name: breadcrumbName, path: location.pathname },
+      ]
+    : [];
+
+
   return (
     <div className="min-h-screen bg-white flex flex-col font-sans">
       <OrganizationStructuredData />
       <WebSiteStructuredData />
+      {breadcrumbItems.length > 0 && (
+        <BreadcrumbListStructuredData items={breadcrumbItems} />
+      )}
 
       {/* Navbar */}
       <nav className={cn(

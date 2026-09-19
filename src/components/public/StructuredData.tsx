@@ -44,6 +44,7 @@ export const SoftwareApplicationStructuredData: React.FC = () => (
       url: SITE_URL,
       applicationCategory: 'BusinessApplication',
       operatingSystem: 'Web',
+      description: 'Commerce workspace for WhatsApp, Instagram, Facebook and Telegram conversations alongside products, orders, payments and customers.',
     }}
   />
 );
@@ -62,6 +63,23 @@ export const FAQStructuredData: React.FC<{
           '@type': 'Answer',
           text: a,
         },
+      })),
+    }}
+  />
+);
+
+export const BreadcrumbListStructuredData: React.FC<{
+  items: Array<{ name: string; path: string }>;
+}> = ({ items }) => (
+  <StructuredData
+    data={{
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: items.map((item, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        name: item.name,
+        item: `${SITE_URL}${item.path === '/' ? '' : item.path}`,
       })),
     }}
   />

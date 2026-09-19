@@ -14,6 +14,7 @@ import { SpeedInsights } from '@vercel/speed-insights/react';
 // Layouts
 import { Layout } from './components/layout/layout';
 import { PublicLayout } from './components/layout/PublicLayout';
+import { RouteSEO } from './components/public/SEO';
 
 // Auth Store
 import { useAuthStore } from './stores/useAuthStore';
@@ -102,6 +103,7 @@ function App() {
   return (
     <Router>
       <AuthBootstrap />
+      <RouteSEO />
       <Routes>
 
         {/* ---------------- PUBLIC MARKETING SITE ---------------- */}

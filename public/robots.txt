@@ -1,0 +1,24 @@
+User-agent: *
+Allow: /
+
+# Authentication / account-access screens
+Disallow: /login
+Disallow: /signup
+Disallow: /verify-email
+Disallow: /forgot-password
+
+# Authenticated application and onboarding
+Disallow: /onboarding
+Disallow: /dashboard
+Disallow: /products
+Disallow: /orders
+Disallow: /customers
+Disallow: /conversations
+Disallow: /settings
+Disallow: /payments
+Disallow: /analytics
+Disallow: /hypnate-x
+
+# /blog is public and indexable. Invalid article slugs are handled with noindex by the app.
+
+Sitemap: https://hypnate.in/sitemap.xml
