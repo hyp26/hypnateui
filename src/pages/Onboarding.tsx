@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Loader2, Sparkles } from "lucide-react";
 import api from "../lib/api";
 import { useAuthStore } from "../stores/useAuthStore";
+import { PLAN_OPTIONS, getPlanDefinition, normalizePlan, type PlanId } from "../config/planEntitlements";
 import { OnboardingStepper } from "../components/onboarding/Onboardingstepper";
 import { OnboardingFooter } from "../components/onboarding/OnboardingFooter";
 import { BusinessStep } from "../components/onboarding/BusinessStep";
@@ -20,10 +21,11 @@ import type {
 export const Onboarding: React.FC = () => {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
-  const selectedPlan = user?.seller?.selectedPlan;
-  const selectedPlanLabel = selectedPlan
-    ? selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)
-    : null;
+  const setUser = useAuthStore((s) => s.setUser);
+  const selectedPlan = normalizePlan(user?.seller?.selectedPlan);
+  const [planChoice, setPlanChoice] = useState<PlanId | null>(selectedPlan);
+  const effectivePlan = planChoice || selectedPlan;
+  const selectedPlanDefinition = effectivePlan ? getPlanDefinition(effectivePlan) : null;
 
   const [currentStep, setCurrentStepRaw] = useState<Step>(1);
   const [completed, setCompleted] = useState<Set<number>>(new Set());
@@ -99,7 +101,21 @@ export const Onboarding: React.FC = () => {
       if (currentStep === 1) {
         if (!businessForm.businessName.trim()) { setError("Business name is required"); return; }
         if (!businessForm.mobileNo.trim()) { setError("Mobile number is required"); return; }
-        await api.post("/api/onboarding/business", { ...businessForm, phone: businessForm.mobileNo });
+        if (!effectivePlan) { setError("Please choose a plan before continuing"); return; }
+
+        await api.post("/api/onboarding/business", {
+          ...businessForm,
+          phone: businessForm.mobileNo,
+          selectedPlan: effectivePlan,
+        });
+
+        if (user) {
+          setUser({
+            ...user,
+            seller: { ...user.seller, selectedPlan: effectivePlan },
+          });
+        }
+
         markCompleted(1);
         setCurrentStep(2);
       } else if (currentStep === 2) {
@@ -167,7 +183,7 @@ export const Onboarding: React.FC = () => {
               </div>
             </div>
 
-            {selectedPlanLabel && (
+            {effectivePlan ? (
               <div
                 role="status"
                 style={{
@@ -178,8 +194,47 @@ export const Onboarding: React.FC = () => {
                 }}
               >
                 <span>Selected plan</span>
-                <strong>{selectedPlanLabel}</strong>
+                <strong>{selectedPlanDefinition?.name}</strong>
               </div>
+            ) : (
+              <section
+                aria-labelledby="onboarding-plan-heading"
+                style={{
+                  marginTop: 16, padding: "18px", borderRadius: 16,
+                  background: "#fff", border: "1px solid #e2e8f0",
+                  boxShadow: "0 4px 18px rgba(15,23,42,0.04)",
+                }}
+              >
+                <div style={{ marginBottom: 14 }}>
+                  <h2 id="onboarding-plan-heading" style={{ margin: "0 0 5px", fontSize: 17, fontWeight: 800, color: "#0f172a" }}>Choose your plan</h2>
+                  <p style={{ margin: 0, fontSize: 12, lineHeight: 1.55, color: "#64748b" }}>Select a plan to unlock your Hypnate workspace. The selected plan is saved with your merchant account.</p>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 10 }}>
+                  {PLAN_OPTIONS.map((plan) => {
+                    const active = plan.id === planChoice;
+                    return (
+                      <button
+                        type="button"
+                        key={plan.id}
+                        onClick={() => { setPlanChoice(plan.id); setError(""); }}
+                        aria-pressed={active}
+                        style={{
+                          textAlign: "left", padding: "14px", borderRadius: 12,
+                          border: active ? "2px solid #0d9488" : "1px solid #e2e8f0",
+                          background: active ? "#f0fdfa" : "#fff", cursor: "pointer",
+                          transition: "all 0.15s", fontFamily: "inherit",
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                          <strong style={{ fontSize: 14, color: "#0f172a" }}>{plan.name}</strong>
+                          <span style={{ fontSize: 12, fontWeight: 800, color: "#0d9488" }}>₹{plan.priceMonthly.toLocaleString("en-IN")}/mo</span>
+                        </div>
+                        <p style={{ margin: "6px 0 0", fontSize: 11, color: "#64748b", lineHeight: 1.45 }}>{plan.tagline}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
             )}
 
             <OnboardingStepper current={currentStep} completed={completed} skipped={skipped} />

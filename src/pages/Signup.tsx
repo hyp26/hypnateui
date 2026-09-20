@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuthStore } from "../stores/useAuthStore";
 import { AuthLayout } from "../components/auth/AuthLayout";
 import { PUBLIC_CHANNEL_SUMMARY } from "../data/publicChannels";
+import { normalizePlan, getPlanDefinition, type PlanId } from "../config/planEntitlements";
 import {
   validateEmail,
   validatePassword,
@@ -30,16 +31,10 @@ export const Signup: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [searchParams] = useSearchParams();
 
-  const requestedPlan = searchParams.get("plan")?.toLowerCase() || "";
-  const selectedPlan = (["starter", "pro", "business"] as const).includes(
-    requestedPlan as "starter" | "pro" | "business"
-  )
-    ? requestedPlan
-    : null;
-
-  const selectedPlanLabel = selectedPlan
-    ? selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)
-    : null;
+  const requestedPlan = searchParams.get("plan");
+  const selectedPlan = normalizePlan(requestedPlan);
+  const selectedPlanDefinition = selectedPlan ? getPlanDefinition(selectedPlan) : null;
+  const selectedPlanLabel = selectedPlanDefinition?.name || null;
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -71,6 +66,10 @@ export const Signup: React.FC = () => {
     });
 
     setFieldErrors(errors);
+    if (!selectedPlan) {
+      setFormError("Please choose a Starter, Pro, or Business plan from Pricing before creating your account.");
+      return false;
+    }
     return Object.keys(errors).length === 0;
   };
 
@@ -110,10 +109,19 @@ export const Signup: React.FC = () => {
         </>
       }
     >
-      {selectedPlanLabel && (
+      {selectedPlanLabel ? (
         <div className="auth-plan-summary" role="status" aria-live="polite">
           Selected plan: <strong>{selectedPlanLabel}</strong>
+          {selectedPlanDefinition && (
+            <span aria-label={`Monthly price ${selectedPlanDefinition.priceMonthly} rupees`}>
+              ₹{selectedPlanDefinition.priceMonthly.toLocaleString("en-IN")}/mo
+            </span>
+          )}
           <Link to="/pricing">Change</Link>
+        </div>
+      ) : (
+        <div className="auth-plan-required" role="alert">
+          Choose a plan before creating your account. <Link to="/pricing">View plans</Link>
         </div>
       )}
 
@@ -253,7 +261,7 @@ export const Signup: React.FC = () => {
         <button
           type="submit"
           className="auth-primary-button"
-          disabled={isLoading}
+          disabled={isLoading || !selectedPlan}
           aria-busy={isLoading}
         >
           {isLoading ? (

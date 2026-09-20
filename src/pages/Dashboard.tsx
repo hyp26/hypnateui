@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import { useAuthStore } from "../stores/useAuthStore";
 import api from "../lib/api";
+import { hasPlanFeature, type PlanFeature } from "../config/planEntitlements";
 
 const POLL_INTERVAL = 30_000;
 
@@ -472,19 +473,28 @@ export const Dashboard: React.FC = () => {
                 { label: "Add Product", icon: Package, color: "#8b5cf6", bg: "#f3f0ff", path: "/products/new" },
                 { label: "View Orders", icon: ShoppingBag, color: "#0ea5e9", bg: "#e0f2fe", path: "/orders" },
                 { label: "Customers", icon: Users, color: "#10b981", bg: "#d1fae5", path: "/customers" },
-                { label: "Analytics", icon: TrendingUp, color: "#f59e0b", bg: "#fef3c7", path: "/analytics" },
+                { label: "Analytics", icon: TrendingUp, color: "#f59e0b", bg: "#fef3c7", path: "/analytics", feature: "advancedAnalytics" as PlanFeature },
                 { label: "Conversations", icon: MessageCircle, color: "#ec4899", bg: "#fce7f3", path: "/conversations" },
-                { label: "Hypnate X", icon: Sparkles, color: "#6366f1", bg: "#eef2ff", path: "/hypnate-x" },
-              ].map(({ label, icon: Icon, color, bg, path }) => (
-                <button key={label} onClick={() => navigate(path)} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "12px", borderRadius: "12px", background: bg, border: "none", cursor: "pointer", transition: "transform 0.15s", textAlign: "left" }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.02)"; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}>
-                  <div style={{ width: "30px", height: "30px", borderRadius: "8px", background: color + "20", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <Icon style={{ width: 14, height: 14, color }} />
-                  </div>
-                  <span style={{ fontSize: "12px", fontWeight: 600, color: "#0f172a" }}>{label}</span>
-                </button>
-              ))}
+                { label: "Hypnate X", icon: Sparkles, color: "#6366f1", bg: "#eef2ff", path: "/hypnate-x", feature: "hypnateX" as PlanFeature },
+              ].map(({ label, icon: Icon, color, bg, path, feature }) => {
+                const locked = feature ? !hasPlanFeature(user?.seller?.selectedPlan, feature) : false;
+                const required = feature === "hypnateX" ? "Business" : "Pro";
+                return (
+                  <button
+                    key={label}
+                    onClick={() => navigate(path)}
+                    aria-label={locked ? `${label}, requires ${required} plan` : label}
+                    style={{ display: "flex", alignItems: "center", gap: "10px", padding: "12px", borderRadius: "12px", background: bg, border: "none", cursor: "pointer", transition: "transform 0.15s", textAlign: "left", opacity: locked ? 0.7 : 1 }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.02)"; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}>
+                    <div style={{ width: "30px", height: "30px", borderRadius: "8px", background: color + "20", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <Icon style={{ width: 14, height: 14, color }} />
+                    </div>
+                    <span style={{ fontSize: "12px", fontWeight: 600, color: "#0f172a", flex: 1 }}>{label}</span>
+                    {locked && <span style={{ fontSize: 9, fontWeight: 800, color: "#475569", background: "rgba(255,255,255,0.75)", borderRadius: 999, padding: "3px 6px" }}>{required}</span>}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>

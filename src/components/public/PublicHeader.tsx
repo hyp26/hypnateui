@@ -98,7 +98,7 @@ export const PublicHeader = () => {
             </Link>
           )}
           {!isSignup && (
-            <Link to="/signup" className="inline-flex h-8 items-center justify-center rounded-full bg-primary-500 px-5 text-xs font-medium text-white shadow-sm transition-colors hover:bg-primary-600">
+            <Link to="/pricing" className="inline-flex h-8 items-center justify-center rounded-full bg-primary-500 px-5 text-xs font-medium text-white shadow-sm transition-colors hover:bg-primary-600">
               Get Started
             </Link>
           )}
@@ -145,7 +145,7 @@ export const PublicHeader = () => {
             <Link to="/login" className="inline-flex w-full h-10 items-center justify-center rounded-xl border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50">Log In</Link>
           )}
           {!isSignup && (
-            <Link to="/signup" className="inline-flex w-full h-10 items-center justify-center rounded-xl bg-primary-500 px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary-600">Get Started</Link>
+            <Link to="/pricing" className="inline-flex w-full h-10 items-center justify-center rounded-xl bg-primary-500 px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary-600">Get Started</Link>
           )}
           </div>
         </div>

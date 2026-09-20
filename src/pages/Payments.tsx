@@ -5,6 +5,8 @@ import {
   Clock, RefreshCw, Wallet, AlertCircle,
 } from 'lucide-react';
 import api from '../lib/api';
+import { useAuthStore } from '../stores/useAuthStore';
+import { hasPlanFeature } from '../config/planEntitlements';
 
 interface Transaction {
   id: string;
@@ -173,6 +175,8 @@ const PaymentLinkModal = ({ onClose }: { onClose: () => void }) => {
 };
 
 export const Payments: React.FC = () => {
+  const selectedPlan = useAuthStore((state) => state.user?.seller?.selectedPlan);
+  const canCreatePaymentLink = hasPlanFeature(selectedPlan, 'paymentLinks');
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -217,7 +221,7 @@ export const Payments: React.FC = () => {
   return (
     <>
       <style>{css}</style>
-      {showModal && <PaymentLinkModal onClose={() => setShowModal(false)} />}
+      {showModal && canCreatePaymentLink && <PaymentLinkModal onClose={() => setShowModal(false)} />}
 
       <div className={`py-root ${visible ? 'py-visible' : ''}`}>
 
@@ -233,8 +237,15 @@ export const Payments: React.FC = () => {
             <button onClick={handleExport} disabled={exporting} className="py-outline-btn">
               {exporting ? <><div className="py-spinner" /> <span className="py-btn-label">Exporting…</span></> : <><Download size={14} /> <span className="py-btn-label">Export CSV</span></>}
             </button>
-            <button onClick={() => setShowModal(true)} className="py-primary-btn">
-              <CreditCard size={14} /> <span className="py-btn-label">Create Payment Link</span>
+            <button
+              onClick={() => { if (canCreatePaymentLink) setShowModal(true); }}
+              disabled={!canCreatePaymentLink}
+              title={canCreatePaymentLink ? 'Create a payment link' : 'Payment link generation requires Pro or Business'}
+              aria-label={canCreatePaymentLink ? 'Create Payment Link' : 'Create Payment Link, requires Pro or Business plan'}
+              className="py-primary-btn"
+              style={!canCreatePaymentLink ? { opacity: 0.55, cursor: 'not-allowed' } : undefined}
+            >
+              <CreditCard size={14} /> <span className="py-btn-label">{canCreatePaymentLink ? 'Create Payment Link' : 'Payment Link · Pro+'}</span>
             </button>
           </div>
         </div>

@@ -15,6 +15,8 @@ import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Layout } from './components/layout/layout';
 import { PublicLayout } from './components/layout/PublicLayout';
 import { RouteSEO } from './components/public/SEO';
+import { PlanRoute } from './components/plan/PlanGate';
+import { normalizePlan } from './config/planEntitlements';
 
 // Auth Store
 import { useAuthStore } from './stores/useAuthStore';
@@ -73,9 +75,11 @@ const AuthEntryRoute = ({ children }: { children: React.ReactNode }) => {
   if (!authInitialized) return null;
 
   if (isAuthenticated) {
-    const destination = user?.role === "SELLER" && !user.seller?.onboardedAt
-      ? "/onboarding"
-      : "/dashboard";
+    const sellerNeedsSetup = user?.role === "SELLER" && (
+      !user.seller?.onboardedAt ||
+      !normalizePlan(user.seller?.selectedPlan)
+    );
+    const destination = sellerNeedsSetup ? "/onboarding" : "/dashboard";
     return <Navigate to={destination} replace />;
   }
 
@@ -94,6 +98,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  }
+
+  if (user?.role === "SELLER" && !normalizePlan(user.seller?.selectedPlan) && location.pathname !== "/onboarding") {
+    return <Navigate to="/onboarding?required=plan" replace />;
   }
 
   if (user?.role === "SELLER" && !user.seller?.onboardedAt && location.pathname !== "/onboarding") {
@@ -221,11 +229,25 @@ function App() {
           {/* Payments */}
           <Route path="/payments" element={<Payments />} />
 
-          {/* Analytics */}
-          <Route path="/analytics" element={<DashboardAnalytics />} />
+          {/* Analytics — Pro and Business */}
+          <Route
+            path="/analytics"
+            element={
+              <PlanRoute feature="advancedAnalytics">
+                <DashboardAnalytics />
+              </PlanRoute>
+            }
+          />
 
-          {/* Hypnate X — AI website builder */}
-          <Route path="/hypnate-x" element={<HypnateX />} />
+          {/* Hypnate X — Business only */}
+          <Route
+            path="/hypnate-x"
+            element={
+              <PlanRoute feature="hypnateX">
+                <HypnateX />
+              </PlanRoute>
+            }
+          />
         </Route>
 
         {/* ---------------- FALLBACK ---------------- */}

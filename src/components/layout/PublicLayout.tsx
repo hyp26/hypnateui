@@ -150,7 +150,7 @@ export const PublicLayout = () => {
             <Link to="/login" className="text-sm font-medium text-gray-600 hover:text-primary-600 transition-colors">
               Log In
             </Link>
-            <Link to="/signup" className="inline-flex h-8 items-center justify-center rounded-full bg-primary-500 px-5 text-xs font-medium text-white shadow-sm transition-colors hover:bg-primary-600">Get Started</Link>
+            <Link to="/pricing" className="inline-flex h-8 items-center justify-center rounded-full bg-primary-500 px-5 text-xs font-medium text-white shadow-sm transition-colors hover:bg-primary-600">Get Started</Link>
           </div>
 
           {/* Mobile hamburger */}
@@ -192,7 +192,7 @@ export const PublicLayout = () => {
             </div>
             <div className="px-4 pb-5 pt-2 flex flex-col gap-3 border-t border-gray-100">
               <Link to="/login" className="inline-flex w-full h-10 items-center justify-center rounded-xl border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50">Log In</Link>
-              <Link to="/signup" className="inline-flex w-full h-10 items-center justify-center rounded-xl bg-primary-500 px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary-600">Get Started</Link>
+              <Link to="/pricing" className="inline-flex w-full h-10 items-center justify-center rounded-xl bg-primary-500 px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary-600">Get Started</Link>
             </div>
           </div>
       </nav>

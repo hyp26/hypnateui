@@ -13,6 +13,8 @@ import {
   X,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { useAuthStore } from '../../stores/useAuthStore';
+import { hasPlanFeature, type PlanFeature } from '../../config/planEntitlements';
 
 interface SidebarProps {
   open: boolean;
@@ -21,15 +23,16 @@ interface SidebarProps {
 
 export const Sidebar = ({ open, onClose }: SidebarProps) => {
   const { t } = useTranslation();
+  const plan = useAuthStore((state) => state.user?.seller?.selectedPlan);
 
-  const navItems = [
+  const navItems: Array<{ icon: React.ElementType; label: string; path: string; feature?: PlanFeature }> = [
     { icon: LayoutDashboard, label: t('nav.dashboard'), path: '/dashboard' },
     { icon: MessageSquare, label: t('nav.conversations'), path: '/conversations' },
     { icon: Package, label: t('nav.products'), path: '/products' },
     { icon: ShoppingBag, label: t('nav.orders'), path: '/orders' },
     { icon: Users, label: t('nav.customers'), path: '/customers' },
     { icon: CreditCard, label: t('nav.payments'), path: '/payments' },
-    { icon: BarChart3, label: t('nav.analytics'), path: '/analytics' },
+    { icon: BarChart3, label: t('nav.analytics'), path: '/analytics', feature: 'advancedAnalytics' },
   ];
 
   return (
@@ -67,45 +70,66 @@ export const Sidebar = ({ open, onClose }: SidebarProps) => {
 
         {/* Navigation */}
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              onClick={onClose}
-              className={({ isActive }) =>
-                cn(
-                  'flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200',
-                  isActive
-                    ? 'bg-secondary-500 text-white shadow-lg shadow-secondary-900/20 translate-x-1'
-                    : 'text-primary-100 hover:bg-primary-800 hover:text-white'
-                )
-              }
-            >
-              <item.icon className="w-5 h-5 shrink-0" />
-              {item.label}
-            </NavLink>
-          ))}
+          {navItems.map((item) => {
+            const locked = item.feature ? !hasPlanFeature(plan, item.feature) : false;
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                onClick={onClose}
+                title={locked ? 'Requires Pro or Business' : undefined}
+                className={({ isActive }) =>
+                  cn(
+                    'flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200',
+                    isActive
+                      ? 'bg-secondary-500 text-white shadow-lg shadow-secondary-900/20 translate-x-1'
+                      : locked
+                        ? 'text-primary-300 hover:bg-primary-800 hover:text-primary-100'
+                        : 'text-primary-100 hover:bg-primary-800 hover:text-white'
+                  )
+                }
+                aria-label={locked ? `${item.label}, requires Pro or Business` : item.label}
+              >
+                <item.icon className="w-5 h-5 shrink-0" />
+                {item.label}
+                {locked && (
+                  <span className="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded bg-primary-700 text-primary-200 leading-tight">
+                    PRO
+                  </span>
+                )}
+              </NavLink>
+            );
+          })}
 
           {/* Hypnate X */}
           <div className="pt-3 mt-3 border-t border-primary-800">
-            <NavLink
-              to="/hypnate-x"
-              onClick={onClose}
-              className={({ isActive }) =>
-                cn(
-                  'flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200',
-                  isActive
-                    ? 'bg-violet-600 text-white shadow-lg translate-x-1'
-                    : 'text-violet-300 hover:bg-violet-900/40 hover:text-violet-100'
-                )
-              }
-            >
-              <Wand2 className="w-5 h-5 shrink-0" />
-              <span>Hypnate X</span>
-              <span className="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded bg-violet-500 text-white leading-tight">
-                NEW
-              </span>
-            </NavLink>
+            {(() => {
+              const locked = !hasPlanFeature(plan, 'hypnateX');
+              return (
+                <NavLink
+                  to="/hypnate-x"
+                  onClick={onClose}
+                  title={locked ? 'Requires Business plan' : 'Hypnate X'}
+                  aria-label={locked ? 'Hypnate X, requires Business plan' : 'Hypnate X'}
+                  className={({ isActive }) =>
+                    cn(
+                      'flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200',
+                      isActive
+                        ? 'bg-violet-600 text-white shadow-lg translate-x-1'
+                        : locked
+                          ? 'text-violet-400 hover:bg-violet-900/40 hover:text-violet-200'
+                          : 'text-violet-300 hover:bg-violet-900/40 hover:text-violet-100'
+                    )
+                  }
+                >
+                  <Wand2 className="w-5 h-5 shrink-0" />
+                  <span>Hypnate X</span>
+                  <span className="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded bg-violet-500 text-white leading-tight">
+                    {locked ? 'BUSINESS' : 'NEW'}
+                  </span>
+                </NavLink>
+              );
+            })()}
           </div>
         </nav>
       </div>

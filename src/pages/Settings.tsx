@@ -9,6 +9,7 @@ import {
 import { useAuthStore } from "../stores/useAuthStore";
 import { useNavigate } from "react-router-dom";
 import api from "../lib/api";
+import { PlanGate } from "../components/plan/PlanGate";
 
 /* ─── TYPES ─── */
 interface ProfileData { name: string; email: string; phone: string; avatarUrl: string | null }
@@ -610,6 +611,7 @@ export const Settings: React.FC = () => {
                         <h2 style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", margin: "0 0 4px" }}>Payment Links</h2>
                         <p style={{ fontSize: 13, color: "#94a3b8", margin: 0 }}>Create a payment link to collect payments directly.</p>
                       </div>
+                      <PlanGate feature="paymentLinks" compact>
                       <div style={{ padding: 20, background: "#f8fafc", borderRadius: 16, border: "1px solid #f1f5f9" }}>
                         {plResult ? (
                           <div style={{ textAlign: "center", padding: "16px 0" }}>
@@ -671,6 +673,7 @@ export const Settings: React.FC = () => {
                           </div>
                         )}
                       </div>
+                      </PlanGate>
                     </div>
                   </div>
                 )}

@@ -174,7 +174,7 @@ export const Home = () => {
             </p>
 
             <div className="home-hero-actions home-reveal home-delay-4">
-              <Link to="/signup" className="home-primary-cta rounded-full px-7 inline-flex items-center justify-center font-semibold">
+              <Link to="/pricing" className="home-primary-cta rounded-full px-7 inline-flex items-center justify-center font-semibold">
                 Get Started <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
               </Link>
               <Link to="/contact" className="home-secondary-cta rounded-full px-7 inline-flex items-center justify-center font-semibold">
@@ -350,7 +350,7 @@ export const Home = () => {
               <p>Explore a simpler commerce workflow across {PUBLIC_CHANNEL_SUMMARY}.</p>
             </div>
             <div className="home-cta-button-wrap">
-              <Link to="/signup" className="home-cta-button rounded-full px-7 inline-flex items-center justify-center font-semibold">
+              <Link to="/pricing" className="home-cta-button rounded-full px-7 inline-flex items-center justify-center font-semibold">
                 Get Started <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
               </Link>
               <span>Explore the platform and see how it fits your workflow.</span>

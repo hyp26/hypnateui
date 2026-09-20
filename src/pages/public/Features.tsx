@@ -372,7 +372,7 @@ export const Features = () => {
           </p>
 
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link to="/signup" style={{
+            <Link to="/pricing" style={{
               background: '#0d9488', color: '#fff', border: 'none',
               padding: '14px 32px', borderRadius: 100,
               fontSize: 15, fontWeight: 700, cursor: 'pointer',
@@ -490,7 +490,7 @@ export const Features = () => {
         <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.7)', marginBottom: 36 }}>
           Current trial terms are shown at signup and checkout.
         </p>
-        <Link to="/signup" style={{
+        <Link to="/pricing" style={{
           background: '#fff', color: '#0d9488',
           border: 'none', padding: '15px 36px', borderRadius: 100,
           fontSize: 16, fontWeight: 800, cursor: 'pointer',

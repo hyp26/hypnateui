@@ -72,13 +72,18 @@ const plans: Plan[] = [
     accentBg: '#f8fafc',
     icon: <Users size={22} />,
     features: [
-      { category: 'Included', items: ['Everything in Pro', 'Hypnate X website builder', 'Expanded team workspace'] },
+      { category: 'Included', items: ['Everything in Pro', 'Hypnate X website builder'] },
     ],
   },
 ];
 
 const compareRows = [
-  { feature: 'Platforms', starter: PUBLIC_CHANNEL_SUMMARY, pro: PUBLIC_CHANNEL_SUMMARY, business: `${PUBLIC_CHANNEL_SUMMARY} + Hypnate X` },
+  { feature: 'Platforms', starter: PUBLIC_CHANNEL_SUMMARY, pro: PUBLIC_CHANNEL_SUMMARY, business: PUBLIC_CHANNEL_SUMMARY },
+  { feature: 'Products & Inventory', starter: true, pro: true, business: true },
+  { feature: 'Orders & Customers', starter: true, pro: true, business: true },
+  { feature: 'Conversations & Channel Connections', starter: true, pro: true, business: true },
+  { feature: 'AI Catalog Assistance', starter: true, pro: true, business: true },
+  { feature: 'Payment Tracking', starter: true, pro: true, business: true },
   { feature: 'Advanced Analytics', starter: false, pro: true, business: true },
   { feature: 'Payment Link Generation', starter: false, pro: true, business: true },
   { feature: 'Hypnate X Website Builder', starter: false, pro: false, business: true },
@@ -275,7 +280,7 @@ export const Pricing: React.FC = () => {
             <h2 className="pr-bottom-title">Still exploring? Get started.</h2>
             <p className="pr-bottom-sub">Explore the current pilot plans and see the applicable terms before checkout.</p>
             <div className="pr-bottom-btns">
-              <Link to="/signup" className="pr-btn-primary">Get Started <ArrowRight size={16} aria-hidden="true" /></Link>
+              <Link to="/pricing" className="pr-btn-primary">Choose a Plan <ArrowRight size={16} aria-hidden="true" /></Link>
               <Link to="/contact" className="pr-btn-secondary">Talk to our team</Link>
             </div>
             <div className="pr-trust-row">
