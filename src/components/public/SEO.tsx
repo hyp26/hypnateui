@@ -1,5 +1,6 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
+import { PUBLIC_CHANNEL_TITLE_SUMMARY, PUBLIC_CHANNEL_SUMMARY } from '../../data/publicChannels';
 
 const SITE_URL = 'https://hypnate.in';
 const SITE_NAME = 'Hypnate';
@@ -23,16 +24,16 @@ export interface PageSEO {
 
 const PUBLIC_SEO: Record<string, Omit<PageSEO, 'path'>> = {
   '/': {
-    title: 'Hypnate | WhatsApp, Instagram, Facebook & Telegram Commerce',
-    description: 'Manage WhatsApp, Instagram, Facebook and Telegram conversations alongside products, orders, payments and customers in one commerce workspace.',
+    title: `Hypnate | ${PUBLIC_CHANNEL_TITLE_SUMMARY} Commerce`,
+    description: `Manage ${PUBLIC_CHANNEL_SUMMARY} conversations alongside products, orders, payments and customers in one commerce workspace.`,
   },
   '/features': {
     title: 'Commerce Features | Hypnate',
-    description: 'Explore Hypnate features for WhatsApp and Telegram workflows, products, orders, customers, payment links, analytics and AI-assisted catalog extraction.',
+    description: `Explore Hypnate features for ${PUBLIC_CHANNEL_SUMMARY} workflows, products, orders, customers, payment links, analytics and AI-assisted catalog tools.`,
   },
   '/pricing': {
     title: 'Pricing | Hypnate',
-    description: 'View Hypnate pilot pricing for a commerce workspace covering WhatsApp, Telegram, products, orders, payments and analytics.',
+    description: `View Hypnate pilot pricing for a commerce workspace covering ${PUBLIC_CHANNEL_SUMMARY} workflows, products, orders, payments and analytics.`,
   },
   '/about': {
     title: 'About Hypnate | Commerce for Conversations',
@@ -61,10 +62,6 @@ const PUBLIC_SEO: Record<string, Omit<PageSEO, 'path'>> = {
   '/refund': {
     title: 'Refund Policy | Hypnate',
     description: 'Read the Hypnate Refund Policy for applicable billing, cancellation and refund terms.',
-  },
-  '/blog': {
-    title: 'Hypnate Blog | Commerce, WhatsApp & Business',
-    description: 'Read Hypnate articles about conversational commerce, WhatsApp workflows, AI in business, operations and digital payments.',
   },
 };
 

@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Button } from '../ui/Button';
 import { Menu, X, Instagram, Facebook, Twitter, Linkedin } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { DemoChatWidget } from '../public/DemoChatWidget';
@@ -13,6 +12,8 @@ import {
 export const PublicLayout = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
+  const mobileMenuToggleRef = useRef<HTMLButtonElement>(null);
   const location = useLocation();
 
   useEffect(() => {
@@ -30,6 +31,50 @@ export const PublicLayout = () => {
     document.body.style.overflow = mobileMenuOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
   }, [mobileMenuOpen]);
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+
+    const menu = mobileMenuRef.current;
+    const firstLink = menu?.querySelector('a') as HTMLAnchorElement | null;
+    firstLink?.focus();
+
+    const getFocusable = () =>
+      Array.from(
+        menu?.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        ) || []
+      );
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setMobileMenuOpen(false);
+        mobileMenuToggleRef.current?.focus();
+        return;
+      }
+
+      if (event.key !== 'Tab') return;
+      const focusable = getFocusable();
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+
+      if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [mobileMenuOpen]);
+
 
   const navLinks = [
     { label: 'Home', path: '/' },
@@ -62,6 +107,7 @@ export const PublicLayout = () => {
 
   return (
     <div className="min-h-screen bg-white flex flex-col font-sans">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-gray-900 focus:shadow-lg">Skip to main content</a>
       <OrganizationStructuredData />
       <WebSiteStructuredData />
       {breadcrumbItems.length > 0 && (
@@ -69,7 +115,7 @@ export const PublicLayout = () => {
       )}
 
       {/* Navbar */}
-      <nav className={cn(
+      <nav aria-label="Primary navigation" className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b",
         isScrolled || mobileMenuOpen
           ? "bg-white/95 backdrop-blur-md border-gray-200 shadow-sm"
@@ -92,6 +138,7 @@ export const PublicLayout = () => {
                   "text-sm font-medium transition-colors hover:text-primary-600",
                   location.pathname === link.path ? "text-primary-600" : "text-gray-600"
                 )}
+                aria-current={location.pathname === link.path ? 'page' : undefined}
               >
                 {link.label}
               </Link>
@@ -103,15 +150,17 @@ export const PublicLayout = () => {
             <Link to="/login" className="text-sm font-medium text-gray-600 hover:text-primary-600 transition-colors">
               Log In
             </Link>
-            <Link to="/signup">
-              <Button size="sm" className="rounded-full px-5">Get Started</Button>
-            </Link>
+            <Link to="/signup" className="inline-flex h-8 items-center justify-center rounded-full bg-primary-500 px-5 text-xs font-medium text-white shadow-sm transition-colors hover:bg-primary-600">Get Started</Link>
           </div>
 
           {/* Mobile hamburger */}
           <button
+            ref={mobileMenuToggleRef}
+            type="button"
             className="md:hidden relative z-50 p-2 -mr-1 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            onClick={() => setMobileMenuOpen((open) => !open)}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="public-mobile-menu"
             aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -119,38 +168,37 @@ export const PublicLayout = () => {
         </div>
 
         {/* Mobile menu — renders as block/hidden, NOT pointer-events trick */}
-        {mobileMenuOpen && (
-          <div className="md:hidden bg-white border-t border-gray-100 shadow-lg">
+        <div id="public-mobile-menu" ref={mobileMenuRef} role="region" aria-label="Mobile navigation" className="md:hidden bg-white border-t border-gray-100 shadow-lg" hidden={!mobileMenuOpen}>
             <div className="px-4 py-3 space-y-1">
               {navLinks.map((link) => (
                 <Link
                   key={link.path}
                   to={link.path}
+                  onClick={() => {
+                    // Keep focus on the visible toggle before the menu is hidden after navigation.
+                    mobileMenuToggleRef.current?.focus();
+                  }}
                   className={cn(
                     "block px-4 py-3 rounded-xl text-base font-medium transition-colors",
                     location.pathname === link.path
                       ? "bg-primary-50 text-primary-600"
                       : "text-gray-700 hover:bg-gray-50 hover:text-primary-600"
                   )}
+                  aria-current={location.pathname === link.path ? 'page' : undefined}
                 >
                   {link.label}
                 </Link>
               ))}
             </div>
             <div className="px-4 pb-5 pt-2 flex flex-col gap-3 border-t border-gray-100">
-              <Link to="/login" className="w-full">
-                <Button variant="outline" className="w-full justify-center rounded-xl">Log In</Button>
-              </Link>
-              <Link to="/signup" className="w-full">
-                <Button className="w-full justify-center rounded-xl">Get Started</Button>
-              </Link>
+              <Link to="/login" className="inline-flex w-full h-10 items-center justify-center rounded-xl border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50">Log In</Link>
+              <Link to="/signup" className="inline-flex w-full h-10 items-center justify-center rounded-xl bg-primary-500 px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary-600">Get Started</Link>
             </div>
           </div>
-        )}
       </nav>
 
       {/* Main content */}
-      <main className="flex-1 pt-16">
+      <main id="main-content" className="flex-1 pt-16">
         <Outlet />
       </main>
 
@@ -162,17 +210,17 @@ export const PublicLayout = () => {
           <div className="col-span-2 md:col-span-1">
             <img src="/assets/hypnate-logo-light.png" alt="Hypnate Logo" className="h-12 sm:h-14 w-auto max-w-[280px] object-contain object-left" />
             <p className="mt-4 sm:mt-6 text-sm text-gray-400 leading-relaxed">
-              Empowering Indian SMBs with AI-driven social commerce tools. Sell smarter on WhatsApp, Instagram, and Facebook.
+              Helping Indian businesses manage commerce workflows across WhatsApp, Instagram, Facebook and Telegram with AI-assisted tools.
             </p>
             <div className="flex gap-4 mt-4 sm:mt-6">
-              <a href="https://www.instagram.com/hypnate.app/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors"><Instagram className="w-5 h-5" /></a>
-              <a href="https://www.facebook.com/Hypnate" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors"><Facebook className="w-5 h-5" /></a>
-              <a href="https://x.com/HypnateIndia" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors"><Twitter className="w-5 h-5" /></a>
-              <a href="https://www.linkedin.com/company/hypnate/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors"><Linkedin className="w-5 h-5" /></a>
+              <a href="https://www.instagram.com/hypnate.app/" target="_blank" rel="noopener noreferrer" aria-label="Hypnate on Instagram" className="hover:text-white transition-colors"><Instagram className="w-5 h-5" aria-hidden="true" /></a>
+              <a href="https://www.facebook.com/Hypnate" target="_blank" rel="noopener noreferrer" aria-label="Hypnate on Facebook" className="hover:text-white transition-colors"><Facebook className="w-5 h-5" aria-hidden="true" /></a>
+              <a href="https://x.com/HypnateIndia" target="_blank" rel="noopener noreferrer" aria-label="Hypnate on X" className="hover:text-white transition-colors"><Twitter className="w-5 h-5" aria-hidden="true" /></a>
+              <a href="https://www.linkedin.com/company/hypnate/" target="_blank" rel="noopener noreferrer" aria-label="Hypnate on LinkedIn" className="hover:text-white transition-colors"><Linkedin className="w-5 h-5" aria-hidden="true" /></a>
             </div>
           </div>
           <div>
-            <h4 className="text-white font-bold mb-4 sm:mb-6 text-sm sm:text-base">Product</h4>
+            <h2 className="text-white font-bold mb-4 sm:mb-6 text-sm sm:text-base">Product</h2>
             <ul className="space-y-3 sm:space-y-4 text-sm">
               <li><Link to="/features" className="hover:text-primary-400 transition-colors">Features</Link></li>
               <li><Link to="/pricing" className="hover:text-primary-400 transition-colors">Pricing</Link></li>
@@ -180,7 +228,7 @@ export const PublicLayout = () => {
             </ul>
           </div>
           <div>
-            <h4 className="text-white font-bold mb-4 sm:mb-6 text-sm sm:text-base">Company</h4>
+            <h2 className="text-white font-bold mb-4 sm:mb-6 text-sm sm:text-base">Company</h2>
             <ul className="space-y-3 sm:space-y-4 text-sm">
               <li><Link to="/about" className="hover:text-primary-400 transition-colors">About Us</Link></li>
               <li><Link to="/careers" className="hover:text-primary-400 transition-colors">Careers</Link></li>
@@ -188,7 +236,7 @@ export const PublicLayout = () => {
             </ul>
           </div>
           <div>
-            <h4 className="text-white font-bold mb-4 sm:mb-6 text-sm sm:text-base">Legal</h4>
+            <h2 className="text-white font-bold mb-4 sm:mb-6 text-sm sm:text-base">Legal</h2>
             <ul className="space-y-3 sm:space-y-4 text-sm">
               <li><Link to="/privacy" className="hover:text-primary-400 transition-colors">Privacy Policy</Link></li>
               <li><Link to="/terms" className="hover:text-primary-400 transition-colors">Terms of Service</Link></li>

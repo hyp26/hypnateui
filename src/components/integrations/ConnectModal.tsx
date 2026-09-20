@@ -13,6 +13,7 @@ interface ConnectModalProps {
 export const ConnectModal: React.FC<ConnectModalProps> = ({ isOpen, onClose, platform }) => {
   const connectChannel = useIntegrationStore((state) => state.connectChannel);
   const [isLoading, setIsLoading] = useState(false);
+  const [connectError, setConnectError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     phoneNumber: '',
     apiKey: '',
@@ -24,11 +25,12 @@ export const ConnectModal: React.FC<ConnectModalProps> = ({ isOpen, onClose, pla
   const handleConnect = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setConnectError(null);
     try {
       await connectChannel(platform, formData);
       onClose();
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      setConnectError(error?.message || 'Could not connect this channel. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -80,13 +82,19 @@ export const ConnectModal: React.FC<ConnectModalProps> = ({ isOpen, onClose, pla
           </div>
         </div>
 
-        <form onSubmit={handleConnect} className="space-y-4">
+        <form onSubmit={handleConnect} className="space-y-4" noValidate>
+          {connectError && (
+            <div role="alert" aria-live="assertive" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{connectError}</div>
+          )}
           {platform === 'whatsapp' && (
             <>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                <label htmlFor="connect-whatsapp-phone" className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
                 <input
+                  id="connect-whatsapp-phone"
+                  name="phoneNumber"
                   type="tel"
+                  autoComplete="tel"
                   placeholder="+91 98765 43210"
                   required
                   value={formData.phoneNumber}
@@ -95,9 +103,12 @@ export const ConnectModal: React.FC<ConnectModalProps> = ({ isOpen, onClose, pla
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">WhatsApp Business API Key</label>
+                <label htmlFor="connect-whatsapp-api-key" className="block text-sm font-medium text-gray-700 mb-1">WhatsApp Business API Key</label>
                 <input
+                  id="connect-whatsapp-api-key"
+                  name="apiKey"
                   type="password"
+                  autoComplete="off"
                   placeholder="EAAG..."
                   required
                   value={formData.apiKey}
@@ -111,9 +122,12 @@ export const ConnectModal: React.FC<ConnectModalProps> = ({ isOpen, onClose, pla
 
           {platform === 'telegram' && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Bot Token</label>
+              <label htmlFor="connect-telegram-bot-token" className="block text-sm font-medium text-gray-700 mb-1">Bot Token</label>
               <input
+                id="connect-telegram-bot-token"
+                name="botToken"
                 type="text"
+                autoComplete="off"
                 placeholder="123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
                 required
                 value={formData.botToken}
@@ -130,7 +144,7 @@ export const ConnectModal: React.FC<ConnectModalProps> = ({ isOpen, onClose, pla
                 onClick={handleConnect}
                 className="w-full bg-[#1877F2] hover:bg-[#166fe5] text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors"
               >
-                <Facebook className="w-5 h-5" />
+                <Facebook className="w-5 h-5" aria-hidden="true" />
                 Continue with Facebook
               </button>
               <p className="text-xs text-gray-500 text-center mt-3">

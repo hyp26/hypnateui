@@ -37,9 +37,9 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
           type="button"
           className="auth-back-button"
           onClick={() => navigate(-1)}
-          aria-label="Go back"
+          aria-label="Go back to the previous page"
         >
-          <ArrowLeft size={18} />
+          <ArrowLeft size={18} aria-hidden="true" />
         </button>
       </header>
 

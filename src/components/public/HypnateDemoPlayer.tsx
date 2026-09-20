@@ -78,13 +78,13 @@ const SceneDashboard: React.FC = () => {
 const SceneWhatsApp: React.FC = () => {
     const msgs = [
         { from: "customer", text: "Hi! Do you have the cotton kurta in size M?" },
-        { from: "bot", text: "Yes — ₹1,299. Shall I add it to the order?", ai: true },
+        { from: "merchant", text: "Yes — ₹1,299. I can add the requested item to the order.", },
         { from: "customer", text: "Yes please. COD ok?" },
-        { from: "bot", text: "Order added to the example workflow — Cotton Kurta (M) · COD ₹1,299.", ai: true },
+        { from: "merchant", text: "Example order workflow — Cotton Kurta (M) · COD ₹1,299.", },
         { from: "system", text: "Example order created" },
     ];
     return (
-        <SceneBox title="WhatsApp — Example assisted conversation">
+        <SceneBox title="WhatsApp — Example conversation workflow">
             <div style={{ background: "#e5ddd5", borderRadius: 7, padding: 7, display: "flex", flexDirection: "column", gap: 4 }}>
                 <div style={{ background: "#075e54", borderRadius: "5px 5px 0 0", padding: "6px 8px", margin: "-7px -7px 7px", display: "flex", alignItems: "center", gap: 6 }}>
                     <div style={{ width: 20, height: 20, borderRadius: "50%", background: "#25d366", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 700, color: "#fff" }}>P</div>
@@ -92,11 +92,10 @@ const SceneWhatsApp: React.FC = () => {
                 </div>
                 {msgs.map((m, i) => {
                     if (m.from === "system") return <div key={i} style={{ background: "rgba(0,0,0,.1)", borderRadius: 5, padding: "2px 7px", alignSelf: "center", color: "#555", fontSize: 8, textAlign: "center" }}>{m.text}</div>;
-                    const isBot = m.from === "bot";
+                    const isBot = m.from === "merchant";
                     return (
                         <div key={i} style={{ maxWidth: "82%", padding: "5px 8px", borderRadius: 7, fontSize: 10, lineHeight: 1.4, alignSelf: isBot ? "flex-end" : "flex-start", background: isBot ? "#dcf8c6" : "#fff", color: "#1a1a1a" }}>
                             {m.text}
-                            {m.ai && <span style={{ background: "#0d9488", color: "#fff", fontSize: 7, fontWeight: 700, padding: "1px 5px", borderRadius: 20, marginLeft: 4 }}>AI</span>}
                         </div>
                     );
                 })}
@@ -185,7 +184,7 @@ const ScenePayments: React.FC = () => {
 
 const SceneAnalytics: React.FC = () => {
     const bars = [30, 50, 42, 65, 48, 78, 90];
-    const channels = [{ name: "WhatsApp", pct: 65, color: "#25d366" }, { name: "Instagram", pct: 25, color: "#e1306c" }, { name: "Facebook", pct: 10, color: "#1877f2" }];
+    const channels = [{ name: "WhatsApp", pct: 55, color: "#25d366" }, { name: "Instagram", pct: 20, color: "#e1306c" }, { name: "Facebook", pct: 15, color: "#1877f2" }, { name: "Telegram", pct: 10, color: "#26a5e4" }];
     return (
         <SceneBox title="Analytics — Example commerce overview">
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 5, marginBottom: 8 }}>
@@ -225,7 +224,10 @@ const SIDEBAR_ACTIVES = ["Dashboard", "Conversations", "Products", "Orders", "Pa
 export const HypnateDemoPlayer: React.FC = () => {
     const navigate = useNavigate();
     const [cur, setCur] = useState(0);
-    const [playing, setPlaying] = useState(true);
+    const [playing, setPlaying] = useState(() => {
+        if (typeof window === "undefined") return false;
+        return !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    });
     const [progress, setProgress] = useState(0);
     const progRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const progressRef = useRef(0);
@@ -279,24 +281,33 @@ export const HypnateDemoPlayer: React.FC = () => {
                         <div className="hdp-info-title">{SCENES[cur].title}</div>
                         <div className="hdp-info-sub">{SCENES[cur].sub}</div>
                     </div>
-                    <button className="hdp-play-btn" onClick={() => setPlaying(p => !p)}>
+                    <button type="button" className="hdp-play-btn" aria-label={playing ? "Pause walkthrough" : "Play walkthrough"} onClick={() => setPlaying(p => !p)}>
                         {playing ? "⏸" : "▶"}
                     </button>
                 </div>
 
                 {/* Controls */}
                 <div className="hdp-controls">
-                    <button className="hdp-ctrl-btn hdp-prev" onClick={() => goTo((cur - 1 + SCENES.length) % SCENES.length)}>← Prev</button>
+                    <button type="button" aria-label="Previous walkthrough scene" className="hdp-ctrl-btn hdp-prev" onClick={() => goTo((cur - 1 + SCENES.length) % SCENES.length)}>← Prev</button>
                     <div className="hdp-dots-row">
-                        {SCENES.map((_, i) => <div key={i} className={"hdp-dot" + (i === cur ? " active" : "")} onClick={() => goTo(i)} />)}
+                        {SCENES.map((scene, i) => (
+                            <button
+                                key={scene.id}
+                                type="button"
+                                className={"hdp-dot" + (i === cur ? " active" : "")}
+                                aria-label={`Go to ${scene.title} scene`}
+                                aria-current={i === cur ? "step" : undefined}
+                                onClick={() => goTo(i)}
+                            />
+                        ))}
                     </div>
-                    <button className="hdp-ctrl-btn hdp-next" onClick={() => goTo((cur + 1) % SCENES.length)}>Next →</button>
+                    <button type="button" aria-label="Next walkthrough scene" className="hdp-ctrl-btn hdp-next" onClick={() => goTo((cur + 1) % SCENES.length)}>Next →</button>
                 </div>
 
                 {/* CTA */}
                 <div className="hdp-cta">
                     <span className="hdp-cta-txt">Ready to set this up for your business?</span>
-                    <button className="hdp-cta-btn" onClick={() => navigate("/signup")}>Start free →</button>
+                    <button type="button" className="hdp-cta-btn" onClick={() => navigate("/signup")}>Get started →</button>
                 </div>
             </div>
         </>
@@ -380,7 +391,7 @@ const css = `
 .hdp-next { background: #0d9488; color: #fff; }
 .hdp-next:hover { background: #0f766e; }
 .hdp-dots-row { display: flex; gap: 4px; align-items: center; }
-.hdp-dot { width: 6px; height: 6px; border-radius: 50%; background: #334155; cursor: pointer; transition: all .2s; }
+.hdp-dot { width: 6px; height: 6px; padding: 0; border: 0; border-radius: 50%; background: #334155; cursor: pointer; transition: all .2s; appearance: none; -webkit-appearance: none; font: inherit; }
 .hdp-dot.active { background: #0d9488; width: 14px; border-radius: 3px; }
 
 .hdp-cta {

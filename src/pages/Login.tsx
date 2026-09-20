@@ -7,8 +7,6 @@ import {
   validateLoginPassword,
 } from "../utils/Validation";
 
-const API = process.env.REACT_APP_API_URL;
-
 interface FieldErrors {
   email?: string;
   password?: string;
@@ -47,22 +45,21 @@ export const Login: React.FC = () => {
     setIsLoading(true);
 
     try {
-      await login(email, password);
-      navigate("/dashboard", { replace: true });
+      const user = await login(email.trim(), password);
+      const destination = user.role === "SELLER" && !user.seller?.onboardedAt
+        ? "/onboarding"
+        : "/dashboard";
+      navigate(destination, { replace: true });
     } catch (err: any) {
+      if (err?.code === "EMAIL_NOT_VERIFIED") {
+        navigate("/verify-email", { state: { email: email.trim() }, replace: true });
+        return;
+      }
+
       setFormError(err?.message || "Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleGoogleLogin = () => {
-    if (!API) {
-      setFormError("API not configured");
-      return;
-    }
-
-    window.location.href = `${API}/api/auth/google`;
   };
 
   return (
@@ -90,7 +87,7 @@ export const Login: React.FC = () => {
       }
     >
       {formError && (
-        <div className="auth-error" role="alert">
+        <div className="auth-error" role="alert" aria-live="assertive">
           {formError}
         </div>
       )}
@@ -106,10 +103,11 @@ export const Login: React.FC = () => {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             aria-invalid={Boolean(fieldErrors.email)}
+            aria-describedby={fieldErrors.email ? "login-email-error" : undefined}
             autoFocus
           />
           {fieldErrors.email && (
-            <span className="auth-field-error">{fieldErrors.email}</span>
+            <span id="login-email-error" className="auth-field-error" role="alert">{fieldErrors.email}</span>
           )}
         </div>
 
@@ -128,6 +126,7 @@ export const Login: React.FC = () => {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               aria-invalid={Boolean(fieldErrors.password)}
+              aria-describedby={fieldErrors.password ? "login-password-error" : undefined}
             />
             <button
               type="button"
@@ -140,7 +139,7 @@ export const Login: React.FC = () => {
           </div>
 
           {fieldErrors.password && (
-            <span className="auth-field-error">{fieldErrors.password}</span>
+            <span id="login-password-error" className="auth-field-error" role="alert">{fieldErrors.password}</span>
           )}
         </div>
 
@@ -148,32 +147,16 @@ export const Login: React.FC = () => {
           type="submit"
           className="auth-primary-button"
           disabled={isLoading}
+          aria-busy={isLoading}
         >
           {isLoading ? (
-            <span className="auth-spinner" aria-hidden="true" />
+            <><span className="auth-spinner" aria-hidden="true" /> Signing in…</>
           ) : (
             "Log in"
           )}
         </button>
       </form>
 
-      <div className="auth-divider">
-        <span />
-        <em>or</em>
-        <span />
-      </div>
-
-      <button
-        type="button"
-        className="auth-social-button"
-        onClick={handleGoogleLogin}
-        disabled={isLoading}
-      >
-        <span className="auth-google-mark" aria-hidden="true">
-          G
-        </span>
-        Continue with Google
-      </button>
     </AuthLayout>
   );
 };

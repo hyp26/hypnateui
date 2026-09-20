@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Button } from '../../components/ui/Button';
 import {
   MessageCircle, ShoppingBag, CreditCard, BarChart3,
-  Bot, Instagram, ArrowRight, Check, Zap, Package
+  Bot, Instagram, Facebook, Send, ArrowRight, Check, Zap, Package
 } from 'lucide-react';
+import { PUBLIC_CHANNEL_SUMMARY } from '../../data/publicChannels';
 
 // Simple intersection observer hook for scroll animations
 function useInView(threshold = 0.15) {
@@ -32,8 +32,8 @@ const FEATURES = [
     points: [
       'Interactive catalog content with images and pricing',
       'Supported follow-up messages for incomplete purchases',
-      'Order confirmation & shipping updates via WhatsApp',
-      'Audience-based messaging on supported channels',
+      'Order confirmation and shipping updates via WhatsApp',
+      'Supported messaging workflows across connected channels',
       'Supports COD and payment-link workflows where configured',
     ],
     stat: { value: 'Conversational', label: 'Commerce workflow' },
@@ -44,17 +44,34 @@ const FEATURES = [
     icon: Instagram,
     color: '#e1306c',
     bg: '#fce7f3',
-    label: 'Instagram & Facebook DM Sales',
+    label: 'Instagram & Facebook Commerce',
     headline: 'Turn conversations into assisted sales workflows',
-    body: 'Hypnate can assist with product questions and supported DM and comment workflows, with human handoff when needed.',
+    body: 'Bring Instagram and Facebook customer conversations into the same commerce workspace used for supported product, order and payment workflows.',
     points: [
-      'AI-assisted replies on supported DM and comment workflows',
-      'Unified inbox for Instagram, Facebook & Telegram',
-      'AI that matches your brand\'s tone and language',
-      'Smart handoff to human agent when needed',
+      'Support for connected Instagram and Facebook conversation workflows',
+      'Unified commerce workspace across all four launch channels',
+      'Product and customer context alongside conversations',
+      'Human review remains available in the workflow',
     ],
-    stat: { value: 'AI-assisted', label: 'DM and comment workflows' },
+    stat: { value: 'Connected', label: 'Conversation workflows' },
     dark: true,
+  },
+  {
+    id: 'telegram',
+    icon: Send,
+    color: '#26a5e4',
+    bg: '#e0f2fe',
+    label: 'Telegram Commerce',
+    headline: 'Keep Telegram conversations in your commerce workflow',
+    body: 'Connect Telegram conversations with the same product, customer and order workspace used across the other supported launch channels.',
+    points: [
+      'Telegram conversation workflow support',
+      'Customer context alongside commerce records',
+      'Product information available in the shared workspace',
+      'Order and payment workflows where configured',
+    ],
+    stat: { value: 'Connected', label: 'Commerce workflow' },
+    dark: false,
   },
   {
     id: 'orders',
@@ -63,9 +80,9 @@ const FEATURES = [
     bg: '#dbeafe',
     label: 'Order Management',
     headline: 'From conversation to structured order',
-    body: 'Supported sales conversations can be converted into structured order records in your dashboard. Track status, assign conversations or work to team members, export reports, and manage customer updates from one place.',
+    body: 'Manage structured order records in your dashboard. Track status, manage customer details, export reports, and keep commerce activity in one place.',
     points: [
-      'Order creation from supported chat conversations',
+      'Structured order creation from the dashboard',
       'Order status tracking (Pending → Delivered)',
       'Bulk export to CSV for accounting & logistics',
       'COD workflows on supported configurations',
@@ -86,7 +103,6 @@ const FEATURES = [
       'Razorpay payment-link workflow for supported accounts',
       'Payment-link dispatch from supported order workflows',
       'Paid and pending payment status in the dashboard',
-      'Payment follow-up workflow on supported configurations',
       'Invoice workflows on supported configurations',
     ],
     stat: { value: 'Integrated', label: 'Payment-link workflow' },
@@ -97,17 +113,16 @@ const FEATURES = [
     icon: Bot,
     color: '#f59e0b',
     bg: '#fef3c7',
-    label: 'AI Sales Agent',
-    headline: 'AI assistance for sales conversations',
-    body: 'Hypnate\'s AI can use configured product and business information to assist with product questions and supported customer conversations.',
+    label: 'AI Catalog Assistance',
+    headline: 'Turn catalog documents into structured product data',
+    body: 'When AI catalog extraction is configured, Hypnate can read supported catalog documents and extract product fields into structured product rows during onboarding.',
     points: [
-      'Uses your configured catalog and FAQs as business context',
-      'Supports configured language preferences, including Hindi and English',
-      'Assists with product questions and common objections',
-      'Can suggest related products when configured',
-      'Human handoff when configured or needed',
+      'Extracts product name, price, description and category where available',
+      'Uses uploaded catalog text as the source document',
+      'Returns structured rows for product onboarding',
+      'Available when the required AI configuration is enabled',
     ],
-    stat: { value: 'AI-assisted', label: 'Sales and support conversations' },
+    stat: { value: 'AI-assisted', label: 'Catalog extraction' },
     dark: true,
   },
   {
@@ -123,7 +138,7 @@ const FEATURES = [
       'Top products by available sales data',
       'Order and payment activity where available',
       'Customer and sales insights where available',
-      'Available team and response metrics',
+      'Available commerce and customer insights',
     ],
     stat: { value: 'Centralized', label: 'Commerce analytics dashboard' },
     dark: false,
@@ -185,7 +200,7 @@ function FeatureSection({ feature, index }: { feature: typeof FEATURES[0]; index
             fontSize: 12, fontWeight: 700, letterSpacing: '0.5px',
             textTransform: 'uppercase', marginBottom: 20,
           }}>
-            <Icon size={14} />
+            <Icon size={14} aria-hidden="true" />
             {feature.label}
           </div>
 
@@ -215,7 +230,7 @@ function FeatureSection({ feature, index }: { feature: typeof FEATURES[0]; index
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   flexShrink: 0, marginTop: 1,
                 }}>
-                  <Check size={11} strokeWidth={3} />
+                  <Check size={11} strokeWidth={3} aria-hidden="true" />
                 </span>
                 <span style={{ color: feature.dark ? 'rgba(255,255,255,0.8)' : '#374151' }}>{pt}</span>
               </li>
@@ -331,7 +346,7 @@ export const Features = () => {
             fontSize: 12, fontWeight: 700, letterSpacing: '0.8px',
             textTransform: 'uppercase', marginBottom: 28,
           }}>
-            <Zap size={13} />
+            <Zap size={13} aria-hidden="true" />
             Built for Indian D2C Brands
           </div>
 
@@ -353,32 +368,30 @@ export const Features = () => {
             fontSize: 'clamp(15px, 2.5vw, 19px)', color: 'rgba(255,255,255,0.55)',
             lineHeight: 1.7, marginBottom: 40, maxWidth: 560, margin: '0 auto 40px',
           }}>
-            Hypnate brings order tracking, conversation management, and payment workflows into one platform for supported WhatsApp, Instagram, and Facebook commerce use cases.
+            Hypnate brings order tracking, conversation management, and payment workflows into one platform for supported {PUBLIC_CHANNEL_SUMMARY} commerce use cases.
           </p>
 
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link to="/signup">
-              <button style={{
-                background: '#0d9488', color: '#fff', border: 'none',
-                padding: '14px 32px', borderRadius: 100,
-                fontSize: 15, fontWeight: 700, cursor: 'pointer',
-                display: 'inline-flex', alignItems: 'center', gap: 8,
-                boxShadow: '0 8px 32px rgba(13,148,136,0.4)',
-                fontFamily: "'DM Sans', sans-serif",
-              }}>
-                Get Started <ArrowRight size={16} />
-              </button>
+            <Link to="/signup" style={{
+              background: '#0d9488', color: '#fff', border: 'none',
+              padding: '14px 32px', borderRadius: 100,
+              fontSize: 15, fontWeight: 700, cursor: 'pointer',
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              boxShadow: '0 8px 32px rgba(13,148,136,0.4)',
+              fontFamily: "'DM Sans', sans-serif",
+              textDecoration: 'none',
+            }}>
+              Get Started <ArrowRight size={16} aria-hidden="true" />
             </Link>
-            <Link to="/pricing">
-              <button style={{
-                background: 'rgba(255,255,255,0.08)', color: '#fff',
-                border: '1px solid rgba(255,255,255,0.2)',
-                padding: '14px 28px', borderRadius: 100,
-                fontSize: 15, fontWeight: 600, cursor: 'pointer',
-                fontFamily: "'DM Sans', sans-serif",
-              }}>
-                View Pricing
-              </button>
+            <Link to="/pricing" style={{
+              background: 'rgba(255,255,255,0.08)', color: '#fff',
+              border: '1px solid rgba(255,255,255,0.2)',
+              padding: '14px 28px', borderRadius: 100,
+              fontSize: 15, fontWeight: 600, cursor: 'pointer',
+              fontFamily: "'DM Sans', sans-serif",
+              textDecoration: 'none',
+            }}>
+              View Pricing
             </Link>
           </div>
         </div>
@@ -450,7 +463,7 @@ export const Features = () => {
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     marginBottom: 14,
                   }}>
-                    <Icon size={20} />
+                    <Icon size={20} aria-hidden="true" />
                   </div>
                   <h3 style={{ fontSize: 15, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>{f.label}</h3>
                   <p style={{ fontSize: 13, color: '#64748b', lineHeight: 1.6 }}>{f.desc}</p>
@@ -477,17 +490,16 @@ export const Features = () => {
         <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.7)', marginBottom: 36 }}>
           Current trial terms are shown at signup and checkout.
         </p>
-        <Link to="/signup">
-          <button style={{
-            background: '#fff', color: '#0d9488',
-            border: 'none', padding: '15px 36px', borderRadius: 100,
-            fontSize: 16, fontWeight: 800, cursor: 'pointer',
-            display: 'inline-flex', alignItems: 'center', gap: 8,
-            fontFamily: "'DM Sans', sans-serif",
-            boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
-          }}>
-            Get Started <ArrowRight size={17} />
-          </button>
+        <Link to="/signup" style={{
+          background: '#fff', color: '#0d9488',
+          border: 'none', padding: '15px 36px', borderRadius: 100,
+          fontSize: 16, fontWeight: 800, cursor: 'pointer',
+          display: 'inline-flex', alignItems: 'center', gap: 8,
+          fontFamily: "'DM Sans', sans-serif",
+          boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+          textDecoration: 'none',
+        }}>
+          Get Started <ArrowRight size={17} aria-hidden="true" />
         </Link>
       </section>
     </div>

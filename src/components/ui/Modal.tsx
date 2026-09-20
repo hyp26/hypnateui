@@ -42,10 +42,12 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
                     {title}
                   </Dialog.Title>
                   <button
+                    type="button"
                     onClick={onClose}
+                    aria-label={`Close ${title}`}
                     className="rounded-full p-1 hover:bg-gray-100 transition-colors"
                   >
-                    <X className="w-5 h-5 text-gray-500" />
+                    <X className="w-5 h-5 text-gray-500" aria-hidden="true" />
                   </button>
                 </div>
                 

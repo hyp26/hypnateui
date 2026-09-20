@@ -66,7 +66,6 @@ export const useProductStore = create<ProductState>((set, get) => ({
         loading: false,
       });
     } catch (err: any) {
-      console.error("fetchProducts error:", err);
       set({ products: [], total: 0, loading: false });
     }
   },
@@ -85,7 +84,6 @@ export const useProductStore = create<ProductState>((set, get) => ({
 
       return res.data;
     } catch (err: any) {
-      console.error("addProduct error:", err);
       throw new Error(err?.response?.data?.message || "Failed to add product");
     }
   },
@@ -103,7 +101,6 @@ export const useProductStore = create<ProductState>((set, get) => ({
 
       return res.data;
     } catch (err: any) {
-      console.error("updateProduct error:", err);
       throw new Error(err?.response?.data?.message || "Failed to update product");
     }
   },
@@ -120,7 +117,6 @@ export const useProductStore = create<ProductState>((set, get) => ({
         total: Math.max(0, state.total - 1),
       }));
     } catch (err: any) {
-      console.error("deleteProduct error:", err);
       throw new Error(err?.response?.data?.message || "Failed to delete product");
     }
   },

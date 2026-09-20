@@ -1,30 +1,44 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../lib/api";
 
-export default function ConversationList({ onSelect }: any) {
-    const [conversations, setConversations] = useState([]);
+interface Conversation {
+  id: string;
+  customerName?: string;
+  lastMessage?: string;
+}
 
-    useEffect(() => {
-        fetchConversations();
-    }, []);
+export default function ConversationList({ onSelect }: { onSelect: (conversation: Conversation) => void }) {
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    let active = true;
     const fetchConversations = async () => {
-        const res = await axios.get("http://localhost:4000/api/conversations");
-        setConversations(res.data);
+      try {
+        const res = await api.get("/api/conversations");
+        if (active) setConversations(Array.isArray(res.data) ? res.data : []);
+      } catch (err: any) {
+        if (active) setError(err?.response?.data?.message || "Could not load conversations.");
+      }
     };
+    void fetchConversations();
+    return () => { active = false; };
+  }, []);
 
-    return (
-        <div style={{ width: "30%", borderRight: "1px solid #ccc" }}>
-            {conversations.map((c: any) => (
-                <div
-                    key={c.id}
-                    onClick={() => onSelect(c)}
-                    style={{ padding: 10, cursor: "pointer" }}
-                >
-                    <strong>{c.customerName}</strong>
-                    <p>{c.lastMessage}</p>
-                </div>
-            ))}
-        </div>
-    );
+  return (
+    <div style={{ width: "30%", borderRight: "1px solid #ccc" }}>
+      {error && <p role="alert" style={{ padding: 10, color: "#b91c1c" }}>{error}</p>}
+      {conversations.map((conversation) => (
+        <button
+          key={conversation.id}
+          type="button"
+          onClick={() => onSelect(conversation)}
+          style={{ display: "block", width: "100%", padding: 10, textAlign: "left", cursor: "pointer", background: "transparent", border: 0 }}
+        >
+          <strong>{conversation.customerName || "Unknown customer"}</strong>
+          <p>{conversation.lastMessage || "No messages yet"}</p>
+        </button>
+      ))}
+    </div>
+  );
 }

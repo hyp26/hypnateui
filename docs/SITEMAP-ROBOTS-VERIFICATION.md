@@ -65,8 +65,6 @@ The robots policy disallows the auth and application areas:
 
 /hypnate-x
 
-/blog
-
 Product sub-routes such as /products/:id and /orders/:id are covered by the parent-path Disallow rules.
 
 Verification

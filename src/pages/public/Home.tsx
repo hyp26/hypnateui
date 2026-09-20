@@ -12,9 +12,10 @@ import {
   Send,
   ShoppingBag,
   Users,
+  Globe2,
 } from 'lucide-react';
-import { Button } from '../../components/ui/Button';
 import { HypnateDemoPlayer } from '../../components/public/HypnateDemoPlayer';
+import { PUBLIC_CHANNELS, PUBLIC_CHANNEL_SUMMARY } from '../../data/publicChannels';
 import { SoftwareApplicationStructuredData } from '../../components/public/StructuredData';
 import '../../styles/Home.css';
 
@@ -26,13 +27,13 @@ const channels = [
     tone: 'home-channel-whatsapp',
   },
   {
-    label: 'Instagram DM Sales',
+    label: 'Instagram Commerce',
     text: 'Turn product conversations into sales workflows.',
     icon: Instagram,
     tone: 'home-channel-instagram',
   },
   {
-    label: 'Facebook Integration',
+    label: 'Facebook Commerce',
     text: 'Manage supported conversations in one place.',
     icon: Users,
     tone: 'home-channel-facebook',
@@ -49,12 +50,12 @@ const features = [
   {
     icon: MessageCircle,
     title: 'Omnichannel Inbox',
-    desc: 'Bring supported WhatsApp, Instagram, Facebook and Telegram conversations together.',
+    desc: `Bring supported ${PUBLIC_CHANNEL_SUMMARY} conversations together.`,
   },
   {
     icon: ShoppingBag,
     title: 'Order Management',
-    desc: 'Turn eligible conversations into structured orders and manage them from one dashboard.',
+    desc: 'Manage structured order records and commerce activity from one dashboard.',
   },
   {
     icon: CreditCard,
@@ -73,8 +74,8 @@ const features = [
   },
   {
     icon: Bot,
-    title: 'AI Sales Assistance',
-    desc: 'Use AI assistance for product questions and supported customer conversations.',
+    title: 'AI Catalog Assistance',
+    desc: 'Use configured AI catalog extraction to turn supported catalog documents into structured product data.',
   },
 ];
 
@@ -82,7 +83,7 @@ const steps = [
   {
     step: '01',
     title: 'Connect your channels',
-    desc: 'Connect supported WhatsApp, Instagram, Facebook and Telegram accounts.',
+    desc: `Connect supported ${PUBLIC_CHANNEL_SUMMARY} accounts.`,
     icon: MessageCircle,
   },
   {
@@ -109,7 +110,7 @@ const earlyStageCards = [
   {
     icon: MessageCircle,
     title: 'Conversations first',
-    desc: 'Bring supported WhatsApp, Instagram, Facebook and Telegram conversations into one workspace.',
+    desc: `Bring supported ${PUBLIC_CHANNEL_SUMMARY} conversations into one workspace.`,
   },
   {
     icon: ShoppingBag,
@@ -169,26 +170,22 @@ export const Home = () => {
             </h1>
 
             <p className="home-hero-subtitle home-reveal home-delay-3">
-              Turn WhatsApp, Instagram, Facebook and Telegram conversations into a simpler commerce workflow for products, orders, payments and customers.
+              Turn {PUBLIC_CHANNEL_SUMMARY} conversations into a simpler commerce workflow for products, orders, payments and customers.
             </p>
 
             <div className="home-hero-actions home-reveal home-delay-4">
-              <Link to="/signup">
-                <Button size="lg" className="home-primary-cta rounded-full px-7">
-                  Get Started <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
+              <Link to="/signup" className="home-primary-cta rounded-full px-7 inline-flex items-center justify-center font-semibold">
+                Get Started <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
               </Link>
-              <Link to="/contact">
-                <Button variant="outline" size="lg" className="home-secondary-cta rounded-full px-7">
-                  Book a Demo
-                </Button>
+              <Link to="/contact" className="home-secondary-cta rounded-full px-7 inline-flex items-center justify-center font-semibold">
+                Book a Demo
               </Link>
             </div>
 
             <div className="home-hero-checks home-reveal home-delay-5">
               {['Guided setup', 'Works with supported business channels', 'Built for Indian businesses'].map((item) => (
                 <div key={item} className="home-check-row">
-                  <span className="home-check-icon"><Check className="h-3.5 w-3.5" /></span>
+                  <span className="home-check-icon"><Check className="h-3.5 w-3.5" aria-hidden="true" /></span>
                   <span>{item}</span>
                 </div>
               ))}
@@ -205,28 +202,28 @@ export const Home = () => {
             <div className="home-hero-glow" aria-hidden="true" />
             <div className="home-dashboard-wrap">
               <div className="home-floating home-floating-wa home-float-delay-1">
-                <div className="home-floating-icon home-floating-green"><MessageCircle className="h-5 w-5" /></div>
+                <div className="home-floating-icon home-floating-green"><MessageCircle className="h-5 w-5" aria-hidden="true" /></div>
                 <div>
                   <strong>Example order</strong>
                   <span>₹2,199</span>
                 </div>
               </div>
               <div className="home-floating home-floating-ig home-float-delay-2">
-                <div className="home-floating-icon home-floating-pink"><Instagram className="h-5 w-5" /></div>
+                <div className="home-floating-icon home-floating-pink"><Instagram className="h-5 w-5" aria-hidden="true" /></div>
                 <div>
                   <strong>Example DM</strong>
                   <span>Product inquiry</span>
                 </div>
               </div>
               <div className="home-floating home-floating-fb home-float-delay-3">
-                <div className="home-floating-icon home-floating-blue"><Users className="h-5 w-5" /></div>
+                <div className="home-floating-icon home-floating-blue"><Users className="h-5 w-5" aria-hidden="true" /></div>
                 <div>
                   <strong>Example message</strong>
                   <span>Can you share the catalog?</span>
                 </div>
               </div>
               <div className="home-floating home-floating-tg home-float-delay-4">
-                <div className="home-floating-icon home-floating-sky"><Send className="h-5 w-5" /></div>
+                <div className="home-floating-icon home-floating-sky"><Send className="h-5 w-5" aria-hidden="true" /></div>
                 <div>
                   <strong>Example Telegram</strong>
                   <span>New conversation</span>
@@ -252,11 +249,12 @@ export const Home = () => {
       <section className="home-trust-strip">
         <div className="home-container">
           <p className="home-section-kicker">POWERING CHAT-FIRST COMMERCE</p>
+          <h2 className="sr-only">Supported channels</h2>
           <div className="home-channel-grid">
             {channels.map(({ label, text, icon: Icon, tone }) => (
               <div key={label} className="home-channel-card home-reveal-on-scroll">
                 <div className={`home-channel-icon ${tone}`}>
-                  <Icon className="h-5 w-5" />
+                  <Icon className="h-5 w-5" aria-hidden="true" />
                 </div>
                 <div>
                   <h3>{label}</h3>
@@ -281,8 +279,8 @@ export const Home = () => {
             <div className="home-step-line" aria-hidden="true" />
             {steps.map(({ step, title, desc, icon: Icon }, index) => (
               <div key={step} className="home-step-card home-reveal-on-scroll" style={{ animationDelay: `${index * 90}ms` }}>
-                <div className="home-step-number">{step}</div>
-                <div className="home-step-icon"><Icon className="h-5 w-5" /></div>
+                <div className="home-step-number" aria-hidden="true">{step}</div>
+                <div className="home-step-icon"><Icon className="h-5 w-5" aria-hidden="true" /></div>
                 <h3>{title}</h3>
                 <p>{desc}</p>
               </div>
@@ -301,17 +299,15 @@ export const Home = () => {
             <p>
               Hypnate brings conversations, orders, payments, products and customers into one place so your team can manage social commerce with less complexity.
             </p>
-            <Link to="/features">
-              <Button className="rounded-full px-6">
-                Explore Features <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
+            <Link to="/features" className="rounded-full px-6 inline-flex items-center justify-center font-semibold bg-primary-500 text-white hover:bg-primary-600">
+              Explore Features <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
             </Link>
           </div>
 
           <div className="home-feature-grid">
             {features.map(({ icon: Icon, title, desc }, index) => (
               <div key={title} className="home-feature-card home-reveal-on-scroll" style={{ animationDelay: `${index * 70}ms` }}>
-                <div className="home-feature-icon"><Icon className="h-5 w-5" /></div>
+                <div className="home-feature-icon"><Icon className="h-5 w-5" aria-hidden="true" /></div>
                 <div>
                   <h3>{title}</h3>
                   <p>{desc}</p>
@@ -334,7 +330,7 @@ export const Home = () => {
           <div className="home-testimonial-grid">
             {earlyStageCards.map(({ icon: Icon, title, desc }, index) => (
               <article key={title} className="home-testimonial-card home-reveal-on-scroll home-proof-card" style={{ animationDelay: `${index * 90}ms` }}>
-                <div className="home-proof-icon"><Icon className="h-5 w-5" /></div>
+                <div className="home-proof-icon"><Icon className="h-5 w-5" aria-hidden="true" /></div>
                 <h3>{title}</h3>
                 <p>{desc}</p>
               </article>
@@ -351,14 +347,14 @@ export const Home = () => {
             <div className="home-cta-content">
               <div className="home-eyebrow home-cta-eyebrow">READY TO GROW?</div>
               <h2>Start your Hypnate journey today.</h2>
-              <p>Join early businesses building better commerce workflows across WhatsApp, Instagram, Facebook and Telegram.</p>
+              <p>Explore a simpler commerce workflow across {PUBLIC_CHANNEL_SUMMARY}.</p>
             </div>
-            <Link to="/signup" className="home-cta-button-wrap">
-              <Button size="lg" className="home-cta-button rounded-full px-7">
-                Get Started <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
+            <div className="home-cta-button-wrap">
+              <Link to="/signup" className="home-cta-button rounded-full px-7 inline-flex items-center justify-center font-semibold">
+                Get Started <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
+              </Link>
               <span>Explore the platform and see how it fits your workflow.</span>
-            </Link>
+            </div>
           </div>
         </div>
       </section>

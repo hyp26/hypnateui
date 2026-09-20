@@ -24,6 +24,7 @@ import { Login } from './pages/Login';
 import { Signup } from "./pages/Signup";
 import { VerifyEmail } from "./pages/VerifyEmail";
 import { ForgotPassword } from './pages/ForgotPassword';
+import { ResetPassword } from './pages/ResetPassword';
 
 // Dashboard Pages
 import { Dashboard } from './pages/Dashboard';
@@ -52,6 +53,7 @@ import { FAQ } from './pages/public/FAQ';
 import { Terms } from './pages/public/Term';
 import { Privacy } from './pages/public/Privacy';
 import { Refund } from './pages/public/Refund';
+import { NotFound } from './pages/NotFound';
 
 // i18n
 import './i18n/config';
@@ -59,16 +61,43 @@ import './i18n/config';
 /* --------------------------------------------------
  * PROTECTED ROUTE
  * -------------------------------------------------- */
+
+/* --------------------------------------------------
+ * AUTH ENTRY ROUTE
+ * -------------------------------------------------- */
+const AuthEntryRoute = ({ children }: { children: React.ReactNode }) => {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const authInitialized = useAuthStore((state) => state.authInitialized);
+  const user = useAuthStore((state) => state.user);
+
+  if (!authInitialized) return null;
+
+  if (isAuthenticated) {
+    const destination = user?.role === "SELLER" && !user.seller?.onboardedAt
+      ? "/onboarding"
+      : "/dashboard";
+    return <Navigate to={destination} replace />;
+  }
+
+  return <>{children}</>;
+};
+
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const authInitialized = useAuthStore((state) => state.authInitialized);
+  const user = useAuthStore((state) => state.user);
+  const location = useLocation();
 
   if (!authInitialized) {
     return null;
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  }
+
+  if (user?.role === "SELLER" && !user.seller?.onboardedAt && location.pathname !== "/onboarding") {
+    return <Navigate to="/onboarding" replace />;
   }
 
   return <>{children}</>;
@@ -87,7 +116,10 @@ const AuthBootstrap = () => {
      * racing a just-completed login and clearing the authenticated
      * Zustand state.
      */
-    if (location.pathname === "/login" || location.pathname === "/signup") {
+    const isAuthEntry = location.pathname === "/login" || location.pathname === "/signup";
+    const persistedAuthenticated = useAuthStore.getState().isAuthenticated;
+
+    if (isAuthEntry && !persistedAuthenticated) {
       setAuthInitialized(true);
       return;
     }
@@ -125,12 +157,27 @@ function App() {
         </Route>
 
         {/* ---------------- AUTH ---------------- */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+        <Route
+          path="/login"
+          element={
+            <AuthEntryRoute>
+              <Login />
+            </AuthEntryRoute>
+          }
+        />
+        <Route
+          path="/signup"
+          element={
+            <AuthEntryRoute>
+              <Signup />
+            </AuthEntryRoute>
+          }
+        />
         {/* Public: must work even without an active session, since the link
             is opened from an email and may land in a different browser. */}
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
         {/* ---------------- ONBOARDING (protected, no sidebar) ---------------- */}
         <Route
@@ -182,7 +229,7 @@ function App() {
         </Route>
 
         {/* ---------------- FALLBACK ---------------- */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
 
       {/* Global Vercel Analytics */}

@@ -184,7 +184,6 @@ export const useOrderStore = create<OrderState>((set, get) => ({
         : [];
       set({ orders: normalized, loading: false });
     } catch (err: any) {
-      console.error('fetchOrders error:', err);
       set({
         loading: false,
         error: err?.message || 'Failed to load orders',
@@ -210,7 +209,6 @@ export const useOrderStore = create<OrderState>((set, get) => ({
         loading: false,
       }));
     } catch (err: any) {
-      console.error('fetchOrder error:', err);
       set({
         loading: false,
         error: err?.message || 'Failed to load order',
@@ -237,7 +235,6 @@ export const useOrderStore = create<OrderState>((set, get) => ({
         error: null,
       }));
     } catch (err: any) {
-      console.error('updateOrderStatus error:', err);
       set({ error: err?.message || 'Failed to update order status' });
     }
   },
@@ -259,7 +256,6 @@ export const useOrderStore = create<OrderState>((set, get) => ({
         error: null,
       }));
     } catch (err: any) {
-      console.error('updatePaymentStatus error:', err);
       set({ error: err?.message || 'Failed to update payment status' });
     }
   },
@@ -281,7 +277,6 @@ export const useOrderStore = create<OrderState>((set, get) => ({
         error: null,
       }));
     } catch (err: any) {
-      console.error('addTracking error:', err);
       set({ error: err?.message || 'Failed to add tracking number' });
     }
   },

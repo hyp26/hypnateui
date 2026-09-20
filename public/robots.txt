@@ -19,6 +19,5 @@ Disallow: /payments
 Disallow: /analytics
 Disallow: /hypnate-x
 
-# /blog is public and indexable. Invalid article slugs are handled with noindex by the app.
 
 Sitemap: https://hypnate.in/sitemap.xml

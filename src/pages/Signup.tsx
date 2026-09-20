@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuthStore } from "../stores/useAuthStore";
 import { AuthLayout } from "../components/auth/AuthLayout";
+import { PUBLIC_CHANNEL_SUMMARY } from "../data/publicChannels";
 import {
   validateEmail,
   validatePassword,
@@ -16,6 +17,7 @@ interface FieldErrors {
   phone?: string;
   email?: string;
   password?: string;
+  confirmPassword?: string;
 }
 
 export const Signup: React.FC = () => {
@@ -24,7 +26,20 @@ export const Signup: React.FC = () => {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [searchParams] = useSearchParams();
+
+  const requestedPlan = searchParams.get("plan")?.toLowerCase() || "";
+  const selectedPlan = (["starter", "pro", "business"] as const).includes(
+    requestedPlan as "starter" | "pro" | "business"
+  )
+    ? requestedPlan
+    : null;
+
+  const selectedPlanLabel = selectedPlan
+    ? selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)
+    : null;
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -42,6 +57,9 @@ export const Signup: React.FC = () => {
       phone: validatePhone(phone),
       email: validateEmail(email),
       password: validatePassword(password),
+      confirmPassword: password === confirmPassword
+        ? { valid: true }
+        : { valid: false, message: "Passwords do not match" },
     };
 
     const errors: FieldErrors = {};
@@ -65,8 +83,8 @@ export const Signup: React.FC = () => {
     setIsLoading(true);
 
     try {
-      await signup(name, email, password, businessName, phone);
-      navigate("/verify-email", { state: { email } });
+      await signup(name, email, password, businessName, phone, selectedPlan);
+      navigate("/verify-email", { state: { email, plan: selectedPlan } });
     } catch (err: any) {
       setFormError(err?.message || "Signup failed. Please try again.");
     } finally {
@@ -77,7 +95,7 @@ export const Signup: React.FC = () => {
   return (
     <AuthLayout
       title="Create account"
-      subtitle="Get started with Hypnate"
+      subtitle={`Create your Hypnate account for ${PUBLIC_CHANNEL_SUMMARY} commerce.`}
       topLink={
         <>
           Already have an account?{" "}
@@ -92,8 +110,15 @@ export const Signup: React.FC = () => {
         </>
       }
     >
+      {selectedPlanLabel && (
+        <div className="auth-plan-summary" role="status" aria-live="polite">
+          Selected plan: <strong>{selectedPlanLabel}</strong>
+          <Link to="/pricing">Change</Link>
+        </div>
+      )}
+
       {formError && (
-        <div className="auth-error" role="alert">
+        <div className="auth-error" role="alert" aria-live="assertive">
           {formError}
         </div>
       )}
@@ -109,9 +134,10 @@ export const Signup: React.FC = () => {
             onChange={(event) => setName(event.target.value)}
             placeholder="Your name"
             aria-invalid={Boolean(fieldErrors.name)}
+            aria-describedby={fieldErrors.name ? "signup-name-error" : undefined}
           />
           {fieldErrors.name && (
-            <span className="auth-field-error">{fieldErrors.name}</span>
+            <span id="signup-name-error" className="auth-field-error" role="alert">{fieldErrors.name}</span>
           )}
         </div>
 
@@ -125,9 +151,10 @@ export const Signup: React.FC = () => {
             onChange={(event) => setBusinessName(event.target.value)}
             placeholder="Your business name"
             aria-invalid={Boolean(fieldErrors.businessName)}
+            aria-describedby={fieldErrors.businessName ? "signup-business-error" : undefined}
           />
           {fieldErrors.businessName && (
-            <span className="auth-field-error">{fieldErrors.businessName}</span>
+            <span id="signup-business-error" className="auth-field-error" role="alert">{fieldErrors.businessName}</span>
           )}
         </div>
 
@@ -142,9 +169,10 @@ export const Signup: React.FC = () => {
             onChange={(event) => setPhone(event.target.value)}
             placeholder="+91 98XXX XXXXX"
             aria-invalid={Boolean(fieldErrors.phone)}
+            aria-describedby={fieldErrors.phone ? "signup-phone-error" : undefined}
           />
           {fieldErrors.phone && (
-            <span className="auth-field-error">{fieldErrors.phone}</span>
+            <span id="signup-phone-error" className="auth-field-error" role="alert">{fieldErrors.phone}</span>
           )}
         </div>
 
@@ -159,9 +187,10 @@ export const Signup: React.FC = () => {
             onChange={(event) => setEmail(event.target.value)}
             placeholder="you@example.com"
             aria-invalid={Boolean(fieldErrors.email)}
+            aria-describedby={fieldErrors.email ? "signup-email-error" : undefined}
           />
           {fieldErrors.email && (
-            <span className="auth-field-error">{fieldErrors.email}</span>
+            <span id="signup-email-error" className="auth-field-error" role="alert">{fieldErrors.email}</span>
           )}
         </div>
 
@@ -178,6 +207,7 @@ export const Signup: React.FC = () => {
               onChange={(event) => setPassword(event.target.value)}
               placeholder="Create a password"
               aria-invalid={Boolean(fieldErrors.password)}
+              aria-describedby={fieldErrors.password ? "signup-password-error" : "signup-password-hint"}
             />
             <button
               type="button"
@@ -190,13 +220,33 @@ export const Signup: React.FC = () => {
           </div>
 
           {!fieldErrors.password && (
-            <span className="auth-field-hint">
+            <span id="signup-password-hint" className="auth-field-hint">
               Min 8 chars with uppercase, number &amp; special character
             </span>
           )}
 
           {fieldErrors.password && (
-            <span className="auth-field-error">{fieldErrors.password}</span>
+            <span id="signup-password-error" className="auth-field-error" role="alert">{fieldErrors.password}</span>
+          )}
+        </div>
+
+        <div className="auth-field">
+          <label htmlFor="signup-confirm-password">Confirm password</label>
+          <div className="auth-password-wrap">
+            <input
+              id="signup-confirm-password"
+              name="confirmPassword"
+              type={showPassword ? "text" : "password"}
+              autoComplete="new-password"
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              placeholder="Re-enter your password"
+              aria-invalid={Boolean(fieldErrors.confirmPassword)}
+              aria-describedby={fieldErrors.confirmPassword ? "signup-confirm-password-error" : undefined}
+            />
+          </div>
+          {fieldErrors.confirmPassword && (
+            <span id="signup-confirm-password-error" className="auth-field-error" role="alert">{fieldErrors.confirmPassword}</span>
           )}
         </div>
 
@@ -204,9 +254,10 @@ export const Signup: React.FC = () => {
           type="submit"
           className="auth-primary-button"
           disabled={isLoading}
+          aria-busy={isLoading}
         >
           {isLoading ? (
-            <span className="auth-spinner" aria-hidden="true" />
+            <><span className="auth-spinner" aria-hidden="true" /> Creating account…</>
           ) : (
             "Create account"
           )}

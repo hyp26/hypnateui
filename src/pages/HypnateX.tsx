@@ -300,8 +300,10 @@ export const HypnateX: React.FC = () => {
           setBuildError(data.error || "Build failed. Please try again.");
           stopPolling();
         }
-      } catch (err) {
-        console.error("[Poll] status check failed:", err);
+      } catch (err: any) {
+        setBuildError(err?.response?.data?.message || err?.message || "We could not check the build status. Please try again.");
+        setBuildStatus("FAILED");
+        stopPolling();
       }
     };
 

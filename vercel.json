@@ -3,5 +3,8 @@
     "env": {
       "CI": "false"
     }
-  }
+  },
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }

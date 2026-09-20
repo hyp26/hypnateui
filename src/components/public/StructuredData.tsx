@@ -1,4 +1,5 @@
 import React from 'react';
+import { PUBLIC_CHANNEL_SUMMARY } from '../../data/publicChannels';
 
 const SITE_URL = 'https://hypnate.in';
 
@@ -44,7 +45,7 @@ export const SoftwareApplicationStructuredData: React.FC = () => (
       url: SITE_URL,
       applicationCategory: 'BusinessApplication',
       operatingSystem: 'Web',
-      description: 'Commerce workspace for WhatsApp, Instagram, Facebook and Telegram conversations alongside products, orders, payments and customers.',
+      description: `Commerce workspace for ${PUBLIC_CHANNEL_SUMMARY} conversations alongside products, orders, payments and customers.`,
     }}
   />
 );

@@ -76,20 +76,20 @@ export const Contact = () => {
 
             {/* Contact info card */}
             <div style={{ background: '#f0fdfa', borderRadius: 20, padding: 'clamp(20px,3vw,28px)', border: '1px solid #ccfbf1' }}>
-              <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 20, fontWeight: 800, color: '#0f172a', marginBottom: 24 }}>Contact Information</h3>
+              <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 20, fontWeight: 800, color: '#0f172a', marginBottom: 24 }}>Contact Information</h2>
 
               {[
                 {
                   icon: <Mail size={20} />,
                   label: 'Email Us',
                   lines: ['hello@hypnate.in'],
-                  sub: 'We reply within 24 hours on business days',
+                  sub: 'We review messages submitted through the contact form.',
                 },
                 {
                   icon: <MessageSquare size={20} />,
                   label: 'WhatsApp Support',
                   lines: ['+91 7970959155'],
-                  sub: 'Available Mon–Sat, 9am – 7pm IST',
+                  sub: 'WhatsApp is available as a direct contact option.',
                 },
                 {
                   icon: <MapPin size={20} />,
@@ -144,13 +144,14 @@ export const Contact = () => {
             {submitted ? (
               <div style={{ textAlign: 'center', padding: '40px 20px' }}>
                 <CheckCircle size={52} color="#16a34a" style={{ margin: '0 auto 18px' }} />
-                <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 22, fontWeight: 800, color: '#0f172a', marginBottom: 10 }}>
+                <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 22, fontWeight: 800, color: '#0f172a', marginBottom: 10 }}>
                   Message received!
-                </h3>
+                </h2>
                 <p style={{ fontSize: 15, color: '#64748b', lineHeight: 1.65, maxWidth: 340, margin: '0 auto 24px' }}>
-                  Thanks for reaching out. We'll get back to you within 24 hours. You can also WhatsApp us for a faster response.
+                  Thanks for reaching out. We'll review your message and get back to you. You can also reach us directly on WhatsApp.
                 </p>
                 <button
+                  type="button"
                   onClick={() => { setSubmitted(false); setError(''); setForm({ firstName: '', lastName: '', email: '', phone: '', subject: '', message: '' }); }}
                   style={{ background: '#0d9488', color: '#fff', border: 'none', padding: '10px 22px', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}
                 >
@@ -159,35 +160,35 @@ export const Contact = () => {
               </div>
             ) : (
               <>
-                <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 22, fontWeight: 800, color: '#0f172a', marginBottom: 24 }}>
+                <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 22, fontWeight: 800, color: '#0f172a', marginBottom: 24 }}>
                   Send us a message
-                </h3>
+                </h2>
 
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(130px,1fr))', gap: 14 }}>
                     <div>
-                      <label className="contact-label">First Name *</label>
-                      <input required value={form.firstName} onChange={e => set('firstName', e.target.value)} placeholder="Rahul" className="contact-input" />
+                      <label htmlFor="contact-first-name" className="contact-label">First Name *</label>
+                      <input id="contact-first-name" name="firstName" required value={form.firstName} onChange={e => set('firstName', e.target.value)} placeholder="Rahul" className="contact-input" />
                     </div>
                     <div>
-                      <label className="contact-label">Last Name *</label>
-                      <input required value={form.lastName} onChange={e => set('lastName', e.target.value)} placeholder="Sharma" className="contact-input" />
+                      <label htmlFor="contact-last-name" className="contact-label">Last Name *</label>
+                      <input id="contact-last-name" name="lastName" required value={form.lastName} onChange={e => set('lastName', e.target.value)} placeholder="Sharma" className="contact-input" />
                     </div>
                   </div>
 
                   <div>
-                    <label className="contact-label">Email Address *</label>
-                    <input required type="email" value={form.email} onChange={e => set('email', e.target.value)} placeholder="rahul@yourbrand.com" className="contact-input" />
+                    <label htmlFor="contact-email" className="contact-label">Email Address *</label>
+                    <input id="contact-email" name="email" required type="email" value={form.email} onChange={e => set('email', e.target.value)} placeholder="rahul@yourbrand.com" className="contact-input" />
                   </div>
 
                   <div>
-                    <label className="contact-label">Phone Number</label>
-                    <input type="tel" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="+91 98765 43210" className="contact-input" />
+                    <label htmlFor="contact-phone" className="contact-label">Phone Number</label>
+                    <input id="contact-phone" name="phone" type="tel" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="+91 98765 43210" className="contact-input" />
                   </div>
 
                   <div>
-                    <label className="contact-label">Subject *</label>
-                    <select required value={form.subject} onChange={e => set('subject', e.target.value)} className="contact-input">
+                    <label htmlFor="contact-subject" className="contact-label">Subject *</label>
+                    <select id="contact-subject" name="subject" required value={form.subject} onChange={e => set('subject', e.target.value)} className="contact-input">
                       <option value="">Select a topic...</option>
                       <option>General Inquiry</option>
                       <option>Sales & Pricing</option>
@@ -199,8 +200,8 @@ export const Contact = () => {
                   </div>
 
                   <div>
-                    <label className="contact-label">Message *</label>
-                    <textarea
+                    <label htmlFor="contact-message" className="contact-label">Message *</label>
+                    <textarea id="contact-message" name="message"
                       required rows={5}
                       value={form.message}
                       onChange={e => set('message', e.target.value)}
@@ -211,7 +212,7 @@ export const Contact = () => {
                   </div>
 
                   <div style={{ background: '#f8fafc', borderRadius: 10, padding: '10px 14px', fontSize: 12, color: '#94a3b8', lineHeight: 1.55 }}>
-                    💬 For faster support, you can also reach us directly on WhatsApp: <strong style={{ color: '#0f172a' }}>+91 7970959155</strong>
+                    💬 You can also reach us directly on WhatsApp: <strong style={{ color: '#0f172a' }}>+91 7970959155</strong>
                   </div>
 
                   {error && (

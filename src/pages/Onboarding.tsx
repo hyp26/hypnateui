@@ -12,7 +12,7 @@ import { ChannelsStep } from "../components/onboarding/ChannelsStep";
 import { ChannelModal } from "../components/onboarding/ChannelModal";
 import { SummaryStep } from "../components/onboarding/SummaryStep";
 import { SkipConfirmPopup } from "../components/onboarding/SkipConfirmPopup";
-import "../components/onboarding/onboarding.css";
+import "../styles/onboarding.css";
 import type {
   AutoTask, BusinessForm, ChannelData, ModalType, PaymentForm, Step,
 } from "../types/onboarding";
@@ -20,6 +20,10 @@ import type {
 export const Onboarding: React.FC = () => {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
+  const selectedPlan = user?.seller?.selectedPlan;
+  const selectedPlanLabel = selectedPlan
+    ? selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)
+    : null;
 
   const [currentStep, setCurrentStepRaw] = useState<Step>(1);
   const [completed, setCompleted] = useState<Set<number>>(new Set());
@@ -163,6 +167,21 @@ export const Onboarding: React.FC = () => {
               </div>
             </div>
 
+            {selectedPlanLabel && (
+              <div
+                role="status"
+                style={{
+                  marginTop: 14, padding: "10px 14px", borderRadius: 12,
+                  background: "#ecfeff", border: "1px solid #a5f3fc",
+                  color: "#155e75", fontSize: 13, fontWeight: 600,
+                  display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+                }}
+              >
+                <span>Selected plan</span>
+                <strong>{selectedPlanLabel}</strong>
+              </div>
+            )}
+
             <OnboardingStepper current={currentStep} completed={completed} skipped={skipped} />
 
             <div className="ob-card">
@@ -200,6 +219,7 @@ export const Onboarding: React.FC = () => {
               ) : (
                 <div style={{ display: "flex", justifyContent: "center", marginTop: 28, paddingTop: 20, borderTop: "1px solid #f1f5f9" }}>
                   <button
+                    type="button"
                     onClick={handleNext}
                     disabled={autoProgress < 100 || loading}
                     style={{

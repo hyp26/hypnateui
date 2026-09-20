@@ -1,15 +1,21 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-const API = process.env.REACT_APP_API_URL as string;
+const API = process.env.REACT_APP_API_URL || "";
 
-interface User {
+export interface User {
   id: number;
   name: string;
   email: string;
   role: string;
   sellerId?: number | null;
-  seller?: any;
+  seller?: {
+    businessName?: string;
+    phone?: string | null;
+    onboardedAt?: string | null;
+    selectedPlan?: string | null;
+    [key: string]: unknown;
+  };
   emailVerified?: boolean;
 }
 
@@ -18,14 +24,17 @@ interface AuthState {
   isAuthenticated: boolean;
   authInitialized: boolean;
 
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>;
   signup: (
     name: string,
     email: string,
     password: string,
     businessName: string,
-    phone: string
-  ) => Promise<void>;
+    phone: string,
+    selectedPlan?: string | null
+  ) => Promise<User>;
+  requestPasswordReset: (email: string) => Promise<void>;
+  resetPassword: (token: string, password: string) => Promise<void>;
   loadProfile: () => Promise<void>;
   logout: () => Promise<void>;
   setUser: (user: User | null) => void;
@@ -52,38 +61,82 @@ export const useAuthStore = create<AuthState>()(
         const res = await fetch(`${API}/api/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          credentials: "include", // ✅ sends & receives httpOnly cookies
+          credentials: "include",
           body: JSON.stringify({ email, password }),
         });
 
+        const data = await res.json().catch(() => ({}));
+
         if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.message || "Invalid email or password");
+          const error = new Error(data.message || "Invalid email or password") as Error & { code?: string };
+          error.code = data.code;
+          throw error;
         }
 
-        const data = await res.json();
-        // ✅ No token stored — cookie is set automatically by browser
+        if (!data.user) {
+          throw new Error("Login succeeded but no account information was returned.");
+        }
+
         set({ user: data.user, isAuthenticated: true });
+        return data.user as User;
       },
 
       /* --------------------------------------------------
        * SIGNUP
        * -------------------------------------------------- */
-      signup: async (name, email, password, businessName, phone) => {
+      signup: async (name, email, password, businessName, phone, selectedPlan = null) => {
         const res = await fetch(`${API}/api/auth/register`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          credentials: "include", // ✅ receives httpOnly cookie on register
-          body: JSON.stringify({ name, email, password, businessName, phone }),
+          credentials: "include",
+          body: JSON.stringify({ name, email, password, businessName, phone, selectedPlan }),
         });
 
+        const data = await res.json().catch(() => ({}));
+
         if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.message || "Signup failed");
+          const error = new Error(data.message || "Signup failed") as Error & { code?: string };
+          error.code = data.code;
+          throw error;
         }
 
-        const data = await res.json();
-        set({ user: data.user, isAuthenticated: true });
+        if (!data.user) {
+          throw new Error("Signup succeeded but no account information was returned.");
+        }
+
+        // Registration does not create an authenticated session on the backend.
+        // Keep the returned account data for the verification screen, but do not
+        // mark the browser as authenticated until email verification succeeds.
+        set({ user: data.user, isAuthenticated: false });
+        return data.user as User;
+      },
+
+      requestPasswordReset: async (email) => {
+        const res = await fetch(`${API}/api/auth/forgot-password`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ email }),
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(data.message || "Could not send the password reset link.");
+        }
+      },
+
+      resetPassword: async (token, password) => {
+        const res = await fetch(`${API}/api/auth/reset-password/${encodeURIComponent(token)}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ password }),
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(data.message || "Could not reset your password.");
+        }
       },
 
       /* --------------------------------------------------
@@ -229,7 +282,7 @@ export const useAuthStore = create<AuthState>()(
  * -------------------------------------------------- */
 export const tryRefreshToken = async (): Promise<boolean> => {
   try {
-    const res = await fetch(`${process.env.REACT_APP_API_URL}/api/auth/refresh`, {
+    const res = await fetch(`${API}/api/auth/refresh`, {
       method: "POST",
       credentials: "include",
     });
