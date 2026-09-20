@@ -315,7 +315,7 @@
 .home-floating-sky { background: linear-gradient(135deg, #39bff7, #1f8edf); }
 
 .home-floating-wa { top: 78px; right: 8px; }
-.home-floating-ig { left: -10px; top: 155px; }
+.home-floating-ig { left: 0; top: 155px; }
 .home-floating-fb { left: 15px; bottom: 38px; }
 .home-floating-tg { right: 10px; bottom: 12px; }
 
@@ -917,7 +917,7 @@
     font-size: 8px;
   }
 
-  .home-floating-ig { left: -4px; top: 140px; }
+  .home-floating-ig { left: 0; top: 140px; }
   .home-floating-fb { left: 0; bottom: 42px; }
   .home-floating-tg { right: 0; bottom: 8px; }
   .home-floating-wa { right: 0; top: 54px; }

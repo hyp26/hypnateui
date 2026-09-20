@@ -69,7 +69,7 @@ export const Contact = () => {
       </section>
 
       <section style={{ padding: 'clamp(48px,7vw,80px) clamp(16px,4vw,24px)' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px,1fr))', gap: 'clamp(32px,5vw,56px)' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px,100%),1fr))', gap: 'clamp(32px,5vw,56px)' }}>
 
           {/* LEFT — contact info + map */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>

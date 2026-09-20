@@ -597,10 +597,10 @@ export const DemoChatWidget: React.FC = () => {
 const css = `
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
 
-.zara-wrap { position: fixed; bottom: 24px; right: 24px; z-index: 9999; font-family: 'Outfit', sans-serif; display: flex; flex-direction: column; align-items: flex-end; }
+.zara-wrap { position: fixed; bottom: 24px; right: 24px; z-index: 9999; width: min(360px, calc(100vw - 48px)); max-width: calc(100vw - 24px); font-family: 'Outfit', sans-serif; display: flex; flex-direction: column; align-items: flex-end; }
 
 /* Window */
-.zara-window { width: 360px; background: #fff; border-radius: 20px; box-shadow: 0 24px 64px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.06); margin-bottom: 14px; display: flex; flex-direction: column; overflow: hidden; opacity: 0; transform: scale(0.93) translateY(16px); pointer-events: none; transition: opacity 0.25s ease, transform 0.25s ease; transform-origin: bottom right; max-height: 580px; }
+.zara-window { width: 100%; max-width: 360px; background: #fff; border-radius: 20px; box-shadow: 0 24px 64px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.06); margin-bottom: 14px; display: flex; flex-direction: column; overflow: hidden; opacity: 0; transform: scale(0.93) translateY(16px); pointer-events: none; transition: opacity 0.25s ease, transform 0.25s ease; transform-origin: bottom right; max-height: 580px; }
 .zara-window.zara-open { opacity: 1; transform: scale(1) translateY(0); pointer-events: all; }
 
 /* Header */
@@ -671,4 +671,25 @@ const css = `
 @keyframes zaraBlink { 0%,100%{opacity:1} 50%{opacity:0.4} }
 @keyframes zaraSlideUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
 @keyframes zaraTyping { 0%,60%,100%{transform:translateY(0);opacity:0.4} 30%{transform:translateY(-5px);opacity:1} }
+
+@media (max-width: 480px) {
+  .zara-wrap {
+    right: 12px;
+    bottom: 12px;
+    width: calc(100vw - 24px);
+  }
+
+  .zara-window {
+    border-radius: 16px;
+  }
+
+  .zara-header {
+    padding: 12px 13px;
+  }
+
+  .zara-messages {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
 `;

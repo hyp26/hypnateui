@@ -115,7 +115,7 @@ export const About = () => {
       <section style={{ padding: 'clamp(60px,8vw,100px) clamp(16px,4vw,24px)' }}>
         <div ref={storySection.ref} style={{
           maxWidth: 1100, margin: '0 auto',
-          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))',
           gap: 'clamp(32px,5vw,60px)', alignItems: 'center',
           opacity: storySection.inView ? 1 : 0, transform: storySection.inView ? 'none' : 'translateY(28px)',
           transition: 'opacity 0.7s ease, transform 0.7s ease',
@@ -218,7 +218,7 @@ export const About = () => {
             Two builders from Patna with one mission: democratize commerce for Indian SMBs.
           </p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px,1fr))', gap: 'clamp(24px,4vw,48px)', justifyItems: 'center' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(300px,100%),1fr))', gap: 'clamp(24px,4vw,48px)', justifyItems: 'center' }}>
             {TEAM.map(member => (
               <div key={member.id} style={{ textAlign: 'center', maxWidth: 360 }}
                 onMouseEnter={e => {

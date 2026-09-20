@@ -183,7 +183,7 @@ function FeatureSection({ feature, index }: { feature: typeof FEATURES[0]; index
       <div style={{
         maxWidth: 1160, margin: '0 auto', padding: '0 24px',
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(min(300px, 100%), 1fr))',
         gap: '60px',
         alignItems: 'center',
         opacity: inView ? 1 : 0,
@@ -443,7 +443,7 @@ export const Features = () => {
 
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))',
             gap: 20,
           }}>
             {MINI_FEATURES.map((f, i) => {
