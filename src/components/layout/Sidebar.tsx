@@ -23,7 +23,7 @@ interface SidebarProps {
 
 export const Sidebar = ({ open, onClose }: SidebarProps) => {
   const { t } = useTranslation();
-  const plan = useAuthStore((state) => state.user?.seller?.selectedPlan);
+  const plan = useAuthStore((state) => state.user?.seller?.activePlan);
 
   const navItems: Array<{ icon: React.ElementType; label: string; path: string; feature?: PlanFeature }> = [
     { icon: LayoutDashboard, label: t('nav.dashboard'), path: '/dashboard' },

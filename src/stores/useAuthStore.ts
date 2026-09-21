@@ -14,6 +14,8 @@ export interface User {
     phone?: string | null;
     onboardedAt?: string | null;
     selectedPlan?: string | null;
+    activePlan?: string | null;
+    planActivatedAt?: string | null;
     [key: string]: unknown;
   };
   emailVerified?: boolean;

@@ -43,6 +43,7 @@ import { EditProduct } from './pages/EditProduct';
 import { ProductView } from './pages/ProductView';
 import Customers from './pages/Customers';
 import { HypnateX } from './pages/HypnateX';
+import { PlanRequired } from "./pages/PlanRequired";
 
 // Public Website Pages
 import { Home } from './pages/public/Home';
@@ -75,11 +76,13 @@ const AuthEntryRoute = ({ children }: { children: React.ReactNode }) => {
   if (!authInitialized) return null;
 
   if (isAuthenticated) {
-    const sellerNeedsSetup = user?.role === "SELLER" && (
-      !user.seller?.onboardedAt ||
-      !normalizePlan(user.seller?.selectedPlan)
-    );
-    const destination = sellerNeedsSetup ? "/onboarding" : "/dashboard";
+    const sellerNeedsSetup = user?.role === "SELLER" && !user.seller?.onboardedAt;
+    const sellerNeedsPlan = user?.role === "SELLER" && Boolean(user.seller?.onboardedAt) && !normalizePlan(user.seller?.activePlan);
+    const destination = sellerNeedsSetup
+      ? "/onboarding"
+      : sellerNeedsPlan
+        ? "/plan-required"
+        : "/dashboard";
     return <Navigate to={destination} replace />;
   }
 
@@ -100,12 +103,17 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 
-  if (user?.role === "SELLER" && !normalizePlan(user.seller?.selectedPlan) && location.pathname !== "/onboarding") {
-    return <Navigate to="/onboarding?required=plan" replace />;
-  }
-
   if (user?.role === "SELLER" && !user.seller?.onboardedAt && location.pathname !== "/onboarding") {
     return <Navigate to="/onboarding" replace />;
+  }
+
+  if (
+    user?.role === "SELLER" &&
+    user.seller?.onboardedAt &&
+    !normalizePlan(user.seller?.activePlan) &&
+    location.pathname !== "/plan-required"
+  ) {
+    return <Navigate to="/plan-required" replace />;
   }
 
   return <>{children}</>;
@@ -186,6 +194,16 @@ function App() {
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
+
+        {/* ---------------- PLAN ACTIVATION (protected, no sidebar) ---------------- */}
+        <Route
+          path="/plan-required"
+          element={
+            <ProtectedRoute>
+              <PlanRequired />
+            </ProtectedRoute>
+          }
+        />
 
         {/* ---------------- ONBOARDING (protected, no sidebar) ---------------- */}
         <Route

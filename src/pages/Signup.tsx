@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuthStore } from "../stores/useAuthStore";
 import { AuthLayout } from "../components/auth/AuthLayout";
 import { PUBLIC_CHANNEL_SUMMARY } from "../data/publicChannels";
-import { normalizePlan, getPlanDefinition, type PlanId } from "../config/planEntitlements";
+import { normalizePlan, getPlanDefinition } from "../config/planEntitlements";
 import {
   validateEmail,
   validatePassword,
@@ -66,10 +66,6 @@ export const Signup: React.FC = () => {
     });
 
     setFieldErrors(errors);
-    if (!selectedPlan) {
-      setFormError("Please choose a Starter, Pro, or Business plan from Pricing before creating your account.");
-      return false;
-    }
     return Object.keys(errors).length === 0;
   };
 
@@ -93,6 +89,7 @@ export const Signup: React.FC = () => {
 
   return (
     <AuthLayout
+      density="compact"
       title="Create account"
       subtitle={`Create your Hypnate account for ${PUBLIC_CHANNEL_SUMMARY} commerce.`}
       topLink={
@@ -111,7 +108,7 @@ export const Signup: React.FC = () => {
     >
       {selectedPlanLabel ? (
         <div className="auth-plan-summary" role="status" aria-live="polite">
-          Selected plan: <strong>{selectedPlanLabel}</strong>
+          <span>Plan preference: <strong>{selectedPlanLabel}</strong></span>
           {selectedPlanDefinition && (
             <span aria-label={`Monthly price ${selectedPlanDefinition.priceMonthly} rupees`}>
               ₹{selectedPlanDefinition.priceMonthly.toLocaleString("en-IN")}/mo
@@ -120,8 +117,8 @@ export const Signup: React.FC = () => {
           <Link to="/pricing">Change</Link>
         </div>
       ) : (
-        <div className="auth-plan-required" role="alert">
-          Choose a plan before creating your account. <Link to="/pricing">View plans</Link>
+        <div className="auth-plan-required" role="status">
+          No subscription is required to create your account. You can choose and activate a plan after onboarding.
         </div>
       )}
 
@@ -131,7 +128,7 @@ export const Signup: React.FC = () => {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="auth-form" noValidate>
+      <form onSubmit={handleSubmit} className="auth-form auth-signup-form" noValidate>
         <div className="auth-field">
           <label htmlFor="signup-name">Full name</label>
           <input
@@ -261,7 +258,7 @@ export const Signup: React.FC = () => {
         <button
           type="submit"
           className="auth-primary-button"
-          disabled={isLoading || !selectedPlan}
+          disabled={isLoading}
           aria-busy={isLoading}
         >
           {isLoading ? (

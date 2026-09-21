@@ -46,9 +46,11 @@ export const Login: React.FC = () => {
 
     try {
       const user = await login(email.trim(), password);
-      const destination = user.role === "SELLER" && !user.seller?.onboardedAt
-        ? "/onboarding"
-        : "/dashboard";
+      let destination = "/dashboard";
+      if (user.role === "SELLER") {
+        if (!user.seller?.onboardedAt) destination = "/onboarding";
+        else if (!user.seller?.activePlan) destination = "/plan-required";
+      }
       navigate(destination, { replace: true });
     } catch (err: any) {
       if (err?.code === "EMAIL_NOT_VERIFIED") {

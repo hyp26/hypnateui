@@ -21,7 +21,7 @@ interface PlanRouteProps {
 }
 
 export const PlanGate: React.FC<PlanGateProps> = ({ feature, children, compact = false }) => {
-  const plan = useAuthStore((state) => state.user?.seller?.selectedPlan);
+  const plan = useAuthStore((state) => state.user?.seller?.activePlan);
 
   if (hasPlanFeature(plan, feature)) return <>{children}</>;
 
@@ -61,7 +61,7 @@ export const PlanGate: React.FC<PlanGateProps> = ({ feature, children, compact =
         {requiredName} plan feature
       </h3>
       <p style={{ margin: "0 0 14px", color: "#64748b", fontSize: 13, lineHeight: 1.55 }}>
-        Your current plan is {currentName}. This feature is included with {requiredName} and above.
+        Your active plan is {currentName}. This feature is included with {requiredName} and above.
       </p>
       <Link
         to="/pricing"

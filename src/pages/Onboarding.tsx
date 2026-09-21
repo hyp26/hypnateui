@@ -101,8 +101,6 @@ export const Onboarding: React.FC = () => {
       if (currentStep === 1) {
         if (!businessForm.businessName.trim()) { setError("Business name is required"); return; }
         if (!businessForm.mobileNo.trim()) { setError("Mobile number is required"); return; }
-        if (!effectivePlan) { setError("Please choose a plan before continuing"); return; }
-
         await api.post("/api/onboarding/business", {
           ...businessForm,
           phone: businessForm.mobileNo,
@@ -151,7 +149,7 @@ export const Onboarding: React.FC = () => {
       } else if (currentStep === 5) {
         if (skipped.size > 0) { setShowSkipPopup(true); return; }
         await api.post("/api/onboarding/complete");
-        navigate("/dashboard");
+        navigate(user?.role === "SELLER" && !user.seller?.activePlan ? "/plan-required" : "/dashboard", { replace: true });
       }
     } catch (err: any) {
       setError(err?.response?.data?.message || "Something went wrong. Please try again.");
@@ -161,7 +159,11 @@ export const Onboarding: React.FC = () => {
   };
 
   const handleSkip = () => { markSkipped(currentStep); setCurrentStep((c) => Math.min(c + 1, 5) as Step); };
-  const handlePopupContinue = async () => { setShowSkipPopup(false); await api.post("/api/onboarding/complete"); navigate("/dashboard"); };
+  const handlePopupContinue = async () => {
+    setShowSkipPopup(false);
+    await api.post("/api/onboarding/complete");
+    navigate(user?.role === "SELLER" && !user.seller?.activePlan ? "/plan-required" : "/dashboard", { replace: true });
+  };
   const handlePopupComplete = () => {
     setShowSkipPopup(false);
     const first = [1, 2, 3, 4].find((s) => skipped.has(s));
@@ -193,7 +195,7 @@ export const Onboarding: React.FC = () => {
                   display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
                 }}
               >
-                <span>Selected plan</span>
+                <span>Plan preference</span>
                 <strong>{selectedPlanDefinition?.name}</strong>
               </div>
             ) : (
@@ -207,7 +209,7 @@ export const Onboarding: React.FC = () => {
               >
                 <div style={{ marginBottom: 14 }}>
                   <h2 id="onboarding-plan-heading" style={{ margin: "0 0 5px", fontSize: 17, fontWeight: 800, color: "#0f172a" }}>Choose your plan</h2>
-                  <p style={{ margin: 0, fontSize: 12, lineHeight: 1.55, color: "#64748b" }}>Select a plan to unlock your Hypnate workspace. The selected plan is saved with your merchant account.</p>
+                  <p style={{ margin: 0, fontSize: 12, lineHeight: 1.55, color: "#64748b" }}>You can choose a plan here as a preference. Your workspace remains locked until the subscription is actually activated after checkout.</p>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 10 }}>
                   {PLAN_OPTIONS.map((plan) => {

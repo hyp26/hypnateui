@@ -10,6 +10,7 @@ interface AuthLayoutProps {
   topLink?: React.ReactNode;
   footer?: React.ReactNode;
   helpText?: React.ReactNode;
+  density?: "default" | "compact";
 }
 
 export const AuthLayout: React.FC<AuthLayoutProps> = ({
@@ -19,6 +20,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
   topLink,
   footer,
   helpText,
+  density = "default",
 }) => {
   const navigate = useNavigate();
 
@@ -45,8 +47,8 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 
       {topLink && <div className="auth-top-link">{topLink}</div>}
 
-      <section className="auth-center">
-        <div className="auth-card">
+      <section className={`auth-center auth-center-${density}`}>
+        <div className={`auth-card auth-card-${density}`}>
           <div className="auth-card-heading">
             <h1>{title}</h1>
             <p>{subtitle}</p>
