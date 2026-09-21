@@ -2,23 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Check, X, Zap, ChevronDown, ChevronUp, ArrowRight,
-  Star, Users,
-  Shield, Rocket, Gift
+  Star, Users, Headphones,
+  Shield
 } from 'lucide-react';
-import { PUBLIC_CHANNEL_SUMMARY, PUBLIC_CHANNEL_TITLE_SUMMARY } from '../../data/publicChannels';
-import { getPlanChannels, type PlanChannel } from '../../config/planEntitlements';
 
 type BillingCycle = 'monthly' | 'yearly';
-
-const CHANNEL_LABELS: Record<PlanChannel, string> = {
-  whatsapp: 'WhatsApp',
-  telegram: 'Telegram',
-  instagram: 'Instagram',
-  facebook: 'Facebook',
-};
-
-const channelsForPlan = (planId: string) =>
-  getPlanChannels(planId).map((channel) => CHANNEL_LABELS[channel]).join(', ');
 
 interface Plan {
   id: string;
@@ -27,6 +15,7 @@ interface Plan {
   tagline: string;
   desc: string;
   monthlyPrice: number;
+  yearlyPrice: number;
   highlight: boolean;
   cta: string;
   ctaLink: string;
@@ -40,17 +29,33 @@ const plans: Plan[] = [
   {
     id: 'starter',
     name: 'Starter',
-    tagline: 'For solo sellers & early-stage D2C brands.',
-    desc: 'Core tools to manage chat-first selling and day-to-day commerce workflows.',
+    tagline: 'For solo sellers & new D2C founders.',
+    desc: 'Everything you need to start selling on WhatsApp and Instagram — conversations, orders, and a real website.',
     monthlyPrice: 999,
+    yearlyPrice: 9588,
     highlight: false,
-    cta: 'Get Started',
+    cta: 'Start Free Trial',
     ctaLink: '/signup?plan=starter',
     color: '#0d9488',
     accentBg: '#f0fdfa',
     icon: <Zap size={22} />,
     features: [
-      { category: 'Included', items: ['Pilot commerce workspace', channelsForPlan('starter'), 'Basic dashboard', 'Product workspace access'] },
+      {
+        category: 'Inbox',
+        items: ['1 WhatsApp number', '1 Instagram DM', '800 AI conversations/mo', 'Unified inbox (WA + IG)', '5 quick reply templates', 'Mobile app access'],
+      },
+      {
+        category: 'Commerce',
+        items: ['Up to 100 products', 'Manual order management', '500 customer profiles', 'Payment link in chat', '7-day analytics'],
+      },
+      {
+        category: 'HypnateX Store',
+        items: ['1 store — hosted on Hypnate servers', 'yourstore.hypnate.in subdomain', '6 starter themes', '10GB storage · 5,000 visitors/mo', 'SSL included'],
+      },
+      {
+        category: 'Support',
+        items: ['Email support (48hr)', 'Help center access'],
+      },
     ],
   },
   {
@@ -58,55 +63,91 @@ const plans: Plan[] = [
     name: 'Pro',
     badge: '⭐ Most Popular',
     tagline: 'For growing D2C brands.',
-    desc: 'More commerce workflows and deeper analytics for growing teams.',
+    desc: 'Unlock all 4 platforms, automation, custom domain, and auto-syncing store.',
     monthlyPrice: 1999,
+    yearlyPrice: 19188,
     highlight: true,
-    cta: 'Get Started',
+    cta: 'Start Free Trial',
     ctaLink: '/signup?plan=pro',
     color: '#0d9488',
     accentBg: '#0d9488',
     icon: <Star size={22} />,
     features: [
-      { category: 'Included', items: ['Expanded commerce workspace', channelsForPlan('pro'), 'Advanced analytics', 'Payment link generation'] },
+      {
+        category: 'Inbox',
+        items: ['1 WhatsApp number', 'Instagram + Facebook + Telegram', 'Unlimited AI conversations', '3 team members', 'Broadcast to 5,000 contacts/mo', '5 chatbot automation flows', 'Abandoned cart recovery'],
+      },
+      {
+        category: 'Commerce',
+        items: ['Unlimited products', 'Advanced order management', 'Unlimited customer profiles', '90-day analytics (all channels)', 'Bulk order CSV export', 'COD confirmation via WhatsApp'],
+      },
+      {
+        category: 'HypnateX Store',
+        items: ['1 store on Hypnate servers', 'Custom domain (yourbrand.com)', 'All 12 themes', 'Auto-sync catalog', 'Remove "Powered by Hypnate"', 'AI-generated SEO meta tags', '25GB storage · 25,000 visitors/mo'],
+      },
+      {
+        category: 'Support',
+        items: ['Priority email (12hr)', 'WhatsApp support chat', 'Monthly strategy call (30 min)'],
+      },
     ],
   },
   {
     id: 'business',
     name: 'Business',
     tagline: 'For established brands & agencies.',
-    desc: 'Expanded workspace and website-builder capabilities for more complex operations.',
-    monthlyPrice: 4999,
+    desc: 'Multi-number, multi-store, multi-team. The full stack for serious sellers.',
+    monthlyPrice: 5000,
+    yearlyPrice: 47988,
     highlight: false,
-    cta: 'Get Started',
+    cta: 'Start Free Trial',
     ctaLink: '/signup?plan=business',
     color: '#1e293b',
     accentBg: '#f8fafc',
     icon: <Users size={22} />,
     features: [
-      { category: 'Included', items: ['Everything in Pro', 'Hypnate X website builder'] },
+      {
+        category: 'Inbox',
+        items: ['3 WhatsApp numbers', 'All 4 platforms (WA + IG + FB + TG)', 'Unlimited AI conversations', '5 team members + role permissions', 'Unlimited chatbot flows', 'Broadcast to unlimited contacts', 'Sentiment analysis on chats'],
+      },
+      {
+        category: 'Commerce',
+        items: ['Everything in Pro', 'Multi-location inventory', 'Custom order statuses & pipeline', 'Revenue forecasting dashboard', 'Customer lifetime value tracking', 'API webhooks for custom integrations'],
+      },
+      {
+        category: 'HypnateX Store',
+        items: ['3 store websites (multi-brand)', 'Custom domain on all 3 stores', 'All themes + early access', 'Auto-sync on all 3 stores', '100GB storage · 100,000 visitors/mo', 'Unlimited store rebuilds'],
+      },
+      {
+        category: 'Support',
+        items: ['Dedicated account manager', '4hr response SLA', 'Onboarding call included', 'Quarterly business review call'],
+      },
     ],
   },
 ];
 
 const compareRows = [
-  { feature: 'Platforms', starter: channelsForPlan('starter'), pro: channelsForPlan('pro'), business: channelsForPlan('business') },
-  { feature: 'Products & Inventory', starter: true, pro: true, business: true },
-  { feature: 'Orders & Customers', starter: true, pro: true, business: true },
-  { feature: 'Conversations & Channel Connections', starter: true, pro: true, business: true },
-  { feature: 'AI Catalog Assistance', starter: true, pro: true, business: true },
-  { feature: 'Payment Tracking', starter: true, pro: true, business: true },
-  { feature: 'Advanced Analytics', starter: false, pro: true, business: true },
-  { feature: 'Payment Link Generation', starter: false, pro: true, business: true },
-  { feature: 'Hypnate X Website Builder', starter: false, pro: false, business: true },
+  { feature: 'WhatsApp Numbers', starter: '1', pro: '1', business: '3' },
+  { feature: 'Platforms', starter: 'WA + IG', pro: 'WA+IG+FB+TG', business: 'All 4' },
+  { feature: 'AI Conversations/mo', starter: '800', pro: 'Unlimited', business: 'Unlimited' },
+  { feature: 'Team Members', starter: '1', pro: '3', business: '5' },
+  { feature: 'Products', starter: '100', pro: 'Unlimited', business: 'Unlimited' },
+  { feature: 'HypnateX Stores', starter: '1', pro: '1', business: '3' },
+  { feature: 'Store Hosting', starter: true, pro: true, business: true },
+  { feature: 'Custom Domain', starter: false, pro: true, business: true },
+  { feature: 'Auto-sync Catalog', starter: false, pro: true, business: true },
+  { feature: 'Remove Branding', starter: false, pro: true, business: true },
+  { feature: 'Broadcast Messages', starter: false, pro: '5,000/mo', business: 'Unlimited' },
+  { feature: 'API Access', starter: false, pro: false, business: true },
+  { feature: 'Support', starter: 'Email', pro: 'Priority + WA', business: 'Dedicated' },
 ];
 
 const faqs = [
-  { q: 'What pricing is available during the pilot period?', a: 'Pilot pricing is currently shown on this page for early merchants. Pricing and included features may change before or at the public launch.' },
-  { q: 'How does annual billing work?', a: 'Annual billing is shown at a 20% discount compared with the equivalent monthly price. The exact amount is displayed before checkout.' },
-  { q: 'Do I need the WhatsApp Business API separately?', a: 'Hypnate guides you through the supported Meta setup. Approval and verification timings are controlled by Meta and can vary.' },
-  { q: 'Can I use my own domain?', a: 'Custom-domain availability depends on the plan shown on this page. Check the current plan details before subscribing.' },
-  { q: 'Is there a setup fee or contract?', a: 'There is no separate setup fee stated on this pricing page. Subscription cancellation and billing terms are governed by the Terms of Service.' },
-  { q: 'Can agencies use Business for multiple clients?', a: 'Business is designed for larger teams and agencies. Contact us to discuss multi-brand or custom integration requirements.' },
+  { q: 'How does HypnateX store hosting work?', a: 'When you build a store through HypnateX, it lives on Hypnate\'s servers — no need for Hostinger, Shopify, or any separate hosting. We handle SSL, CDN, and uptime across all paid plans.' },
+  { q: 'What happens if I exceed my conversation limit?', a: 'We never cut you off. Each extra conversation costs ₹0.50. You\'ll see real-time usage in your dashboard so you\'re always in the know.' },
+  { q: 'Do I need the WhatsApp Business API separately?', a: 'We guide you through the Meta API setup from your dashboard. It takes about 2–3 business days for Meta to approve, and there\'s no setup fee from our side.' },
+  { q: 'Can I use my own domain on Starter?', a: 'Custom domains are available on Pro and Business. On Starter, your store lives at yourstore.hypnate.in — a real, shareable link your customers can bookmark.' },
+  { q: 'Is there a setup fee or contract?', a: 'No setup fee and no contract is required. Your first 7 days are free, with no card required. After the trial, continue only by choosing a paid plan.' },
+  { q: 'Can agencies use Business for multiple clients?', a: 'Yes — Business includes 3 separate HypnateX stores, each with its own custom domain and catalog. For unlimited stores, contact us about our Enterprise plan.' },
 ];
 
 
@@ -117,7 +158,7 @@ export const Pricing: React.FC = () => {
 
   useEffect(() => { const t = setTimeout(() => setVisible(true), 80); return () => clearTimeout(t); }, []);
 
-  const getPrice = (monthly: number) => billing === 'yearly' ? Math.round(monthly * 0.8) : monthly;
+  const getPrice = (plan: Plan) => billing === 'yearly' ? plan.yearlyPrice : plan.monthlyPrice;
 
   return (
     <>
@@ -126,12 +167,11 @@ export const Pricing: React.FC = () => {
 
         {/* HERO */}
         <section className="pr-hero">
-          <div className="pr-hero-glow" aria-hidden="true" />
+          <div className="pr-hero-glow" />
           <div className={`pr-hero-content ${visible ? 'visible' : ''}`}>
-            {/* Launch banner */}
             <div className="pr-launch-banner">
-              <Rocket size={16} aria-hidden="true" />
-              <span>Pilot pricing for early merchants</span>
+              <Shield size={16} />
+              <span><strong>7-day free trial</strong> — no credit card required</span>
             </div>
 
             <h1 className="pr-hero-title">
@@ -139,18 +179,18 @@ export const Pricing: React.FC = () => {
               <span className="pr-hero-accent">with your growth</span>
             </h1>
             <p className="pr-hero-sub">
-              {PUBLIC_CHANNEL_TITLE_SUMMARY} commerce — with products, orders, payments and analytics in one workspace.
+              WhatsApp, Instagram, Facebook & Telegram commerce — plus your own hosted store. All in one platform.
             </p>
 
             {/* Billing toggle */}
-            <div className="pr-billing-toggle" role="group" aria-label="Billing frequency">
-              <button type="button" className={`pr-bill-label ${billing === 'monthly' ? 'active' : ''}`} onClick={() => setBilling('monthly')} aria-pressed={billing === 'monthly'}>Monthly</button>
-              <button type="button" className="pr-toggle-track" onClick={() => setBilling(b => b === 'monthly' ? 'yearly' : 'monthly')} aria-label="Toggle annual billing" aria-pressed={billing === 'yearly'}>
-                <span className={`pr-toggle-thumb ${billing === 'yearly' ? 'yearly' : ''}`} aria-hidden="true" />
+            <div className="pr-billing-toggle">
+              <span className={`pr-bill-label ${billing === 'monthly' ? 'active' : ''}`} onClick={() => setBilling('monthly')}>Monthly</span>
+              <button className="pr-toggle-track" onClick={() => setBilling(b => b === 'monthly' ? 'yearly' : 'monthly')}>
+                <div className={`pr-toggle-thumb ${billing === 'yearly' ? 'yearly' : ''}`} />
               </button>
-              <button type="button" className={`pr-bill-label ${billing === 'yearly' ? 'active' : ''}`} onClick={() => setBilling('yearly')} aria-pressed={billing === 'yearly'}>
+              <span className={`pr-bill-label ${billing === 'yearly' ? 'active' : ''}`} onClick={() => setBilling('yearly')}>
                 Yearly <span className="pr-save-badge">SAVE 20%</span>
-              </button>
+              </span>
             </div>
           </div>
         </section>
@@ -159,7 +199,8 @@ export const Pricing: React.FC = () => {
         <section className="pr-cards-section">
           <div className="pr-cards-grid">
             {plans.map((plan, i) => {
-              const price = getPrice(plan.monthlyPrice);
+              const price = getPrice(plan);
+              const original = plan.monthlyPrice * 12;
               return (
                 <div
                   key={plan.id}
@@ -174,30 +215,28 @@ export const Pricing: React.FC = () => {
 
                   <div className="pr-card-header">
                     <div className="pr-card-icon" style={{ background: plan.highlight ? 'rgba(255,255,255,0.15)' : plan.accentBg, color: plan.highlight ? '#fff' : plan.color }}>
-                      <span aria-hidden="true">{plan.icon}</span>
+                      {plan.icon}
                     </div>
                     <div>
-                      <h2 className="pr-card-name" style={{ color: plan.highlight ? '#fff' : '#0f172a' }}>{plan.name}</h2>
+                      <h3 className="pr-card-name" style={{ color: plan.highlight ? '#fff' : '#0f172a' }}>{plan.name}</h3>
                       <p className="pr-card-tagline" style={{ color: plan.highlight ? 'rgba(255,255,255,0.7)' : '#64748b' }}>{plan.tagline}</p>
                     </div>
                   </div>
 
                   {/* Price with strikethrough */}
                   <div className="pr-price-wrap">
-                    {billing === 'yearly' && (
-                      <div className="pr-original-price" style={{ color: plan.highlight ? 'rgba(255,255,255,0.45)' : '#94a3b8' }}>
-                        ₹{plan.monthlyPrice.toLocaleString()}/mo
-                      </div>
-                    )}
+                    {billing === 'yearly' && <div className="pr-original-price" style={{ color: plan.highlight ? 'rgba(255,255,255,0.45)' : '#94a3b8' }}>
+                      ₹{original.toLocaleString()}/yr
+                    </div>}
                     <div className="pr-price-row">
                       <span className="pr-currency" style={{ color: plan.highlight ? 'rgba(255,255,255,0.6)' : '#94a3b8' }}>₹</span>
                       <span className="pr-amount" style={{ color: plan.highlight ? '#fff' : '#0f172a' }}>{price.toLocaleString()}</span>
-                      <span className="pr-period" style={{ color: plan.highlight ? 'rgba(255,255,255,0.6)' : '#94a3b8' }}>/mo</span>
+                      <span className="pr-period" style={{ color: plan.highlight ? 'rgba(255,255,255,0.6)' : '#94a3b8' }}>/{billing === 'monthly' ? 'mo' : 'yr'}</span>
                       {billing === 'yearly' && <span className="pr-discount-pill">20% OFF</span>}
                     </div>
                     {billing === 'yearly' && (
                       <p className="pr-annual" style={{ color: plan.highlight ? 'rgba(255,255,255,0.55)' : '#94a3b8' }}>
-                        ₹{(price * 12).toLocaleString()} billed annually
+                        ₹{price.toLocaleString()} billed annually
                       </p>
                     )}
                   </div>
@@ -226,10 +265,9 @@ export const Pricing: React.FC = () => {
             })}
           </div>
 
-          {/* Pilot pricing note */}
           <div className="pr-launch-note">
-            <Gift size={16} />
-            <span>Pilot pricing is subject to change before or at public launch. Your final price is shown before checkout.</span>
+            <Shield size={16} />
+            <span>7-day free trial. No credit card is requested and no charge is taken during the trial.</span>
           </div>
         </section>
 
@@ -275,11 +313,11 @@ export const Pricing: React.FC = () => {
           <div className="pr-faq-list">
             {faqs.map((faq, i) => (
               <div key={i} className={`pr-faq-item ${openFaq === i ? 'open' : ''}`}>
-                <button type="button" className="pr-faq-q" id={`pricing-faq-${i}-trigger`} aria-expanded={openFaq === i} aria-controls={`pricing-faq-${i}-panel`} onClick={() => setOpenFaq(openFaq === i ? null : i)}>
+                <button className="pr-faq-q" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
                   <span>{faq.q}</span>
-                  {openFaq === i ? <ChevronUp size={18} aria-hidden="true" /> : <ChevronDown size={18} aria-hidden="true" />}
+                  {openFaq === i ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                 </button>
-                <p className="pr-faq-a" id={`pricing-faq-${i}-panel`} aria-labelledby={`pricing-faq-${i}-trigger`} hidden={openFaq !== i}>{faq.a}</p>
+                {openFaq === i && <p className="pr-faq-a">{faq.a}</p>}
               </div>
             ))}
           </div>
@@ -288,14 +326,16 @@ export const Pricing: React.FC = () => {
         {/* BOTTOM CTA */}
         <section className="pr-bottom-cta">
           <div className="pr-bottom-inner">
-            <h2 className="pr-bottom-title">Still exploring? Get started.</h2>
-            <p className="pr-bottom-sub">Explore the current pilot plans and see the applicable terms before checkout.</p>
+            <h2 className="pr-bottom-title">Still not sure? Start free.</h2>
+            <p className="pr-bottom-sub">7-day free trial, no credit card required. Subscribe only when you’re ready.</p>
             <div className="pr-bottom-btns">
-              <Link to="/pricing" className="pr-btn-primary">Choose a Plan <ArrowRight size={16} aria-hidden="true" /></Link>
+              <Link to="/signup" className="pr-btn-primary">Get started free <ArrowRight size={16} /></Link>
               <Link to="/contact" className="pr-btn-secondary">Talk to our team</Link>
             </div>
             <div className="pr-trust-row">
-              <span><Shield size={13} aria-hidden="true" /> Pricing shown before checkout</span>
+              <span><Shield size={13} /> No setup fees</span>
+              <span><Check size={13} /> 7-day free trial</span>
+              <span><Headphones size={13} /> WhatsApp support</span>
             </div>
           </div>
         </section>

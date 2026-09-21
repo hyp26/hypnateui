@@ -14,9 +14,6 @@ import { SpeedInsights } from '@vercel/speed-insights/react';
 // Layouts
 import { Layout } from './components/layout/layout';
 import { PublicLayout } from './components/layout/PublicLayout';
-import { RouteSEO } from './components/public/SEO';
-import { PlanRoute } from './components/plan/PlanGate';
-import { normalizePlan } from './config/planEntitlements';
 
 // Auth Store
 import { useAuthStore } from './stores/useAuthStore';
@@ -26,7 +23,6 @@ import { Login } from './pages/Login';
 import { Signup } from "./pages/Signup";
 import { VerifyEmail } from "./pages/VerifyEmail";
 import { ForgotPassword } from './pages/ForgotPassword';
-import { ResetPassword } from './pages/ResetPassword';
 
 // Dashboard Pages
 import { Dashboard } from './pages/Dashboard';
@@ -42,8 +38,9 @@ import { Analytics as DashboardAnalytics } from './pages/Analytics';
 import { EditProduct } from './pages/EditProduct';
 import { ProductView } from './pages/ProductView';
 import Customers from './pages/Customers';
-import { HypnateX } from './pages/HypnateX';
+import { HypnateX } from './pages/HypnateX'; // ✅ added
 import { PlanRequired } from "./pages/PlanRequired";
+import { getEffectivePlan } from "./config/planEntitlements";
 
 // Public Website Pages
 import { Home } from './pages/public/Home';
@@ -56,7 +53,6 @@ import { FAQ } from './pages/public/FAQ';
 import { Terms } from './pages/public/Term';
 import { Privacy } from './pages/public/Privacy';
 import { Refund } from './pages/public/Refund';
-import { NotFound } from './pages/NotFound';
 
 // i18n
 import './i18n/config';
@@ -64,94 +60,25 @@ import './i18n/config';
 /* --------------------------------------------------
  * PROTECTED ROUTE
  * -------------------------------------------------- */
-
-/* --------------------------------------------------
- * AUTH ENTRY ROUTE
- * -------------------------------------------------- */
-const AuthEntryRoute = ({ children }: { children: React.ReactNode }) => {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const authInitialized = useAuthStore((state) => state.authInitialized);
-  const user = useAuthStore((state) => state.user);
-
-  if (!authInitialized) return null;
-
-  if (isAuthenticated) {
-    const sellerNeedsSetup = user?.role === "SELLER" && !user.seller?.onboardedAt;
-    const sellerNeedsPlan = user?.role === "SELLER" && Boolean(user.seller?.onboardedAt) && !normalizePlan(user.seller?.activePlan);
-    const destination = sellerNeedsSetup
-      ? "/onboarding"
-      : sellerNeedsPlan
-        ? "/plan-required"
-        : "/dashboard";
-    return <Navigate to={destination} replace />;
-  }
-
-  return <>{children}</>;
-};
-
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const authInitialized = useAuthStore((state) => state.authInitialized);
   const user = useAuthStore((state) => state.user);
-  const location = useLocation();
-
-  if (!authInitialized) {
-    return null;
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
-  }
-
-  if (user?.role === "SELLER" && !user.seller?.onboardedAt && location.pathname !== "/onboarding") {
-    return <Navigate to="/onboarding" replace />;
-  }
-
-  if (
-    user?.role === "SELLER" &&
-    user.seller?.onboardedAt &&
-    !normalizePlan(user.seller?.activePlan) &&
-    location.pathname !== "/plan-required"
-  ) {
-    return <Navigate to="/plan-required" replace />;
-  }
-
+  const location = useLocation().pathname;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (user?.role === "SELLER" && !user.seller?.onboardedAt && location !== "/onboarding") return <Navigate to="/onboarding" replace />;
+  if (user?.role === "SELLER" && user.seller?.onboardedAt) { const access = getEffectivePlan(user.seller); if (!access.hasAccess && location !== "/plan-required") return <Navigate to="/plan-required" replace />; }
   return <>{children}</>;
-};
-
-const AuthBootstrap = () => {
-  const location = useLocation();
-  const loadProfile = useAuthStore((state) => state.loadProfile);
-  const setAuthInitialized = useAuthStore((state) => state.setAuthInitialized);
-
-  React.useEffect(() => {
-    /*
-     * Do not bootstrap auth on the login/signup screens.
-     *
-     * This prevents the initial unauthenticated profile check from
-     * racing a just-completed login and clearing the authenticated
-     * Zustand state.
-     */
-    const isAuthEntry = location.pathname === "/login" || location.pathname === "/signup";
-    const persistedAuthenticated = useAuthStore.getState().isAuthenticated;
-
-    if (isAuthEntry && !persistedAuthenticated) {
-      setAuthInitialized(true);
-      return;
-    }
-
-    setAuthInitialized(false);
-    void loadProfile();
-  }, [location.pathname, loadProfile, setAuthInitialized]);
-
-  return null;
 };
 
 function App() {
+  const loadProfile = useAuthStore((state) => state.loadProfile);
+
+  React.useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
+
   return (
     <Router>
-      <AuthBootstrap />
-      <RouteSEO />
       <Routes>
 
         {/* ---------------- PUBLIC MARKETING SITE ---------------- */}
@@ -173,37 +100,14 @@ function App() {
         </Route>
 
         {/* ---------------- AUTH ---------------- */}
-        <Route
-          path="/login"
-          element={
-            <AuthEntryRoute>
-              <Login />
-            </AuthEntryRoute>
-          }
-        />
-        <Route
-          path="/signup"
-          element={
-            <AuthEntryRoute>
-              <Signup />
-            </AuthEntryRoute>
-          }
-        />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
         {/* Public: must work even without an active session, since the link
             is opened from an email and may land in a different browser. */}
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-        {/* ---------------- PLAN ACTIVATION (protected, no sidebar) ---------------- */}
-        <Route
-          path="/plan-required"
-          element={
-            <ProtectedRoute>
-              <PlanRequired />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/plan-required" element={<ProtectedRoute><PlanRequired /></ProtectedRoute>} />
 
         {/* ---------------- ONBOARDING (protected, no sidebar) ---------------- */}
         <Route
@@ -247,29 +151,15 @@ function App() {
           {/* Payments */}
           <Route path="/payments" element={<Payments />} />
 
-          {/* Analytics — Pro and Business */}
-          <Route
-            path="/analytics"
-            element={
-              <PlanRoute feature="advancedAnalytics">
-                <DashboardAnalytics />
-              </PlanRoute>
-            }
-          />
+          {/* Analytics */}
+          <Route path="/analytics" element={<DashboardAnalytics />} />
 
-          {/* Hypnate X — Business only */}
-          <Route
-            path="/hypnate-x"
-            element={
-              <PlanRoute feature="hypnateX">
-                <HypnateX />
-              </PlanRoute>
-            }
-          />
+          {/* Hypnate X — AI website builder */}
+          <Route path="/hypnate-x" element={<HypnateX />} />
         </Route>
 
         {/* ---------------- FALLBACK ---------------- */}
-        <Route path="*" element={<NotFound />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
       {/* Global Vercel Analytics */}

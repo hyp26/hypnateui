@@ -1,135 +1,114 @@
 export type PlanId = "starter" | "pro" | "business";
-
-export type PlanFeature =
-  | "commerceWorkspace"
-  | "catalogAi"
-  | "advancedAnalytics"
-  | "paymentLinks"
-  | "hypnateX";
-
+export type BillingCycle = "monthly" | "yearly";
+export type PlanFeature = "commerceWorkspace" | "catalogAi" | "advancedAnalytics" | "paymentLinks" | "hypnateX";
 export type PlanChannel = "whatsapp" | "instagram" | "facebook" | "telegram";
 
-export interface PlanDefinition {
-  id: PlanId;
-  name: string;
-  priceMonthly: number;
-  tagline: string;
-  summary: string;
-}
+export const PLAN_OPTIONS = [
+ {
+  id:"starter",
+  name:"Starter",
+  tagline:"For solo sellers & new D2C founders.",
+  priceMonthly:999,
+  priceYearly:9588,
+  features:[
+    "Products & inventory",
+    "Orders & customers",
+    "WhatsApp + Telegram"
+  ]
+},
 
-export const PLAN_DEFINITIONS: Record<PlanId, PlanDefinition> = {
-  starter: {
-    id: "starter",
-    name: "Starter",
-    priceMonthly: 999,
-    tagline: "Core commerce workspace",
-    summary: "Core tools for products, orders, customers, conversations and channel workflows.",
-  },
-  pro: {
-    id: "pro",
-    name: "Pro",
-    priceMonthly: 1999,
-    tagline: "Deeper commerce operations",
-    summary: "Everything in Starter plus advanced analytics and payment-link generation.",
-  },
-  business: {
-    id: "business",
-    name: "Business",
-    priceMonthly: 4999,
-    tagline: "Expanded commerce workspace",
-    summary: "Everything in Pro plus the Hypnate X website builder.",
-  },
+ {
+  id:"pro",
+  name:"Pro",
+  tagline:"For growing D2C brands.",
+  priceMonthly:1999,
+  priceYearly:19188,
+  features:[
+    "Everything in Starter",
+    "Instagram + Facebook",
+    "Advanced analytics",
+    "Payment links"
+  ]
+},
+
+ {
+  id:"business",
+  name:"Business",
+  tagline:"For established brands & agencies.",
+  priceMonthly:5000,
+  priceYearly:47988,
+  features:[
+    "Everything in Pro",
+    "Hypnate X",
+    "Expanded workspace"
+  ]
+},
+] as const;
+const R:Record<PlanId,number>={starter:1,pro:2,business:3}; 
+const F:Record<PlanFeature,PlanId>={
+  commerceWorkspace:"starter",
+  catalogAi:"starter",
+  advancedAnalytics:"pro",
+  paymentLinks:"pro",
+  hypnateX:"business"
+}; 
+const C:Record<PlanChannel,PlanId>={
+  whatsapp:"starter",
+  telegram:"starter",
+  instagram:"pro",
+  facebook:"pro"
 };
 
-const PLAN_RANK: Record<PlanId, number> = {
-  starter: 1,
-  pro: 2,
-  business: 3,
-};
+export const normalizePlan = (value: unknown): PlanId | null => {
+  if (typeof value !== "string") {
+    return null;
+  }
 
-const FEATURE_MINIMUM_PLAN: Record<PlanFeature, PlanId> = {
-  commerceWorkspace: "starter",
-  catalogAi: "starter",
-  advancedAnalytics: "pro",
-  paymentLinks: "pro",
-  hypnateX: "business",
-};
-
-// Channel availability follows the current public pricing: Starter includes
-// WhatsApp + Telegram; Pro adds Instagram + Facebook; Business inherits Pro.
-const CHANNEL_MINIMUM_PLAN: Record<PlanChannel, PlanId> = {
-  whatsapp: "starter",
-  telegram: "starter",
-  instagram: "pro",
-  facebook: "pro",
-};
-
-export function normalizePlan(value: unknown): PlanId | null {
-  if (typeof value !== "string") return null;
   const normalized = value.trim().toLowerCase();
-  return normalized === "starter" || normalized === "pro" || normalized === "business"
-    ? normalized
-    : null;
-}
 
-export function hasPlanFeature(plan: unknown, feature: PlanFeature): boolean {
-  const planId = normalizePlan(plan);
-  if (!planId) return false;
-  return PLAN_RANK[planId] >= PLAN_RANK[FEATURE_MINIMUM_PLAN[feature]];
-}
+  if (
+    normalized === "starter" ||
+    normalized === "pro" ||
+    normalized === "business"
+  ) {
+    return normalized;
+  }
 
-export function requiredPlanForFeature(feature: PlanFeature): PlanId {
-  return FEATURE_MINIMUM_PLAN[feature];
-}
-
-export function getPlanDefinition(plan: unknown): PlanDefinition | null {
-  const planId = normalizePlan(plan);
-  return planId ? PLAN_DEFINITIONS[planId] : null;
-}
-
-export const PLAN_OPTIONS = Object.values(PLAN_DEFINITIONS);
-
-export const PLAN_FEATURE_MATRIX: Record<PlanId, Record<PlanFeature, boolean>> = {
-  starter: {
-    commerceWorkspace: true,
-    catalogAi: true,
-    advancedAnalytics: false,
-    paymentLinks: false,
-    hypnateX: false,
-  },
-  pro: {
-    commerceWorkspace: true,
-    catalogAi: true,
-    advancedAnalytics: true,
-    paymentLinks: true,
-    hypnateX: false,
-  },
-  business: {
-    commerceWorkspace: true,
-    catalogAi: true,
-    advancedAnalytics: true,
-    paymentLinks: true,
-    hypnateX: true,
-  },
+  return null;
 };
 
-export function hasPlanChannel(plan: unknown, channel: PlanChannel): boolean {
-  const planId = normalizePlan(plan);
-  if (!planId) return false;
-  return PLAN_RANK[planId] >= PLAN_RANK[CHANNEL_MINIMUM_PLAN[channel]];
-}
+export const hasPlanFeature=(p:unknown,f:PlanFeature)=>{
+  const x=normalizePlan(p);return !!x&&R[x]>=R[F[f]]};
 
-export function requiredPlanForChannel(channel: PlanChannel): PlanId {
-  return CHANNEL_MINIMUM_PLAN[channel];
-}
+export const hasPlanChannel=(p:unknown,c:PlanChannel)=>{
+  const x=normalizePlan(p);return !!x&&R[x]>=R[C[c]]};
 
-export const PLAN_CHANNELS: Record<PlanId, PlanChannel[]> = {
-  starter: ["whatsapp", "telegram"],
-  pro: ["whatsapp", "telegram", "instagram", "facebook"],
-  business: ["whatsapp", "telegram", "instagram", "facebook"],
-};
+export const requiredPlanForFeature=(f:PlanFeature)=>F[f]; 
+export const requiredPlanForChannel=(c:PlanChannel)=>C[c];
 
-export function getPlanChannels(plan: unknown): PlanChannel[] {
-  const planId = normalizePlan(plan);
-  return planId ? PLAN_CHANNELS[planId] : [];
-}
+export const getPlanDefinition=(p:PlanId)=>PLAN_OPTIONS.find(x=>x.id===p)||null;
+
+export const getEffectivePlan=(seller:any)=>{
+  const active=normalizePlan(seller?.activePlan);
+    const status=String(seller?.planStatus||"").toUpperCase();
+      const end=seller?.planCurrentPeriodEnd?
+        new Date(seller.planCurrentPeriodEnd):null;
+        if(active&&["ACTIVE","PENDING","CANCELLED"].includes(status)&&(!end||end>new Date()
+        ))
+      return{
+        hasAccess:true,source:"paid" as const,
+        plan:active
+      };
+        const trial=normalizePlan(seller?.trialPlan);
+        const trialEnd=seller?.trialEndsAt?
+        new Date(seller.trialEndsAt):null;
+        if(trial&&trialEnd&&trialEnd>
+          new Date()
+        )
+          return{
+            hasAccess:true,source:"trial" as const,
+            plan:trial};
+            return{
+              hasAccess:false,source:null,plan:null
+            };
+          };

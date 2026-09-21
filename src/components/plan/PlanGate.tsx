@@ -5,6 +5,7 @@ import {
   getPlanDefinition,
   hasPlanFeature,
   requiredPlanForFeature,
+  normalizePlan,
   type PlanFeature,
 } from "../../config/planEntitlements";
 import { useAuthStore } from "../../stores/useAuthStore";
@@ -23,10 +24,18 @@ interface PlanRouteProps {
 export const PlanGate: React.FC<PlanGateProps> = ({ feature, children, compact = false }) => {
   const plan = useAuthStore((state) => state.user?.seller?.activePlan);
 
-  if (hasPlanFeature(plan, feature)) return <>{children}</>;
+  if (hasPlanFeature(plan, feature)) {
+    return <>{children}</>;
+  }
 
-  const current = getPlanDefinition(plan);
+  const normalizedPlan = normalizePlan(plan);
+
+  const current = normalizedPlan
+    ? getPlanDefinition(normalizedPlan)
+    : null;
+
   const required = getPlanDefinition(requiredPlanForFeature(feature));
+
   const currentName = current?.name || "No plan";
   const requiredName = required?.name || "a paid plan";
 

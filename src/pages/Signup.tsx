@@ -1,273 +1,180 @@
 import React, { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Check } from "lucide-react";
 import { useAuthStore } from "../stores/useAuthStore";
 import { AuthLayout } from "../components/auth/AuthLayout";
-import { PUBLIC_CHANNEL_SUMMARY } from "../data/publicChannels";
-import { normalizePlan, getPlanDefinition } from "../config/planEntitlements";
+import { FormField } from "../components/auth/Formfield";
+import { PasswordField } from "../components/auth/Passwordfield";
 import {
-  validateEmail,
-  validatePassword,
-  validateName,
-  validateBusinessName,
-  validatePhone,
+    validateEmail,
+    validatePassword,
+    validateName,
+    validateBusinessName,
+    validatePhone,
 } from "../utils/Validation";
 
 interface FieldErrors {
-  name?: string;
-  businessName?: string;
-  phone?: string;
-  email?: string;
-  password?: string;
-  confirmPassword?: string;
+    name?: string;
+    businessName?: string;
+    phone?: string;
+    email?: string;
+    password?: string;
 }
 
 export const Signup: React.FC = () => {
-  const [name, setName] = useState("");
-  const [businessName, setBusinessName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [searchParams] = useSearchParams();
+    const [name, setName] = useState("");
+    const [businessName, setBusinessName] = useState("");
+    const [phone, setPhone] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+    const [formError, setFormError] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [searchParams] = useSearchParams();
+    const queryPlan = searchParams.get("plan");
+    const selectedPlan = queryPlan === "starter" || queryPlan === "pro" || queryPlan === "business" ? queryPlan : null;
 
-  const requestedPlan = searchParams.get("plan");
-  const selectedPlan = normalizePlan(requestedPlan);
-  const selectedPlanDefinition = selectedPlan ? getPlanDefinition(selectedPlan) : null;
-  const selectedPlanLabel = selectedPlanDefinition?.name || null;
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-  const [formError, setFormError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+    const signup = useAuthStore((s) => s.signup);
+    const navigate = useNavigate();
 
-  const signup = useAuthStore((s) => s.signup);
-  const navigate = useNavigate();
+    const validate = (): boolean => {
+        const checks: Record<keyof FieldErrors, { valid: boolean; message?: string }> = {
+            name: validateName(name),
+            businessName: validateBusinessName(businessName),
+            phone: validatePhone(phone),
+            email: validateEmail(email),
+            password: validatePassword(password),
+        };
 
-  const validate = (): boolean => {
-    const checks: Record<
-      keyof FieldErrors,
-      { valid: boolean; message?: string }
-    > = {
-      name: validateName(name),
-      businessName: validateBusinessName(businessName),
-      phone: validatePhone(phone),
-      email: validateEmail(email),
-      password: validatePassword(password),
-      confirmPassword: password === confirmPassword
-        ? { valid: true }
-        : { valid: false, message: "Passwords do not match" },
+        const errors: FieldErrors = {};
+        (Object.keys(checks) as (keyof FieldErrors)[]).forEach((key) => {
+            if (!checks[key].valid) errors[key] = checks[key].message;
+        });
+
+        setFieldErrors(errors);
+        return Object.keys(errors).length === 0;
     };
 
-    const errors: FieldErrors = {};
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setFormError(null);
+        if (!validate()) return;
 
-    (Object.keys(checks) as (keyof FieldErrors)[]).forEach((key) => {
-      if (!checks[key].valid) {
-        errors[key] = checks[key].message;
-      }
-    });
+        setIsLoading(true);
+        try {
+            await signup(name, email, password, businessName, phone, selectedPlan);
+            // Account exists but isn't verified yet — send them to check their
+            // inbox rather than straight into onboarding.
+            navigate("/verify-email", { state: { email } });
+        } catch (err: any) {
+            setFormError(err.message || "Signup failed. Please try again.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-    setFieldErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setFormError(null);
-
-    if (!validate()) return;
-
-    setIsLoading(true);
-
-    try {
-      await signup(name, email, password, businessName, phone, selectedPlan);
-      navigate("/verify-email", { state: { email, plan: selectedPlan } });
-    } catch (err: any) {
-      setFormError(err?.message || "Signup failed. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <AuthLayout
-      density="compact"
-      title="Create account"
-      subtitle={`Create your Hypnate account for ${PUBLIC_CHANNEL_SUMMARY} commerce.`}
-      topLink={
-        <>
-          Already have an account?{" "}
-          <Link to="/login">Log in</Link>
-        </>
-      }
-      footer={
-        <>
-          By creating an account, you agree to the{" "}
-          <Link to="/terms">Terms of Service</Link> and{" "}
-          <Link to="/privacy">Privacy Policy</Link>.
-        </>
-      }
-    >
-      {selectedPlanLabel ? (
-        <div className="auth-plan-summary" role="status" aria-live="polite">
-          <span>Plan preference: <strong>{selectedPlanLabel}</strong></span>
-          {selectedPlanDefinition && (
-            <span aria-label={`Monthly price ${selectedPlanDefinition.priceMonthly} rupees`}>
-              ₹{selectedPlanDefinition.priceMonthly.toLocaleString("en-IN")}/mo
-            </span>
-          )}
-          <Link to="/pricing">Change</Link>
-        </div>
-      ) : (
-        <div className="auth-plan-required" role="status">
-          No subscription is required to create your account. You can choose and activate a plan after onboarding.
-        </div>
-      )}
-
-      {formError && (
-        <div className="auth-error" role="alert" aria-live="assertive">
-          {formError}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="auth-form auth-signup-form" noValidate>
-        <div className="auth-field">
-          <label htmlFor="signup-name">Full name</label>
-          <input
-            id="signup-name"
-            name="name"
-            autoComplete="name"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder="Your name"
-            aria-invalid={Boolean(fieldErrors.name)}
-            aria-describedby={fieldErrors.name ? "signup-name-error" : undefined}
-          />
-          {fieldErrors.name && (
-            <span id="signup-name-error" className="auth-field-error" role="alert">{fieldErrors.name}</span>
-          )}
-        </div>
-
-        <div className="auth-field">
-          <label htmlFor="signup-business">Business name</label>
-          <input
-            id="signup-business"
-            name="businessName"
-            autoComplete="organization"
-            value={businessName}
-            onChange={(event) => setBusinessName(event.target.value)}
-            placeholder="Your business name"
-            aria-invalid={Boolean(fieldErrors.businessName)}
-            aria-describedby={fieldErrors.businessName ? "signup-business-error" : undefined}
-          />
-          {fieldErrors.businessName && (
-            <span id="signup-business-error" className="auth-field-error" role="alert">{fieldErrors.businessName}</span>
-          )}
-        </div>
-
-        <div className="auth-field">
-          <label htmlFor="signup-phone">Mobile number</label>
-          <input
-            id="signup-phone"
-            name="phone"
-            type="tel"
-            autoComplete="tel"
-            value={phone}
-            onChange={(event) => setPhone(event.target.value)}
-            placeholder="+91 98XXX XXXXX"
-            aria-invalid={Boolean(fieldErrors.phone)}
-            aria-describedby={fieldErrors.phone ? "signup-phone-error" : undefined}
-          />
-          {fieldErrors.phone && (
-            <span id="signup-phone-error" className="auth-field-error" role="alert">{fieldErrors.phone}</span>
-          )}
-        </div>
-
-        <div className="auth-field">
-          <label htmlFor="signup-email">Email address</label>
-          <input
-            id="signup-email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            placeholder="you@example.com"
-            aria-invalid={Boolean(fieldErrors.email)}
-            aria-describedby={fieldErrors.email ? "signup-email-error" : undefined}
-          />
-          {fieldErrors.email && (
-            <span id="signup-email-error" className="auth-field-error" role="alert">{fieldErrors.email}</span>
-          )}
-        </div>
-
-        <div className="auth-field">
-          <label htmlFor="signup-password">Password</label>
-
-          <div className="auth-password-wrap">
-            <input
-              id="signup-password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              autoComplete="new-password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="Create a password"
-              aria-invalid={Boolean(fieldErrors.password)}
-              aria-describedby={fieldErrors.password ? "signup-password-error" : "signup-password-hint"}
-            />
-            <button
-              type="button"
-              className="auth-password-toggle"
-              onClick={() => setShowPassword((visible) => !visible)}
-              aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              {showPassword ? "Hide" : "Show"}
-            </button>
-          </div>
-
-          {!fieldErrors.password && (
-            <span id="signup-password-hint" className="auth-field-hint">
-              Min 8 chars with uppercase, number &amp; special character
-            </span>
-          )}
-
-          {fieldErrors.password && (
-            <span id="signup-password-error" className="auth-field-error" role="alert">{fieldErrors.password}</span>
-          )}
-        </div>
-
-        <div className="auth-field">
-          <label htmlFor="signup-confirm-password">Confirm password</label>
-          <div className="auth-password-wrap">
-            <input
-              id="signup-confirm-password"
-              name="confirmPassword"
-              type={showPassword ? "text" : "password"}
-              autoComplete="new-password"
-              value={confirmPassword}
-              onChange={(event) => setConfirmPassword(event.target.value)}
-              placeholder="Re-enter your password"
-              aria-invalid={Boolean(fieldErrors.confirmPassword)}
-              aria-describedby={fieldErrors.confirmPassword ? "signup-confirm-password-error" : undefined}
-            />
-          </div>
-          {fieldErrors.confirmPassword && (
-            <span id="signup-confirm-password-error" className="auth-field-error" role="alert">{fieldErrors.confirmPassword}</span>
-          )}
-        </div>
-
-        <button
-          type="submit"
-          className="auth-primary-button"
-          disabled={isLoading}
-          aria-busy={isLoading}
+    return (
+        <AuthLayout
+            title="Create your account"
+            subtitle="Create your account and get 7 days free — no credit card required."
+            footer={
+                <>
+                    Already have an account?{" "}
+                    <Link to="/login" style={{ color: "#0d9488", fontWeight: 700, textDecoration: "none" }} className="auth-link">
+                        Sign in
+                    </Link>
+                </>
+            }
         >
-          {isLoading ? (
-            <><span className="auth-spinner" aria-hidden="true" /> Creating account…</>
-          ) : (
-            "Create account"
-          )}
-        </button>
-      </form>
-    </AuthLayout>
-  );
+            {formError && (
+                <div
+                    style={{
+                        marginBottom: 16,
+                        padding: "10px 14px",
+                        borderRadius: 10,
+                        background: "#fef2f2",
+                        border: "1px solid #fecaca",
+                        fontSize: 13,
+                        color: "#dc2626",
+                    }}
+                >
+                    {formError}
+                </div>
+            )}
+
+            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }} noValidate>
+                <FormField
+                    label="Full Name"
+                    name="name"
+                    autoComplete="name"
+                    value={name}
+                    onChange={setName}
+                    placeholder="e.g. Rahul Sharma"
+                    error={fieldErrors.name}
+                />
+                <FormField
+                    label="Business Name"
+                    name="businessName"
+                    autoComplete="organization"
+                    value={businessName}
+                    onChange={setBusinessName}
+                    placeholder="e.g. Rahul Fashion House"
+                    error={fieldErrors.businessName}
+                />
+                <FormField
+                    label="Mobile No."
+                    name="phone"
+                    type="tel"
+                    autoComplete="tel"
+                    value={phone}
+                    onChange={setPhone}
+                    placeholder="+91 98XXX XXXXX"
+                    error={fieldErrors.phone}
+                />
+                <FormField
+                    label="Email address"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={setEmail}
+                    placeholder="you@example.com"
+                    error={fieldErrors.email}
+                />
+                <PasswordField
+                    value={password}
+                    onChange={setPassword}
+                    autoComplete="new-password"
+                    error={fieldErrors.password}
+                    hint={!fieldErrors.password ? "Min 8 chars with uppercase, number & special character" : undefined}
+                />
+
+                <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="auth-submit"
+                    style={{
+                        width: "100%",
+                        height: 48,
+                        marginTop: 4,
+                        background: isLoading ? "#94a3b8" : "#0d9488",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: 12,
+                        fontSize: 15,
+                        fontWeight: 800,
+                        cursor: isLoading ? "not-allowed" : "pointer",
+                        fontFamily: "'Outfit',sans-serif",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 8,
+                        letterSpacing: "-0.2px",
+                    }}
+                >
+                    {isLoading ? <span className="auth-spinner" /> : "Create My Store →"}
+                </button>
+            </form>
+        </AuthLayout>
+    );
 };
