@@ -1,0 +1,566 @@
+
+/* =========================================================
+   Hypnate — plan-required / billing paywall
+   ========================================================= */
+
+:root {
+  --billing-ink: #10201c;
+  --billing-muted: #64748b;
+  --billing-border: rgba(15, 23, 42, 0.09);
+  --billing-primary: #0d9488;
+  --billing-primary-dark: #0f766e;
+  --billing-surface: rgba(255, 255, 255, 0.96);
+}
+
+.billing-page,
+.billing-page * {
+  box-sizing: border-box;
+}
+
+.billing-page {
+  min-height: 100dvh;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  isolation: isolate;
+  color: var(--billing-ink);
+  font-family: "Plus Jakarta Sans", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(13, 148, 136, 0.18), transparent 30%),
+    radial-gradient(circle at 85% 20%, rgba(45, 212, 191, 0.11), transparent 28%),
+    linear-gradient(145deg, #071714 0%, #081f1b 45%, #05221d 100%);
+}
+
+.billing-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.35;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(to bottom, black, transparent 78%);
+}
+
+.billing-header {
+  height: 76px;
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(3, 15, 13, 0.65);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.billing-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: #fff;
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -0.055em;
+}
+
+.billing-logo::before {
+  content: "";
+  width: 9px;
+  height: 22px;
+  border-radius: 6px 6px 3px 3px;
+  background: linear-gradient(180deg, #f97316, #ea580c);
+  transform: skew(-12deg);
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.28);
+}
+
+.billing-header > span {
+  max-width: 42vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.66);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.billing-stage {
+  min-height: calc(100dvh - 76px);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+}
+
+.billing-blur {
+  position: absolute;
+  inset: 20px;
+  overflow: hidden;
+  border-radius: 24px;
+  transform: translateZ(0);
+  filter: blur(2px);
+  opacity: 0.58;
+  background:
+    radial-gradient(circle at 79% 21%, rgba(45, 212, 191, 0.18), transparent 17%),
+    linear-gradient(135deg, rgba(13, 148, 136, 0.12), rgba(255, 255, 255, 0.025));
+}
+
+.billing-blur::before {
+  content: "";
+  position: absolute;
+  inset: 20px;
+  border-radius: 18px;
+  background:
+    linear-gradient(90deg, rgba(8, 35, 31, 0.92) 0 210px, transparent 210px),
+    linear-gradient(180deg, rgba(255,255,255,0.05) 0 64px, transparent 64px),
+    linear-gradient(90deg, transparent 0 250px, rgba(255,255,255,0.035) 250px 100%);
+  box-shadow:
+    0 40px 100px rgba(0,0,0,0.26),
+    inset 0 0 0 1px rgba(255,255,255,0.06);
+}
+
+.billing-blur::after {
+  content: "";
+  position: absolute;
+  left: 274px;
+  right: 34px;
+  top: 106px;
+  height: calc(100% - 148px);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.07) 0 88px, transparent 88px),
+    linear-gradient(90deg,
+      rgba(255,255,255,0.08) 0 23%,
+      transparent 23% 25%,
+      rgba(255,255,255,0.08) 25% 48%,
+      transparent 48% 50%,
+      rgba(255,255,255,0.08) 50% 73%,
+      transparent 73% 75%,
+      rgba(255,255,255,0.08) 75% 100%);
+  opacity: 0.72;
+}
+
+.billing-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at center, rgba(6, 21, 18, 0.16), rgba(2, 10, 9, 0.76) 88%),
+    rgba(3, 14, 12, 0.28);
+}
+
+.billing-dialog {
+  position: relative;
+  z-index: 3;
+  width: min(1100px, calc(100vw - 56px));
+  max-height: calc(100dvh - 108px);
+  overflow: auto;
+  padding: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.76);
+  border-radius: 24px;
+  background: var(--billing-surface);
+  box-shadow:
+    0 32px 80px rgba(0, 0, 0, 0.38),
+    0 8px 24px rgba(0, 0, 0, 0.12);
+  animation: billingDialogIn 0.35s ease-out both;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(15, 118, 110, 0.25) transparent;
+}
+
+.billing-dialog::-webkit-scrollbar {
+  width: 7px;
+}
+
+.billing-dialog::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.billing-dialog::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(15, 118, 110, 0.25);
+}
+
+.billing-icon {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 13px;
+  border-radius: 14px;
+  color: var(--billing-primary);
+  background: #e6fffa;
+  border: 1px solid #ccfbf1;
+}
+
+.billing-eyebrow {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--billing-primary);
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.billing-dialog > h1 {
+  margin: 0;
+  color: var(--billing-ink);
+  font-size: clamp(25px, 3.2vw, 38px);
+  line-height: 1.06;
+  font-weight: 800;
+  letter-spacing: -0.045em;
+}
+
+.billing-dialog > p {
+  max-width: 760px;
+  margin: 9px 0 0;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.billing-trial {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-top: 18px;
+  padding: 13px 15px;
+  border: 1px solid #ccfbf1;
+  border-radius: 14px;
+  color: #115e59;
+  background: #f0fdfa;
+}
+
+.billing-trial > svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.billing-trial div {
+  display: grid;
+  gap: 2px;
+}
+
+.billing-trial strong {
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.billing-trial span {
+  color: #4f766f;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.billing-cycle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 20px 0 14px;
+  padding: 4px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.billing-cycle button {
+  appearance: none;
+  border: 0;
+  border-radius: 9px;
+  padding: 8px 13px;
+  color: #64748b;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.billing-cycle button:hover {
+  color: #0f172a;
+}
+
+.billing-cycle button.active {
+  color: #0f766e;
+  background: #fff;
+  box-shadow: 0 2px 7px rgba(15, 23, 42, 0.08);
+}
+
+.billing-cycle small {
+  margin-left: 3px;
+  color: #0d9488;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+
+.billing-message {
+  margin: 0 0 14px;
+  padding: 11px 13px;
+  border: 1px solid #fed7aa;
+  border-radius: 11px;
+  color: #9a3412;
+  background: #fff7ed;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.billing-plans {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.billing-plans article {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 17px;
+  border: 1px solid #e2e8f0;
+  border-radius: 17px;
+  background: #fff;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.billing-plans article:hover,
+.billing-plans article.selected {
+  border-color: rgba(13, 148, 136, 0.45);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+  transform: translateY(-2px);
+}
+
+.billing-plan-head {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+
+.billing-plan-head h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 16px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+.billing-plan-head p {
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.billing-plan-head > strong {
+  flex: 0 0 auto;
+  color: #0f172a;
+  font-size: 19px;
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  text-align: right;
+}
+
+.billing-plan-head > strong small {
+  margin-left: 2px;
+  color: #94a3b8;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.billing-features {
+  display: grid;
+  gap: 8px;
+  margin: 18px 0;
+  flex: 1;
+}
+
+.billing-features span {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  color: #475569;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.billing-features svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: var(--billing-primary);
+}
+
+.billing-buy {
+  width: 100%;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 10px;
+  color: #fff;
+  background: linear-gradient(135deg, #0d9488, #0f766e);
+  box-shadow: 0 8px 18px rgba(13, 148, 136, 0.2);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+.billing-buy:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 11px 24px rgba(13, 148, 136, 0.26);
+}
+
+.billing-buy:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
+
+.billing-plans article.selected .billing-buy {
+  box-shadow: 0 10px 24px rgba(13, 148, 136, 0.27);
+}
+
+.billing-page button:focus-visible {
+  outline: 3px solid rgba(13, 148, 136, 0.3);
+  outline-offset: 2px;
+}
+
+.spin {
+  animation: billingSpin 0.75s linear infinite;
+}
+
+@keyframes billingDialogIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes billingSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 900px) {
+  .billing-dialog {
+    width: min(720px, calc(100vw - 36px));
+    padding: 24px;
+  }
+
+  .billing-plans {
+    grid-template-columns: 1fr;
+  }
+
+  .billing-plans article {
+    padding: 16px;
+  }
+
+  .billing-features {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .billing-page {
+    overflow: auto;
+  }
+
+  .billing-header {
+    height: 64px;
+    padding: 0 18px;
+  }
+
+  .billing-logo {
+    font-size: 19px;
+  }
+
+  .billing-logo::before {
+    width: 8px;
+    height: 19px;
+  }
+
+  .billing-header > span {
+    max-width: 50vw;
+    font-size: 10px;
+  }
+
+  .billing-stage {
+    min-height: calc(100dvh - 64px);
+    padding: 14px;
+    align-items: flex-start;
+  }
+
+  .billing-blur {
+    inset: 10px;
+    border-radius: 18px;
+  }
+
+  .billing-dialog {
+    width: 100%;
+    max-height: none;
+    margin: 8px 0;
+    padding: 19px;
+    border-radius: 19px;
+  }
+
+  .billing-dialog > h1 {
+    font-size: 27px;
+  }
+
+  .billing-dialog > p {
+    font-size: 13px;
+  }
+
+  .billing-trial {
+    padding: 12px;
+  }
+
+  .billing-cycle {
+    width: 100%;
+  }
+
+  .billing-cycle button {
+    flex: 1;
+  }
+
+  .billing-features {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .billing-dialog,
+  .billing-buy,
+  .billing-plans article,
+  .billing-cycle button {
+    animation: none !important;
+    transition: none !important;
+  }
+}
