@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Loader2, Sparkles } from "lucide-react";
 import api from "../lib/api";
 import { useAuthStore } from "../stores/useAuthStore";
-import { PLAN_OPTIONS, getPlanDefinition, normalizePlan, type PlanId } from "../config/planEntitlements";
+import { PLAN_OPTIONS, getPlanDefinition, normalizePlan, hasPlanChannel, type PlanId, type PlanChannel } from "../config/planEntitlements";
 import { OnboardingStepper } from "../components/onboarding/Onboardingstepper";
 import { OnboardingFooter } from "../components/onboarding/OnboardingFooter";
 import { BusinessStep } from "../components/onboarding/BusinessStep";
@@ -143,8 +143,8 @@ export const Onboarding: React.FC = () => {
         const connected: any = {};
         if (channels.whatsapp.connected) connected.whatsapp = { phone: channels.whatsapp.phone, apiKey: channels.whatsapp.apiKey };
         if (channels.telegram.connected) connected.telegram = { botToken: channels.telegram.botToken };
-        if (channels.instagram.connected) connected.instagram = {};
-        if (channels.facebook.connected) connected.facebook = {};
+        if (channels.instagram.connected && hasPlanChannel(effectivePlan, "instagram")) connected.instagram = {};
+        if (channels.facebook.connected && hasPlanChannel(effectivePlan, "facebook")) connected.facebook = {};
         if (Object.keys(connected).length > 0) await api.post("/api/onboarding/channels", { channels: connected });
         markCompleted(4);
         setCurrentStep(5);
@@ -256,7 +256,22 @@ export const Onboarding: React.FC = () => {
                 <PaymentsStep form={paymentForm} onChange={setPaymentForm} error={error} onClear={() => setError("")} />
               )}
               {currentStep === 4 && (
-                <ChannelsStep channels={channels} error={error} onClear={() => setError("")} onOpenChannel={setActiveModal} />
+                <ChannelsStep channels={channels} error={error} onClear={() => setError("")} 
+                  onOpenChannel={(channel) => {
+                    if (!channel) return;
+
+                    const plan = effectivePlan;
+                    const planChannel = channel as PlanChannel;
+
+                    if (plan && !hasPlanChannel(plan, planChannel)) {
+                      const label = `${channel.charAt(0).toUpperCase()}${channel.slice(1)}`;
+                      setError(`${label} requires the Pro plan or above.`);
+                      return;
+                    }
+
+                    setActiveModal(channel);
+                  }}
+                />
               )}
               {currentStep === 5 && (
                 <SummaryStep completed={completed} skipped={skipped} autoProgress={autoProgress} autoTasks={autoTasks} />

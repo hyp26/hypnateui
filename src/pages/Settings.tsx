@@ -10,6 +10,7 @@ import { useAuthStore } from "../stores/useAuthStore";
 import { useNavigate } from "react-router-dom";
 import api from "../lib/api";
 import { PlanGate } from "../components/plan/PlanGate";
+import { hasPlanChannel, requiredPlanForChannel, type PlanChannel } from "../config/planEntitlements";
 
 /* ─── TYPES ─── */
 interface ProfileData { name: string; email: string; phone: string; avatarUrl: string | null }
@@ -118,6 +119,7 @@ export const Settings: React.FC = () => {
   const setUser = useAuthStore(s => s.setUser);
   const logout = useAuthStore(s => s.logout);
   const navigate = useNavigate();
+  const selectedPlan = useAuthStore(s => s.user?.seller?.selectedPlan);
 
   const [activeTab, setActiveTab] = useState("profile");
   const [loading, setLoading] = useState(false);
@@ -534,13 +536,27 @@ export const Settings: React.FC = () => {
                                   </span>
                                 )}
                               </div>
-                              <p style={{ fontSize: 12, color: "#64748b", margin: "2px 0 0" }}>{cfg.desc}</p>
+                              <p style={{ fontSize: 12, color: "#64748b", margin: "2px 0 0" }}>{cfg.desc}</p>{!hasPlanChannel(selectedPlan, key as PlanChannel) && <span style={{ display: "inline-block", marginTop: 4, fontSize: 10, fontWeight: 700, color: "#7c3aed" }}>Requires Pro</span>}
                             </div>
                             {connected ? (
                               <button onClick={() => setChannels(c => ({ ...c, [key]: false }))} style={{ padding: "7px 14px", borderRadius: 8, border: "1.5px solid #fecaca", background: "#fef2f2", color: "#dc2626", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>Disconnect</button>
-                            ) : (
-                              <button onClick={() => setChannels(c => ({ ...c, [key]: true }))} style={{ padding: "7px 14px", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#0d9488,#0f766e)", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 3px 10px rgba(13,148,136,0.25)", flexShrink: 0 }}>Connect</button>
-                            )}
+                            ) : (() => {
+                              const channel = key as PlanChannel;
+                              const locked = !hasPlanChannel(selectedPlan, channel);
+                              const required = requiredPlanForChannel(channel);
+                              return locked ? (
+                                <button
+                                  type="button"
+                                  onClick={() => navigate(`/pricing`)}
+                                  style={{ padding: "7px 14px", borderRadius: 8, border: "1px solid #cbd5e1", background: "#f8fafc", color: "#475569", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}
+                                  aria-label={`Upgrade to ${required} to connect ${cfg.name}`}
+                                >
+                                  Upgrade · {required}
+                                </button>
+                              ) : (
+                                <button type="button" onClick={() => setChannels(c => ({ ...c, [key]: true }))} style={{ padding: "7px 14px", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#0d9488,#0f766e)", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 3px 10px rgba(13,148,136,0.25)", flexShrink: 0 }}>Connect</button>
+                              );
+                            })()}
                           </div>
                         );
                       })}

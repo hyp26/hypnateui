@@ -6,8 +6,19 @@ import {
   Shield, Rocket, Gift
 } from 'lucide-react';
 import { PUBLIC_CHANNEL_SUMMARY, PUBLIC_CHANNEL_TITLE_SUMMARY } from '../../data/publicChannels';
+import { getPlanChannels, type PlanChannel } from '../../config/planEntitlements';
 
 type BillingCycle = 'monthly' | 'yearly';
+
+const CHANNEL_LABELS: Record<PlanChannel, string> = {
+  whatsapp: 'WhatsApp',
+  telegram: 'Telegram',
+  instagram: 'Instagram',
+  facebook: 'Facebook',
+};
+
+const channelsForPlan = (planId: string) =>
+  getPlanChannels(planId).map((channel) => CHANNEL_LABELS[channel]).join(', ');
 
 interface Plan {
   id: string;
@@ -39,7 +50,7 @@ const plans: Plan[] = [
     accentBg: '#f0fdfa',
     icon: <Zap size={22} />,
     features: [
-      { category: 'Included', items: ['Pilot commerce workspace', PUBLIC_CHANNEL_SUMMARY, 'Basic dashboard', 'Product workspace access'] },
+      { category: 'Included', items: ['Pilot commerce workspace', channelsForPlan('starter'), 'Basic dashboard', 'Product workspace access'] },
     ],
   },
   {
@@ -56,7 +67,7 @@ const plans: Plan[] = [
     accentBg: '#0d9488',
     icon: <Star size={22} />,
     features: [
-      { category: 'Included', items: ['Expanded commerce workspace', PUBLIC_CHANNEL_SUMMARY, 'Advanced analytics', 'Payment link generation'] },
+      { category: 'Included', items: ['Expanded commerce workspace', channelsForPlan('pro'), 'Advanced analytics', 'Payment link generation'] },
     ],
   },
   {
@@ -78,7 +89,7 @@ const plans: Plan[] = [
 ];
 
 const compareRows = [
-  { feature: 'Platforms', starter: PUBLIC_CHANNEL_SUMMARY, pro: PUBLIC_CHANNEL_SUMMARY, business: PUBLIC_CHANNEL_SUMMARY },
+  { feature: 'Platforms', starter: channelsForPlan('starter'), pro: channelsForPlan('pro'), business: channelsForPlan('business') },
   { feature: 'Products & Inventory', starter: true, pro: true, business: true },
   { feature: 'Orders & Customers', starter: true, pro: true, business: true },
   { feature: 'Conversations & Channel Connections', starter: true, pro: true, business: true },

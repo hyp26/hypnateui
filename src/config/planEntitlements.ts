@@ -7,6 +7,8 @@ export type PlanFeature =
   | "paymentLinks"
   | "hypnateX";
 
+export type PlanChannel = "whatsapp" | "instagram" | "facebook" | "telegram";
+
 export interface PlanDefinition {
   id: PlanId;
   name: string;
@@ -51,6 +53,15 @@ const FEATURE_MINIMUM_PLAN: Record<PlanFeature, PlanId> = {
   advancedAnalytics: "pro",
   paymentLinks: "pro",
   hypnateX: "business",
+};
+
+// Channel availability follows the current public pricing: Starter includes
+// WhatsApp + Telegram; Pro adds Instagram + Facebook; Business inherits Pro.
+const CHANNEL_MINIMUM_PLAN: Record<PlanChannel, PlanId> = {
+  whatsapp: "starter",
+  telegram: "starter",
+  instagram: "pro",
+  facebook: "pro",
 };
 
 export function normalizePlan(value: unknown): PlanId | null {
@@ -101,3 +112,24 @@ export const PLAN_FEATURE_MATRIX: Record<PlanId, Record<PlanFeature, boolean>> =
     hypnateX: true,
   },
 };
+
+export function hasPlanChannel(plan: unknown, channel: PlanChannel): boolean {
+  const planId = normalizePlan(plan);
+  if (!planId) return false;
+  return PLAN_RANK[planId] >= PLAN_RANK[CHANNEL_MINIMUM_PLAN[channel]];
+}
+
+export function requiredPlanForChannel(channel: PlanChannel): PlanId {
+  return CHANNEL_MINIMUM_PLAN[channel];
+}
+
+export const PLAN_CHANNELS: Record<PlanId, PlanChannel[]> = {
+  starter: ["whatsapp", "telegram"],
+  pro: ["whatsapp", "telegram", "instagram", "facebook"],
+  business: ["whatsapp", "telegram", "instagram", "facebook"],
+};
+
+export function getPlanChannels(plan: unknown): PlanChannel[] {
+  const planId = normalizePlan(plan);
+  return planId ? PLAN_CHANNELS[planId] : [];
+}
