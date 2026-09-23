@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Loader2, Sparkles } from "lucide-react";
 import api from "../lib/api";
 import { useAuthStore } from "../stores/useAuthStore";
-import { PLAN_OPTIONS, normalizePlan, type PlanId } from "../config/planEntitlements";
+import { hasPlanChannel, type PlanChannel } from "../config/planEntitlements";
 import { OnboardingStepper } from "../components/onboarding/Onboardingstepper";
 import { OnboardingFooter } from "../components/onboarding/OnboardingFooter";
 import { BusinessStep } from "../components/onboarding/BusinessStep";
@@ -14,6 +14,7 @@ import { ChannelModal } from "../components/onboarding/ChannelModal";
 import { SummaryStep } from "../components/onboarding/SummaryStep";
 import { SkipConfirmPopup } from "../components/onboarding/SkipConfirmPopup";
 import "../styles/onboarding.css";
+import "../styles/onboarding-compact.css";
 import type {
   AutoTask, BusinessForm, ChannelData, ModalType, PaymentForm, Step,
 } from "../types/onboarding";
@@ -21,6 +22,10 @@ import type {
 export const Onboarding: React.FC = () => {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
+  const setUser = useAuthStore((s) => s.setUser);
+  // All new merchants receive the same 7-day Starter trial.
+  // There is no paid-plan selection during onboarding.
+  const effectivePlan = "starter" as const;
 
   const [currentStep, setCurrentStepRaw] = useState<Step>(1);
   const [completed, setCompleted] = useState<Set<number>>(new Set());
@@ -28,7 +33,6 @@ export const Onboarding: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showSkipPopup, setShowSkipPopup] = useState(false);
-  const [planChoice, setPlanChoice] = useState<PlanId | null>(normalizePlan((user as any)?.seller?.selectedPlan));
 
   // Prefilled from what was captured at signup, so the person never has to
   // retype their business name or mobile number.
@@ -97,8 +101,19 @@ export const Onboarding: React.FC = () => {
       if (currentStep === 1) {
         if (!businessForm.businessName.trim()) { setError("Business name is required"); return; }
         if (!businessForm.mobileNo.trim()) { setError("Mobile number is required"); return; }
-        if (!planChoice) { setError("Please choose a plan for your 7-day free trial"); return; }
-        await api.post("/api/onboarding/business", { ...businessForm, phone: businessForm.mobileNo, selectedPlan: planChoice });
+        await api.post("/api/onboarding/business", {
+          ...businessForm,
+          phone: businessForm.mobileNo,
+          selectedPlan: "starter",
+        });
+
+        if (user) {
+          setUser({
+            ...user,
+            seller: { ...user.seller, selectedPlan: "starter" },
+          });
+        }
+
         markCompleted(1);
         setCurrentStep(2);
       } else if (currentStep === 2) {
@@ -126,8 +141,8 @@ export const Onboarding: React.FC = () => {
         const connected: any = {};
         if (channels.whatsapp.connected) connected.whatsapp = { phone: channels.whatsapp.phone, apiKey: channels.whatsapp.apiKey };
         if (channels.telegram.connected) connected.telegram = { botToken: channels.telegram.botToken };
-        if (channels.instagram.connected) connected.instagram = {};
-        if (channels.facebook.connected) connected.facebook = {};
+        if (channels.instagram.connected && hasPlanChannel(effectivePlan, "instagram")) connected.instagram = {};
+        if (channels.facebook.connected && hasPlanChannel(effectivePlan, "facebook")) connected.facebook = {};
         if (Object.keys(connected).length > 0) await api.post("/api/onboarding/channels", { channels: connected });
         markCompleted(4);
         setCurrentStep(5);
@@ -135,7 +150,7 @@ export const Onboarding: React.FC = () => {
         if (skipped.size > 0) { setShowSkipPopup(true); return; }
         await api.post("/api/onboarding/complete");
         await useAuthStore.getState().loadProfile();
-        navigate("/dashboard");
+        navigate("/dashboard", { replace: true });
       }
     } catch (err: any) {
       setError(err?.response?.data?.message || "Something went wrong. Please try again.");
@@ -145,7 +160,7 @@ export const Onboarding: React.FC = () => {
   };
 
   const handleSkip = () => { markSkipped(currentStep); setCurrentStep((c) => Math.min(c + 1, 5) as Step); };
-  const handlePopupContinue = async () => { setShowSkipPopup(false); await api.post("/api/onboarding/complete"); await useAuthStore.getState().loadProfile(); navigate("/dashboard"); };
+  const handlePopupContinue = async () => { setShowSkipPopup(false); await api.post("/api/onboarding/complete"); await useAuthStore.getState().loadProfile(); navigate("/dashboard", { replace: true }); };
   const handlePopupComplete = () => {
     setShowSkipPopup(false);
     const first = [1, 2, 3, 4].find((s) => skipped.has(s));
@@ -154,7 +169,7 @@ export const Onboarding: React.FC = () => {
 
   return (
     <>
-      <div className="ob-root" style={{ background: "linear-gradient(160deg,#f0fdfa 0%,#f8fafc 40%,#f5f3ff 100%)", minHeight: "100vh" }}>
+      <div className="ob-root ob-single-screen" style={{ background: "linear-gradient(160deg,#f0fdfa 0%,#f8fafc 40%,#f5f3ff 100%)" }}>
         <div className="ob-wrap">
           <div className="ob-inner">
             <div className="ob-page-header">
@@ -167,17 +182,13 @@ export const Onboarding: React.FC = () => {
               </div>
             </div>
 
-            {currentStep === 1 && (
-              <section style={{ marginBottom: 18, padding: 16, borderRadius: 16, background: "#fff", border: "1px solid #e2e8f0" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start", marginBottom: 12 }}>
-                  <div><div style={{ fontSize: 16, fontWeight: 800, color: "#0f172a" }}>Choose your 7-day free trial plan</div><div style={{ fontSize: 12, color: "#64748b", marginTop: 4 }}>No charges and no credit card during the trial.</div></div>
-                  <span style={{ padding: "5px 9px", borderRadius: 999, background: "#ecfdf5", color: "#047857", fontSize: 11, fontWeight: 800 }}>7 DAYS FREE</span>
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(190px,1fr))", gap: 10 }}>
-                  {PLAN_OPTIONS.map((plan) => <button type="button" key={plan.id} onClick={() => { setPlanChoice(plan.id); setError(""); }} style={{ textAlign: "left", padding: 13, borderRadius: 12, border: planChoice === plan.id ? "2px solid #0d9488" : "1px solid #e2e8f0", background: planChoice === plan.id ? "#f0fdfa" : "#fff", cursor: "pointer" }}><div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}><strong style={{ fontSize: 14 }}>{plan.name}</strong><span style={{ fontSize: 12, fontWeight: 800, color: "#0d9488" }}>₹{plan.priceMonthly.toLocaleString("en-IN")}/mo</span></div><p style={{ margin: "5px 0 0", fontSize: 11, color: "#64748b" }}>{plan.tagline}</p></button>)}
-                </div>
-              </section>
-            )}
+            <section className="ob-trial-banner" aria-label="Free trial information">
+              <div>
+                <strong>Start your 7-day free trial</strong>
+                <p>No charges and no credit card are required during the trial.</p>
+              </div>
+              <span>7 DAYS FREE</span>
+            </section>
 
             <OnboardingStepper current={currentStep} completed={completed} skipped={skipped} />
 
@@ -198,7 +209,19 @@ export const Onboarding: React.FC = () => {
                 <PaymentsStep form={paymentForm} onChange={setPaymentForm} error={error} onClear={() => setError("")} />
               )}
               {currentStep === 4 && (
-                <ChannelsStep channels={channels} error={error} onClear={() => setError("")} onOpenChannel={setActiveModal} />
+                <ChannelsStep channels={channels} error={error} onClear={() => setError("")} onOpenChannel={(channel) => {
+                  const plan = effectivePlan;
+
+                  if (channel && plan && !hasPlanChannel(plan, channel as PlanChannel)) {
+                    const channelName =
+                      channel.charAt(0).toUpperCase() + channel.slice(1);
+
+                    setError(`${channelName} requires the Pro plan or above.`);
+                    return;
+                  }
+
+                  setActiveModal(channel);
+                }} />
               )}
               {currentStep === 5 && (
                 <SummaryStep completed={completed} skipped={skipped} autoProgress={autoProgress} autoTasks={autoTasks} />
@@ -216,6 +239,7 @@ export const Onboarding: React.FC = () => {
               ) : (
                 <div style={{ display: "flex", justifyContent: "center", marginTop: 28, paddingTop: 20, borderTop: "1px solid #f1f5f9" }}>
                   <button
+                    type="button"
                     onClick={handleNext}
                     disabled={autoProgress < 100 || loading}
                     style={{
@@ -247,7 +271,7 @@ export const Onboarding: React.FC = () => {
       {activeModal && (
         <div
           className="ob-modal-overlay"
-          style={{ position: "fixed", inset: 0, background: "rgba(15,23,42,0.6)", backdropFilter: "blur(6px)", display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 1000 }}
+          style={{ position: "fixed", inset: 0, background: "rgba(15,23,42,0.6)", backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}
           onClick={(e) => { if (e.target === e.currentTarget) setActiveModal(null); }}
         >
           <ChannelModal

@@ -1,157 +1,30 @@
-import React, { useState } from "react";
-import {
-    ChevronRight, CreditCard, ExternalLink, Eye, EyeOff, ArrowRight, Check, Lock, Truck,
-} from "lucide-react";
-import { StepField } from "./StepField";
-import { ErrorBanner } from "./ErrorBanner";
-import { inputStyle, fi, fo } from "./formStyles";
-import { GATEWAYS } from "../../data/gateways";
+import React from "react";
+import { ArrowRight, CheckCircle2, CreditCard } from "lucide-react";
 import type { PaymentForm } from "../../types/onboarding";
+import "../../styles/payments-step.css";
 
-interface PaymentsStepProps {
-    form: PaymentForm;
-    onChange: (form: PaymentForm) => void;
-    error: string;
-    onClear: () => void;
-}
-
-export const PaymentsStep: React.FC<PaymentsStepProps> = ({ form, onChange, error, onClear }) => {
-    const [showGuide, setShowGuide] = useState(false);
-    const [showSecret, setShowSecret] = useState<Record<string, boolean>>({});
-    const selectedGw = GATEWAYS.find((g) => g.id === form.gateway);
-
-    // Same stale-error fix as the other steps: picking a gateway or editing a
-    // key/secret field clears any leftover error from a previous save attempt.
-    const selectGateway = (gatewayId: PaymentForm["gateway"]) => {
-        if (error) onClear();
-        onChange({ gateway: gatewayId, keyId: "", keySecret: "", merchantId: "", salt: "" });
-    };
-
-    const setField = (key: string, value: string) => {
-        if (error) onClear();
-        onChange({ ...form, [key]: value });
-    };
-
-    return (
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-                <div style={{ width: 48, height: 48, borderRadius: 14, background: "linear-gradient(135deg,#f59e0b,#d97706)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 8px 24px rgba(245,158,11,0.25)" }}>
-                    <CreditCard size={22} color="#fff" />
-                </div>
-                <div>
-                    <h2 style={{ fontSize: 20, fontWeight: 800, color: "#0f172a", margin: "0 0 4px", letterSpacing: "-0.3px" }}>Setup Payments</h2>
-                    <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>Choose how you want to accept payments from customers.</p>
-                </div>
-            </div>
-
-            {error && <ErrorBanner error={error} onClear={onClear} />}
-
-            {!form.gateway ? (
-                <div className="ob-gw-grid">
-                    {GATEWAYS.map((gw) => (
-                        <button
-                            key={String(gw.id)}
-                            onClick={() => selectGateway(gw.id)}
-                            style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px", borderRadius: 14, border: "1.5px solid #f1f5f9", background: "#fff", cursor: "pointer", textAlign: "left", transition: "all 0.2s", boxShadow: "0 2px 8px rgba(0,0,0,0.04)", fontFamily: "inherit", width: "100%" }}
-                            onMouseEnter={(e) => { const b = e.currentTarget; b.style.borderColor = "#0d9488"; b.style.boxShadow = "0 8px 24px rgba(13,148,136,0.12)"; b.style.transform = "translateY(-2px)"; }}
-                            onMouseLeave={(e) => { const b = e.currentTarget; b.style.borderColor = "#f1f5f9"; b.style.boxShadow = "0 2px 8px rgba(0,0,0,0.04)"; b.style.transform = "translateY(0)"; }}
-                        >
-                            <div style={{ width: 44, height: 44, borderRadius: 12, background: gw.gradient, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 900, color: "#fff", flexShrink: 0, boxShadow: "0 4px 12px rgba(0,0,0,0.15)" }}>
-                                {gw.logo}
-                            </div>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                                <p style={{ fontWeight: 700, color: "#0f172a", fontSize: 13, margin: "0 0 2px" }}>{gw.name}</p>
-                                <p style={{ fontSize: 11, color: "#64748b", margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{gw.tagline}</p>
-                                <p style={{ fontSize: 11, fontWeight: 700, color: "#0d9488", margin: 0 }}>{gw.fees}</p>
-                            </div>
-                            <ArrowRight size={13} color="#cbd5e1" style={{ flexShrink: 0 }} />
-                        </button>
-                    ))}
-                </div>
-            ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                    <button onClick={() => selectGateway(null)} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#64748b", background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "inherit", fontWeight: 500 }}>
-                        ← Change payment method
-                    </button>
-
-                    <div style={{ display: "flex", alignItems: "center", gap: 12, padding: 14, borderRadius: 14, background: "linear-gradient(135deg,#f0fdfa,#ecfdf5)", border: "2px solid #6ee7b7", flexWrap: "wrap" }}>
-                        <div style={{ width: 48, height: 48, borderRadius: 12, background: selectedGw!.gradient, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 900, color: "#fff", flexShrink: 0 }}>
-                            {selectedGw!.logo}
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                            <p style={{ fontWeight: 800, color: "#0f172a", fontSize: 14, margin: "0 0 2px" }}>{selectedGw!.name}</p>
-                            <p style={{ fontSize: 12, color: "#0d9488", margin: 0 }}>{selectedGw!.fees}</p>
-                        </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 700, color: "#16a34a", background: "#dcfce7", padding: "5px 10px", borderRadius: 20, border: "1px solid #bbf7d0", flexShrink: 0 }}>
-                            <Check size={11} /> Selected
-                        </div>
-                    </div>
-
-                    {form.gateway === "cod" ? (
-                        <div style={{ display: "flex", gap: 12, padding: 16, background: "linear-gradient(135deg,#f0fdf4,#ecfdf5)", border: "1.5px solid #bbf7d0", borderRadius: 14, alignItems: "flex-start" }}>
-                            <div style={{ width: 40, height: 40, borderRadius: 10, background: "linear-gradient(135deg,#16a34a,#15803d)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                                <Truck size={18} color="#fff" />
-                            </div>
-                            <div>
-                                <p style={{ fontWeight: 700, color: "#166534", margin: "0 0 4px", fontSize: 14 }}>Cash on Delivery enabled</p>
-                                <p style={{ fontSize: 13, color: "#16a34a", margin: 0, lineHeight: 1.6 }}>Customers pay when they receive their order. No gateway or technical setup required.</p>
-                            </div>
-                        </div>
-                    ) : (
-                        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                            <div style={{ background: "#fffbeb", border: "1.5px solid #fcd34d", borderRadius: 12, overflow: "hidden" }}>
-                                <button onClick={() => setShowGuide((s) => !s)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "11px 14px", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}>
-                                    <span style={{ fontSize: 13, fontWeight: 700, color: "#92400e" }}>How to get your {selectedGw!.name} API keys</span>
-                                    <ChevronRight size={13} color="#d97706" style={{ transform: showGuide ? "rotate(90deg)" : "none", transition: "transform 0.2s", flexShrink: 0 }} />
-                                </button>
-                                {showGuide && (
-                                    <div style={{ padding: "0 14px 14px" }}>
-                                        {selectedGw!.setupSteps.map((step, i) => (
-                                            <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 10 }}>
-                                                <div style={{ width: 20, height: 20, borderRadius: "50%", background: "#fcd34d", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
-                                                    <span style={{ fontSize: 10, fontWeight: 800, color: "#78350f" }}>{i + 1}</span>
-                                                </div>
-                                                <p style={{ fontSize: 13, color: "#92400e", margin: 0, lineHeight: 1.5 }}>{step}</p>
-                                            </div>
-                                        ))}
-                                        {selectedGw!.setupUrl && (
-                                            <a href={selectedGw!.setupUrl} target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 700, color: "#0d9488", textDecoration: "none", marginTop: 4 }}>
-                                                Open {selectedGw!.name} dashboard <ExternalLink size={12} />
-                                            </a>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-
-                            <div style={{ display: "flex", gap: 10, padding: "10px 12px", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 10, alignItems: "flex-start" }}>
-                                <Lock size={13} color="#64748b" style={{ flexShrink: 0, marginTop: 1 }} />
-                                <p style={{ fontSize: 12, color: "#64748b", margin: 0 }}>Your keys are encrypted before storage. We never expose them in plain text.</p>
-                            </div>
-
-                            {selectedGw!.fields.map((field) => (
-                                <StepField key={field.key} label={field.label}>
-                                    <div style={{ position: "relative" }}>
-                                        <input
-                                            type={field.secret && !showSecret[field.key] ? "password" : "text"}
-                                            value={(form as any)[field.key]}
-                                            onChange={(e) => setField(field.key, e.target.value)}
-                                            style={{ ...inputStyle, fontFamily: field.mono ? "monospace" : "inherit", paddingRight: field.secret ? 44 : 16 }}
-                                            placeholder={field.placeholder}
-                                            onFocus={fi}
-                                            onBlur={fo}
-                                        />
-                                        {field.secret && (
-                                            <button type="button" onClick={() => setShowSecret((s) => ({ ...s, [field.key]: !s[field.key] }))} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#94a3b8" }}>
-                                                {showSecret[field.key] ? <EyeOff size={14} /> : <Eye size={14} />}
-                                            </button>
-                                        )}
-                                    </div>
-                                </StepField>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            )}
-        </div>
-    );
+type GatewayId = "razorpay" | "payu" | "cashfree" | "skydo" | "cod";
+interface PaymentsStepProps { form: PaymentForm; onChange: React.Dispatch<React.SetStateAction<PaymentForm>>; error: string; onClear: () => void; }
+const gateways: Array<{id:GatewayId;name:string;tagline:string;fees:string;logo:React.ReactNode}> = [
+{id:"razorpay",name:"Razorpay",tagline:"Most popular in India",fees:"2% per transaction",logo:<svg viewBox="0 0 40 40" className="gateway-logo-svg" aria-hidden="true"><rect width="40" height="40" rx="12" fill="#2563eb"/><path d="M12 26 24 10h7L19 30h-7l5-8h-5Z" fill="#fff"/></svg>},
+{id:"payu",name:"PayU",tagline:"Trusted payment infrastructure",fees:"1.99% per transaction",logo:<svg viewBox="0 0 40 40" className="gateway-logo-svg" aria-hidden="true"><rect width="40" height="40" rx="12" fill="#f97316"/><path d="M11 12h10c5 0 8 3 8 7s-3 7-8 7h-4v4h-6V12Zm6 5v5h3c2 0 3-1 3-2.5S22 17 20 17h-3Z" fill="#fff"/></svg>},
+{id:"cashfree",name:"Cashfree",tagline:"Fast settlements",fees:"1.75% per transaction",logo:<svg viewBox="0 0 40 40" className="gateway-logo-svg" aria-hidden="true"><rect width="40" height="40" rx="12" fill="#16a34a"/><path d="M28 12c-2-1-4-2-7-2-6 0-10 4-10 10s4 10 10 10c3 0 5-1 7-2l-2-4c-1 1-3 1-5 1-3 0-5-2-5-5s2-5 5-5c2 0 4 0 5 1l2-4Z" fill="#fff"/></svg>},
+{id:"skydo",name:"Skydo",tagline:"International payments",fees:"1.9% + forex savings",logo:<svg viewBox="0 0 40 40" className="gateway-logo-svg" aria-hidden="true"><rect width="40" height="40" rx="12" fill="#7c3aed"/><path d="M28 12c-2-1-4-2-7-2-5 0-8 2-8 6 0 3 2 5 7 6 2 .5 3 1 3 2 0 1-1 2-3 2-2 0-4-1-6-2l-2 4c2 2 5 2 8 2 5 0 9-2 9-7 0-3-2-5-7-6-2-.5-3-1-3-2 0-1 1-2 3-2 2 0 4 1 5 2l2-3Z" fill="#fff"/></svg>},
+{id:"cod",name:"Cash on Delivery",tagline:"No setup needed",fees:"Free — collect at delivery",logo:<svg viewBox="0 0 40 40" className="gateway-logo-svg" aria-hidden="true"><rect width="40" height="40" rx="12" fill="#475569"/><path d="M12 12h16v4H12zm0 6h16v4H12zm0 6h10v4H12z" fill="#fff"/></svg>},
+];
+export const PaymentsStep: React.FC<PaymentsStepProps> = ({form,onChange,error,onClear}) => {
+ const selected=form.gateway;
+ const choose=(gateway:GatewayId)=>{onChange(c=>({...c,gateway}));onClear();};
+ const update=(key:keyof PaymentForm,value:string)=>onChange(c=>({...c,[key]:value}));
+ return <section className="onboarding-step-panel">
+  <div className="onboarding-step-heading"><div className="onboarding-step-icon onboarding-step-icon-payment"><CreditCard size={24}/></div><div><h2>Setup Payments</h2><p>Choose how you want to accept payments from customers.</p></div></div>
+  {error&&<div className="onboarding-inline-error" role="alert">{error}</div>}
+  <div className="payment-gateway-grid">{gateways.map(g=>{const active=selected===g.id;return <button type="button" key={g.id} className={`payment-gateway-card${active?" is-selected":""}`} onClick={()=>choose(g.id)} aria-pressed={active}><span className="payment-gateway-logo">{g.logo}</span><span className="payment-gateway-copy"><strong>{g.name}</strong><small>{g.tagline}</small><em>{g.fees}</em></span><span className="payment-gateway-action">{active?<CheckCircle2 size={18}/>:<ArrowRight size={18}/>}</span></button>;})}</div>
+  {selected&&selected!=="cod"&&<div className="payment-credentials"><div className="payment-credentials-title"><strong>Test credentials</strong><span>Use sandbox/test credentials while testing. Do not use live secrets.</span></div>
+   {selected==="razorpay"&&<><label>Key ID<input value={form.keyId} onChange={e=>update("keyId",e.target.value)} placeholder="rzp_test_..." autoComplete="off"/></label><label>Key Secret<input type="password" value={form.keySecret} onChange={e=>update("keySecret",e.target.value)} placeholder="Test key secret" autoComplete="new-password"/></label></>}
+   {selected==="payu"&&<><label>Merchant Key<input value={form.merchantId} onChange={e=>update("merchantId",e.target.value)} placeholder="PayU test merchant key" autoComplete="off"/></label><label>Salt<input type="password" value={form.salt} onChange={e=>update("salt",e.target.value)} placeholder="PayU test salt" autoComplete="new-password"/></label></>}
+   {(selected==="cashfree"||selected==="skydo")&&<><label>Client / Key ID<input value={form.keyId} onChange={e=>update("keyId",e.target.value)} placeholder="Sandbox key ID" autoComplete="off"/></label><label>Client Secret<input type="password" value={form.keySecret} onChange={e=>update("keySecret",e.target.value)} placeholder="Sandbox secret" autoComplete="new-password"/></label></>}
+  </div>}
+  {selected==="cod"&&<div className="payment-cod-note">Cash on Delivery requires no credentials. Hypnate will record COD orders as payment-pending until delivery.</div>}
+ </section>;
 };

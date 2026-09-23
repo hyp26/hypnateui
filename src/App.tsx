@@ -1,30 +1,18 @@
 import React from 'react';
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-  useLocation,
-} from 'react-router-dom';
-
-// Vercel
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
-
-// Layouts
 import { Layout } from './components/layout/layout';
 import { PublicLayout } from './components/layout/PublicLayout';
-
-// Auth Store
+import { RouteSEO } from './components/public/SEO';
+import { PlanRoute } from './components/plan/PlanGate';
+import { normalizePlan } from './config/planEntitlements';
 import { useAuthStore } from './stores/useAuthStore';
-
-// Auth Pages
 import { Login } from './pages/Login';
-import { Signup } from "./pages/Signup";
-import { VerifyEmail } from "./pages/VerifyEmail";
+import { Signup } from './pages/Signup';
+import { VerifyEmail } from './pages/VerifyEmail';
 import { ForgotPassword } from './pages/ForgotPassword';
-
-// Dashboard Pages
+import { ResetPassword } from './pages/ResetPassword';
 import { Dashboard } from './pages/Dashboard';
 import { Products } from './pages/Products';
 import { AddProduct } from './pages/AddProduct';
@@ -38,11 +26,8 @@ import { Analytics as DashboardAnalytics } from './pages/Analytics';
 import { EditProduct } from './pages/EditProduct';
 import { ProductView } from './pages/ProductView';
 import Customers from './pages/Customers';
-import { HypnateX } from './pages/HypnateX'; // ✅ added
-import { PlanRequired } from "./pages/PlanRequired";
-import { getEffectivePlan } from "./config/planEntitlements";
-
-// Public Website Pages
+import { HypnateX } from './pages/HypnateX';
+import { PlanRequired } from './pages/PlanRequired';
 import { Home } from './pages/public/Home';
 import { About } from './pages/public/About';
 import { Pricing } from './pages/public/Pricing';
@@ -53,116 +38,139 @@ import { FAQ } from './pages/public/FAQ';
 import { Terms } from './pages/public/Term';
 import { Privacy } from './pages/public/Privacy';
 import { Refund } from './pages/public/Refund';
-
-// i18n
+import { NotFound } from './pages/NotFound';
 import './i18n/config';
 
-/* --------------------------------------------------
- * PROTECTED ROUTE
- * -------------------------------------------------- */
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+const hasTrialAccess = (seller: any) => {
+  const activePlan = normalizePlan(seller?.activePlan);
+  if (activePlan) return true;
+  const trialPlan = normalizePlan(seller?.trialPlan);
+  const trialEndsAt = seller?.trialEndsAt ? new Date(seller.trialEndsAt) : null;
+  return Boolean(trialPlan && trialEndsAt && trialEndsAt.getTime() > Date.now());
+};
+
+const AuthEntryRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const authInitialized = useAuthStore((state) => state.authInitialized);
   const user = useAuthStore((state) => state.user);
-  const location = useLocation().pathname;
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (user?.role === "SELLER" && !user.seller?.onboardedAt && location !== "/onboarding") return <Navigate to="/onboarding" replace />;
-  if (user?.role === "SELLER" && user.seller?.onboardedAt) { const access = getEffectivePlan(user.seller); if (!access.hasAccess && location !== "/plan-required") return <Navigate to="/plan-required" replace />; }
+
+  if (!authInitialized) return null;
+
+  if (isAuthenticated) {
+    const sellerNeedsSetup = user?.role === 'SELLER' && !user.seller?.onboardedAt;
+    const sellerNeedsPlan =
+      user?.role === 'SELLER' &&
+      Boolean(user.seller?.onboardedAt) &&
+      !hasTrialAccess(user.seller);
+    const destination = sellerNeedsSetup
+      ? '/onboarding'
+      : sellerNeedsPlan
+        ? '/plan-required'
+        : '/dashboard';
+    return <Navigate to={destination} replace />;
+  }
+
   return <>{children}</>;
 };
 
-function App() {
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const [, setTrialClock] = React.useState(() => Date.now());
+  React.useEffect(() => {
+    const timer = window.setInterval(() => setTrialClock(Date.now()), 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const authInitialized = useAuthStore((state) => state.authInitialized);
+  const user = useAuthStore((state) => state.user);
+  const location = useLocation();
+
+  if (!authInitialized) return null;
+  if (!isAuthenticated) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+
+  if (user?.role === 'SELLER' && !user.seller?.onboardedAt && location.pathname !== '/onboarding') {
+    return <Navigate to="/onboarding" replace />;
+  }
+
+  if (
+    user?.role === 'SELLER' &&
+    user.seller?.onboardedAt &&
+    !hasTrialAccess(user.seller) &&
+    location.pathname !== '/plan-required'
+  ) {
+    return <Navigate to="/plan-required" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+const AuthBootstrap = () => {
+  const location = useLocation();
   const loadProfile = useAuthStore((state) => state.loadProfile);
+  const setAuthInitialized = useAuthStore((state) => state.setAuthInitialized);
 
   React.useEffect(() => {
-    loadProfile();
-  }, [loadProfile]);
+    const isAuthEntry = location.pathname === '/login' || location.pathname === '/signup';
+    const persistedAuthenticated = useAuthStore.getState().isAuthenticated;
 
+    if (isAuthEntry && !persistedAuthenticated) {
+      setAuthInitialized(true);
+      return;
+    }
+
+    setAuthInitialized(false);
+    void loadProfile();
+  }, [location.pathname, loadProfile, setAuthInitialized]);
+
+  return null;
+};
+
+function App() {
   return (
     <Router>
+      <AuthBootstrap />
+      <RouteSEO />
       <Routes>
-
-        {/* ---------------- PUBLIC MARKETING SITE ---------------- */}
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/features" element={<Features />} />
-
-          {/* Company */}
           <Route path="/careers" element={<Careers />} />
           <Route path="/faq" element={<FAQ />} />
-
-          {/* Legal */}
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/refund" element={<Refund />} />
         </Route>
 
-        {/* ---------------- AUTH ---------------- */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        {/* Public: must work even without an active session, since the link
-            is opened from an email and may land in a different browser. */}
+        <Route path="/login" element={<AuthEntryRoute><Login /></AuthEntryRoute>} />
+        <Route path="/signup" element={<AuthEntryRoute><Signup /></AuthEntryRoute>} />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
         <Route path="/plan-required" element={<ProtectedRoute><PlanRequired /></ProtectedRoute>} />
+        <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
 
-        {/* ---------------- ONBOARDING (protected, no sidebar) ---------------- */}
-        <Route
-          path="/onboarding"
-          element={
-            <ProtectedRoute>
-              <Onboarding />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* ---------------- PROTECTED DASHBOARD ---------------- */}
-        <Route
-          element={
-            <ProtectedRoute>
-              <Layout />
-            </ProtectedRoute>
-          }
-        >
+        <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
           <Route path="/dashboard" element={<Dashboard />} />
-
-          {/* Products */}
           <Route path="/products" element={<Products />} />
           <Route path="/products/new" element={<AddProduct />} />
           <Route path="/products/:id" element={<ProductView />} />
           <Route path="/products/:id/edit" element={<EditProduct />} />
-
-          {/* Orders */}
           <Route path="/orders" element={<Orders />} />
           <Route path="/orders/:id" element={<OrderDetail />} />
-
-          {/* Customers */}
           <Route path="/customers" element={<Customers />} />
-
-          {/* Conversations */}
           <Route path="/conversations" element={<Conversations />} />
-
-          {/* Settings */}
           <Route path="/settings" element={<Settings />} />
-
-          {/* Payments */}
           <Route path="/payments" element={<Payments />} />
-
-          {/* Analytics */}
-          <Route path="/analytics" element={<DashboardAnalytics />} />
-
-          {/* Hypnate X — AI website builder */}
-          <Route path="/hypnate-x" element={<HypnateX />} />
+          <Route path="/analytics" element={<PlanRoute feature="advancedAnalytics"><DashboardAnalytics /></PlanRoute>} />
+          <Route path="/hypnate-x" element={<PlanRoute feature="hypnateX"><HypnateX /></PlanRoute>} />
         </Route>
 
-        {/* ---------------- FALLBACK ---------------- */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
-
-      {/* Global Vercel Analytics */}
       <Analytics />
       <SpeedInsights />
     </Router>
