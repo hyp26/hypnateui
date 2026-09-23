@@ -1,292 +1,245 @@
 /* =========================================================
    Hypnate billing / plan-required screen
-   Scoped to .billing-page so it cannot disturb the rest of app.
+   Scoped entirely to .billing-page.
+   Desktop: one viewport, no page/dialog scrollbar.
+   Mobile: natural vertical scrolling is allowed.
    ========================================================= */
 
 .billing-page,
-.billing-page * {
-  box-sizing: border-box;
-}
+.billing-page * { box-sizing: border-box; }
 
 .billing-page {
   position: fixed;
   inset: 0;
   width: 100vw;
+  width: 100dvw;
   height: 100vh;
-  min-height: 100vh;
-  overflow: hidden;
+  height: 100dvh;
   margin: 0;
-  color: #132b2a;
+  overflow: hidden;
+  color: #102c2a;
   background:
-    radial-gradient(circle at 12% 12%, rgba(52, 190, 178, 0.16), transparent 34%),
-    radial-gradient(circle at 88% 82%, rgba(255, 107, 0, 0.08), transparent 30%),
-    #071b18;
+    radial-gradient(circle at 10% 5%, rgba(39,178,164,.16), transparent 30%),
+    radial-gradient(circle at 92% 88%, rgba(255,107,0,.07), transparent 28%),
+    #061b18;
   font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-.billing-page button {
-  font: inherit;
-}
+.billing-page button { font: inherit; }
 
 .billing-header {
   position: relative;
-  z-index: 20;
-  height: 74px;
+  z-index: 30;
+  height: 64px;
   padding: 0 28px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(5, 18, 16, 0.78);
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  background: rgba(4,19,17,.88);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
 }
 
+/* Use the real Hypnate asset. Do not recreate the logo with CSS. */
 .billing-logo {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: #f8faf9;
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: -0.7px;
-}
-
-.billing-logo::after {
-  content: "";
-  width: 7px;
-  height: 7px;
-  border-radius: 2px;
-  background: #ff6b00;
-  transform: rotate(18deg) translateY(-1px);
+  display: block;
+  width: 124px;
+  height: auto;
+  max-height: 31px;
+  object-fit: contain;
+  object-position: left center;
 }
 
 .billing-header span {
-  max-width: min(44vw, 420px);
+  max-width: min(42vw, 420px);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: rgba(248, 250, 249, 0.66);
+  color: rgba(248,250,249,.70);
   font-size: 13px;
 }
 
 .billing-stage {
   position: relative;
-  height: calc(100vh - 74px);
-  overflow: hidden;
+  height: calc(100dvh - 64px);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 28px;
+  overflow: hidden;
+  padding: 10px 18px 14px;
 }
 
-/* Soft workspace preview creates the promised blur without exposing usable UI. */
 .billing-blur {
   position: absolute;
-  inset: 26px;
-  border-radius: 26px;
+  inset: 16px;
+  border-radius: 24px;
   overflow: hidden;
-  opacity: 0.58;
-  filter: blur(10px);
-  transform: scale(1.035);
+  opacity: .46;
+  filter: blur(11px);
+  transform: scale(1.025);
   background:
-    linear-gradient(90deg, rgba(10, 34, 31, 0.98) 0 18%, rgba(238, 245, 243, 0.93) 18% 100%),
-    #f4f8f7;
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.28);
+    linear-gradient(90deg, rgba(9,34,31,.98) 0 17%, rgba(236,245,242,.94) 17% 100%),
+    #eff5f2;
+  box-shadow: 0 30px 90px rgba(0,0,0,.24);
 }
 
 .billing-blur::before,
 .billing-blur::after {
   content: "";
   position: absolute;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 10px 28px rgba(9, 35, 31, 0.09);
+  border-radius: 14px;
+  background: rgba(255,255,255,.92);
+  box-shadow: 0 10px 28px rgba(9,35,31,.08);
 }
 
 .billing-blur::before {
-  top: 42px;
-  left: calc(18% + 34px);
-  right: 34px;
-  height: 82px;
+  top: 32px;
+  left: calc(17% + 26px);
+  right: 26px;
+  height: 62px;
 }
 
 .billing-blur::after {
-  top: 150px;
-  left: calc(18% + 34px);
-  width: 42%;
-  bottom: 34px;
+  top: 112px;
+  left: calc(17% + 26px);
+  width: 44%;
+  bottom: 26px;
 }
 
 .billing-dialog {
   position: relative;
   z-index: 10;
-  width: min(1050px, 100%);
-  max-height: calc(100vh - 126px);
-  overflow: auto;
-  padding: 34px;
-  border: 1px solid rgba(255, 255, 255, 0.84);
-  border-radius: 26px;
-  background: rgba(250, 252, 251, 0.96);
+  width: min(1220px, calc(100vw - 40px));
+  height: min(760px, calc(100dvh - 82px));
+  min-height: 0;
+  padding: 21px 26px 13px;
+  border: 1px solid rgba(255,255,255,.88);
+  border-radius: 24px;
+  background: rgba(250,252,251,.975);
   box-shadow:
-    0 28px 80px rgba(0, 0, 0, 0.32),
-    0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.billing-dialog::-webkit-scrollbar {
-  width: 9px;
-}
-
-.billing-dialog::-webkit-scrollbar-thumb {
-  border-radius: 99px;
-  background: rgba(22, 72, 66, 0.2);
+    0 28px 80px rgba(0,0,0,.30),
+    0 2px 8px rgba(0,0,0,.07);
+  overflow: hidden;
 }
 
 .billing-icon {
-  width: 44px;
-  height: 44px;
+  width: 38px;
+  height: 38px;
   display: grid;
   place-items: center;
-  margin-bottom: 14px;
-  border-radius: 13px;
+  margin-bottom: 7px;
+  border-radius: 11px;
   color: #0d7d72;
-  background: rgba(13, 148, 136, 0.1);
-  border: 1px solid rgba(13, 148, 136, 0.18);
+  background: rgba(13,148,136,.10);
+  border: 1px solid rgba(13,148,136,.18);
 }
 
 .billing-eyebrow {
   display: block;
-  margin-bottom: 7px;
+  margin-bottom: 3px;
   color: #0d9488;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: .14em;
   text-transform: uppercase;
 }
 
 .billing-dialog h1 {
   margin: 0;
   color: #102a27;
-  font-size: clamp(26px, 3vw, 38px);
-  line-height: 1.1;
-  letter-spacing: -1.1px;
+  font-size: clamp(28px, 2.5vw, 36px);
+  line-height: 1.03;
+  letter-spacing: -1px;
 }
 
 .billing-dialog > p {
-  max-width: 720px;
-  margin: 12px 0 0;
-  color: #5f706d;
-  font-size: 14px;
-  line-height: 1.65;
+  max-width: 820px;
+  margin: 7px 0 0;
+  color: #62736f;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .billing-trial {
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  margin-top: 22px;
-  padding: 14px 16px;
-  border-radius: 15px;
-  border: 1px solid rgba(13, 148, 136, 0.18);
+  align-items: center;
+  gap: 9px;
+  margin-top: 12px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(13,148,136,.18);
   background: #effcf9;
   color: #126b62;
 }
 
-.billing-trial svg {
-  flex: 0 0 auto;
-  margin-top: 1px;
-}
-
+.billing-trial svg { flex: 0 0 auto; }
 .billing-trial strong,
-.billing-trial span {
-  display: block;
-}
-
-.billing-trial strong {
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.billing-trial span {
-  margin-top: 4px;
-  color: #5c7772;
-  font-size: 12px;
-  line-height: 1.5;
-}
+.billing-trial span { display: block; }
+.billing-trial strong { font-size: 11px; font-weight: 800; }
+.billing-trial span { margin-top: 2px; color: #5c7772; font-size: 10px; line-height: 1.3; }
 
 .billing-cycle {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  margin-top: 22px;
-  padding: 4px;
-  border-radius: 12px;
-  background: #eaf0ee;
+  gap: 3px;
+  margin-top: 10px;
+  padding: 3px;
+  border-radius: 10px;
+  background: #e9f0ed;
 }
 
 .billing-cycle button {
   border: 0;
-  border-radius: 9px;
-  padding: 9px 13px;
-  color: #63736f;
+  border-radius: 8px;
+  padding: 6px 10px;
+  color: #65746f;
   background: transparent;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 750;
 }
 
 .billing-cycle button.active {
   color: #0e3b36;
   background: #fff;
-  box-shadow: 0 2px 8px rgba(13, 50, 46, 0.1);
+  box-shadow: 0 2px 7px rgba(13,50,46,.10);
 }
 
-.billing-cycle small {
-  margin-left: 4px;
-  color: #0d9488;
-  font-size: 10px;
-  font-weight: 800;
-}
+.billing-cycle small { margin-left: 4px; color: #0d9488; font-size: 9px; font-weight: 800; }
 
 .billing-message {
-  margin-top: 14px;
-  padding: 12px 14px;
+  margin-top: 7px;
+  padding: 8px 10px;
   border: 1px solid #efc2bd;
-  border-radius: 12px;
+  border-radius: 10px;
   color: #8b2f24;
   background: #fff5f3;
-  font-size: 12px;
-  line-height: 1.5;
+  font-size: 10px;
+  line-height: 1.3;
 }
 
 .billing-plans {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-  margin-top: 22px;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 12px;
+  margin-top: 12px;
 }
 
 .billing-plans article {
-  position: relative;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  padding: 20px;
+  padding: 14px;
   border: 1px solid #dbe5e2;
-  border-radius: 18px;
+  border-radius: 15px;
   background: #fff;
-  box-shadow: 0 8px 22px rgba(16, 44, 40, 0.045);
-  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
-}
-
-.billing-plans article:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 30px rgba(16, 44, 40, 0.085);
+  box-shadow: 0 7px 20px rgba(16,44,40,.045);
 }
 
 .billing-plans article.selected {
-  border-color: rgba(13, 148, 136, 0.56);
-  box-shadow: 0 14px 34px rgba(13, 148, 136, 0.12);
+  border-color: rgba(13,148,136,.56);
+  box-shadow: 0 10px 25px rgba(13,148,136,.11);
 }
 
 .billing-plan-head {
@@ -294,7 +247,7 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
+  gap: 10px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -302,171 +255,77 @@
   cursor: pointer;
 }
 
-.billing-plan-head h2 {
-  margin: 0;
-  color: #14302c;
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: -0.3px;
-}
-
-.billing-plan-head p {
-  margin: 5px 0 0;
-  color: #778883;
-  font-size: 11px;
-  line-height: 1.45;
-}
-
-.billing-plan-head strong {
-  flex: 0 0 auto;
-  color: #112e2a;
-  font-size: 20px;
-  font-weight: 850;
-  white-space: nowrap;
-  letter-spacing: -0.6px;
-}
-
-.billing-plan-head strong small {
-  color: #81908d;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0;
-}
+.billing-plan-head h2 { margin: 0; color: #14302c; font-size: 17px; font-weight: 800; letter-spacing: -.25px; }
+.billing-plan-head p { margin: 3px 0 0; color: #778883; font-size: 10px; line-height: 1.3; }
+.billing-plan-head strong { flex: 0 0 auto; color: #112e2a; font-size: 18px; font-weight: 850; white-space: nowrap; letter-spacing: -.5px; }
+.billing-plan-head strong small { color: #81908d; font-size: 9px; font-weight: 700; letter-spacing: 0; }
 
 .billing-features {
   display: grid;
-  gap: 9px;
-  margin-top: 18px;
-  padding-top: 16px;
+  gap: 5px;
+  margin-top: 10px;
+  padding-top: 9px;
   border-top: 1px solid #edf2f0;
 }
 
-.billing-features span {
-  display: flex;
-  align-items: flex-start;
-  gap: 7px;
-  color: #52645f;
-  font-size: 11px;
-  line-height: 1.45;
-}
-
-.billing-features svg {
-  flex: 0 0 auto;
-  margin-top: 1px;
-  color: #0d9488;
-}
+.billing-features span { display: flex; align-items: flex-start; gap: 5px; color: #52645f; font-size: 9.5px; line-height: 1.25; }
+.billing-features svg { flex: 0 0 auto; margin-top: 1px; color: #0d9488; }
 
 .billing-buy {
   width: 100%;
-  min-height: 42px;
+  min-height: 36px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  margin-top: 20px;
-  padding: 10px 14px;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 7px 10px;
   border: 0;
-  border-radius: 11px;
+  border-radius: 9px;
   color: #fff;
-  background: linear-gradient(135deg, #16ad9d, #0c8177);
-  box-shadow: 0 8px 18px rgba(13, 148, 136, 0.19);
+  background: linear-gradient(135deg,#16ad9d,#0c8177);
+  box-shadow: 0 7px 15px rgba(13,148,136,.18);
   cursor: pointer;
-  font-size: 12px;
+  font-size: 10.5px;
   font-weight: 800;
 }
 
-.billing-buy:hover:not(:disabled) {
-  filter: brightness(0.97);
+.billing-buy:hover:not(:disabled) { filter: brightness(.97); }
+.billing-buy:disabled { opacity: .65; cursor: wait; }
+.billing-dialog::after { content: "Secure checkout powered by Razorpay"; display: block; margin-top: 7px; color: #8a9995; font-size: 8px; text-align: center; }
+.spin { animation: billingSpin .9s linear infinite; }
+@keyframes billingSpin { to { transform: rotate(360deg); } }
+
+@media (max-height: 820px) and (min-width: 901px) {
+  .billing-header { height: 56px; }
+  .billing-stage { height: calc(100dvh - 56px); padding: 7px 14px 9px; }
+  .billing-dialog { width: min(1220px, calc(100vw - 28px)); height: calc(100dvh - 68px); padding: 15px 20px 10px; border-radius: 20px; }
+  .billing-icon { width: 32px; height: 32px; margin-bottom: 4px; }
+  .billing-eyebrow { font-size: 8px; }
+  .billing-dialog h1 { font-size: 26px; }
+  .billing-dialog > p { margin-top: 4px; font-size: 11px; }
+  .billing-trial { margin-top: 7px; padding: 7px 9px; }
+  .billing-cycle { margin-top: 6px; }
+  .billing-plans { margin-top: 7px; gap: 10px; }
+  .billing-plans article { padding: 11px; }
+  .billing-features { margin-top: 7px; padding-top: 7px; gap: 3px; }
+  .billing-features span { font-size: 9px; }
+  .billing-buy { min-height: 32px; margin-top: 7px; font-size: 10px; }
+  .billing-dialog::after { margin-top: 4px; }
 }
 
-.billing-buy:disabled {
-  opacity: 0.65;
-  cursor: wait;
-}
-
-.billing-dialog::after {
-  content: "Secure checkout powered by Razorpay";
-  display: block;
-  margin-top: 15px;
-  color: #8a9995;
-  font-size: 10px;
-  text-align: center;
-}
-
-.spin {
-  animation: billingSpin 0.9s linear infinite;
-}
-
-@keyframes billingSpin {
-  to { transform: rotate(360deg); }
-}
-
+/* A desktop paywall is intentionally one-screen. Mobile gets natural scrolling. */
 @media (max-width: 900px) {
-  .billing-stage {
-    align-items: flex-start;
-    padding: 18px;
-  }
-
-  .billing-dialog {
-    width: min(720px, 100%);
-    max-height: calc(100vh - 110px);
-    padding: 24px;
-    border-radius: 22px;
-  }
-
-  .billing-plans {
-    grid-template-columns: 1fr;
-  }
-
-  .billing-plans article {
-    padding: 18px;
-  }
+  .billing-page { position: absolute; min-height: 100dvh; height: auto; overflow: visible; }
+  .billing-header { position: sticky; top: 0; height: 58px; padding: 0 15px; }
+  .billing-logo { width: 103px; max-height: 27px; }
+  .billing-stage { height: auto; min-height: calc(100dvh - 58px); padding: 12px; overflow: visible; align-items: flex-start; }
+  .billing-dialog { width: min(720px,100%); height: auto; max-height: none; padding: 20px 16px 16px; border-radius: 18px; overflow: visible; }
+  .billing-plans { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 640px) {
-  .billing-header {
-    height: 64px;
-    padding: 0 16px;
-  }
-
-  .billing-logo {
-    font-size: 19px;
-  }
-
-  .billing-header span {
-    max-width: 52vw;
-    font-size: 11px;
-  }
-
-  .billing-stage {
-    height: calc(100vh - 64px);
-    padding: 12px;
-  }
-
-  .billing-blur {
-    inset: 12px;
-    border-radius: 20px;
-  }
-
-  .billing-dialog {
-    max-height: calc(100vh - 88px);
-    padding: 20px 16px 18px;
-    border-radius: 18px;
-  }
-
-  .billing-dialog h1 {
-    font-size: 27px;
-  }
-
-  .billing-dialog > p {
-    font-size: 13px;
-  }
-
-  .billing-trial {
-    padding: 12px;
-  }
-
-  .billing-plan-head strong {
-    font-size: 18px;
-  }
+  .billing-header span { max-width: 55vw; font-size: 10px; }
+  .billing-dialog h1 { font-size: 25px; }
+  .billing-dialog > p { font-size: 12px; }
 }
