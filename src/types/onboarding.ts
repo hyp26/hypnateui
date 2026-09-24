@@ -60,6 +60,10 @@ export interface ChannelConfig {
     gradient: string;
     glow: string;
     badge: string | null;
+    setupUrl?: string;
+    setupLabel?: string;
+    setupSteps: string[];
+    setupNote?: string;
 }
 
 export interface StepConfig {

@@ -159,3 +159,122 @@
     /* Do not globally change nested cards; the more specific step rules below
        handle the primary step wrappers. */
 }
+
+/* Channel connection guide — mirrors the payment credential guide pattern. */
+.ob-channel-guide {
+    margin: 0 0 16px;
+    padding: 13px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #f8fafc;
+}
+
+.ob-channel-guide-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.ob-channel-guide-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    color: #0d9488;
+    background: #ccfbf1;
+}
+
+.ob-channel-guide-header strong {
+    display: block;
+    color: #0f172a;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.ob-channel-guide-header span {
+    display: block;
+    margin-top: 2px;
+    color: #64748b;
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+.ob-channel-guide-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex: 0 0 auto;
+    color: #0d9488;
+    font-size: 10px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.ob-channel-guide-link:hover {
+    text-decoration: underline;
+}
+
+.ob-channel-guide-steps {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ob-channel-guide-steps li {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+}
+
+.ob-channel-guide-steps li > span {
+    width: 19px;
+    height: 19px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 19px;
+    background: #e2e8f0;
+    color: #475569;
+    font-size: 9px;
+    font-weight: 800;
+}
+
+.ob-channel-guide-steps p {
+    margin: 1px 0 0;
+    color: #475569;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.ob-channel-guide-note {
+    margin-top: 11px;
+    padding: 9px 10px;
+    border-radius: 9px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+    font-size: 10px;
+    line-height: 1.5;
+}
+
+.ob-channel-guide-note strong {
+    color: #334155;
+}
+
+@media (max-width: 599px) {
+    .ob-channel-guide-header {
+        flex-wrap: wrap;
+    }
+
+    .ob-channel-guide-link {
+        margin-left: 40px;
+    }
+}

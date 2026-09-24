@@ -55,6 +55,7 @@ export const Onboarding: React.FC = () => {
     facebook: { connected: false },
     telegram: { connected: false, botToken: "" },
   });
+  const [savedChannels, setSavedChannels] = useState<Set<string>>(new Set());
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const [autoProgress, setAutoProgress] = useState(0);
   const [autoTasks, setAutoTasks] = useState<AutoTask[]>([
@@ -139,11 +140,18 @@ export const Onboarding: React.FC = () => {
         setCurrentStep(4);
       } else if (currentStep === 4) {
         const connected: any = {};
-        if (channels.whatsapp.connected) connected.whatsapp = { phone: channels.whatsapp.phone, apiKey: channels.whatsapp.apiKey };
-        if (channels.telegram.connected) connected.telegram = { botToken: channels.telegram.botToken };
-        if (channels.instagram.connected && hasPlanChannel(effectivePlan, "instagram")) connected.instagram = {};
-        if (channels.facebook.connected && hasPlanChannel(effectivePlan, "facebook")) connected.facebook = {};
-        if (Object.keys(connected).length > 0) await api.post("/api/onboarding/channels", { channels: connected });
+        if (channels.whatsapp.connected && !savedChannels.has("whatsapp")) {
+          connected.whatsapp = { phone: channels.whatsapp.phone, apiKey: channels.whatsapp.apiKey };
+        }
+        if (channels.telegram.connected && !savedChannels.has("telegram")) {
+          connected.telegram = { botToken: channels.telegram.botToken };
+        }
+        if (channels.instagram.connected && hasPlanChannel(effectivePlan, "instagram") && !savedChannels.has("instagram")) connected.instagram = {};
+        if (channels.facebook.connected && hasPlanChannel(effectivePlan, "facebook") && !savedChannels.has("facebook")) connected.facebook = {};
+        if (Object.keys(connected).length > 0) {
+          await api.post("/api/onboarding/channels", { channels: connected });
+          setSavedChannels((current) => new Set([...current, ...Object.keys(connected)]));
+        }
         markCompleted(4);
         setCurrentStep(5);
       } else if (currentStep === 5) {
@@ -279,7 +287,23 @@ export const Onboarding: React.FC = () => {
           <ChannelModal
             type={activeModal}
             onClose={() => setActiveModal(null)}
-            onConnect={(type, data) => setChannels((prev) => ({ ...prev, [type]: { ...prev[type as keyof ChannelData], connected: true, ...data } }))}
+            onConnect={async (type, data) => {
+              // Credentials-backed channels are persisted and validated by the API
+              // before the UI is allowed to show them as connected. This prevents
+              // a false green/blue "Connected" state when Telegram or WhatsApp
+              // rejects the credentials.
+              if (type === "telegram" || type === "whatsapp") {
+                await api.post("/api/onboarding/channels", {
+                  channels: { [type]: data },
+                });
+                setSavedChannels((current) => new Set(current).add(type));
+              }
+
+              setChannels((prev) => ({
+                ...prev,
+                [type]: { ...prev[type as keyof ChannelData], connected: true, ...data },
+              }));
+            }}
           />
         </div>
       )}
