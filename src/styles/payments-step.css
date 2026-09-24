@@ -1,15 +1,470 @@
+/* Payment method cards
+   The payment step is rendered inside a flex/scroll container, so every
+   payment control must have an explicit size and must never inherit the
+   browser's default SVG dimensions.
+*/
 
-.payment-key-guide{margin-top:12px;padding:15px 16px;border:1px solid #ccfbf1;border-radius:14px;background:linear-gradient(180deg,#f8fffd 0%,#f0fdfa 100%)}
-.payment-key-guide-header{display:flex;align-items:center;gap:10px}
-.payment-key-guide-icon{width:34px;height:34px;flex:0 0 34px;border-radius:10px;display:grid;place-items:center;background:#ccfbf1;color:#0f766e}
-.payment-key-guide-header>div:nth-child(2){min-width:0;display:flex;flex-direction:column;gap:2px}
-.payment-key-guide-header strong{font-size:13px;color:#134e4a}
-.payment-key-guide-header span{font-size:11px;color:#64748b}
-.payment-key-guide-link{margin-left:auto;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;color:#0d9488;font-size:11px;font-weight:700;text-decoration:none}
-.payment-key-guide-link:hover{text-decoration:underline}
-.payment-key-guide-steps{list-style:none;margin:13px 0 0;padding:0;display:grid;gap:8px}
-.payment-key-guide-steps li{display:flex;align-items:flex-start;gap:9px;color:#475569;font-size:11px;line-height:1.45}
-.payment-key-guide-number{width:20px;height:20px;flex:0 0 20px;border-radius:50%;display:grid;place-items:center;background:#0d9488;color:#fff;font-size:10px;font-weight:800}
-.payment-key-guide-note{margin-top:12px;padding:9px 11px;border-radius:9px;background:#fff;border:1px solid #dbe3ea;color:#64748b;font-size:10px;line-height:1.45}
-.payment-key-guide-note strong{color:#334155}
-@media(max-width:700px){.payment-key-guide-header{align-items:flex-start;flex-wrap:wrap}.payment-key-guide-link{margin-left:44px}}
+.onboarding-step-panel {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.onboarding-step-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.onboarding-step-icon {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  box-sizing: border-box;
+}
+
+.onboarding-step-icon-payment {
+  color: #0f766e;
+  background: #f0fdfa;
+  border: 1px solid #ccfbf1;
+}
+
+.onboarding-step-heading h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 22px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.35px;
+}
+
+.onboarding-step-heading p {
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+/* Provider selection grid */
+.payment-gateway-grid {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  align-items: stretch;
+}
+
+.payment-gateway-card {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  min-width: 0;
+  min-height: 112px;
+  box-sizing: border-box;
+  padding: 15px;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: 11px;
+  text-align: left;
+  font: inherit;
+  color: #0f172a;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 15px;
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.payment-gateway-card:hover {
+  border-color: #99f6e4;
+  background: #fcfffe;
+  box-shadow: 0 7px 22px rgba(15, 118, 110, 0.08);
+  transform: translateY(-1px);
+}
+
+.payment-gateway-card:focus-visible {
+  outline: 3px solid rgba(13, 148, 136, 0.18);
+  outline-offset: 2px;
+}
+
+.payment-gateway-card.is-selected {
+  border-color: #0d9488;
+  background: #f0fdfa;
+  box-shadow: 0 0 0 1px rgba(13, 148, 136, 0.12), 0 8px 24px rgba(13, 148, 136, 0.1);
+}
+
+.payment-gateway-logo {
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.gateway-logo-svg {
+  display: block;
+  width: 46px;
+  height: 46px;
+  max-width: 46px;
+  max-height: 46px;
+  flex: 0 0 46px;
+}
+
+.payment-gateway-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  overflow: hidden;
+}
+
+.payment-gateway-copy strong {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  color: #0f172a;
+  font-size: 13px;
+  line-height: 1.25;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.payment-gateway-copy small {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  color: #64748b;
+  font-size: 10.5px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.payment-gateway-copy em {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  color: #0f766e;
+  font-size: 10px;
+  line-height: 1.35;
+  font-style: normal;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.payment-gateway-action {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  color: #94a3b8;
+  border-radius: 50%;
+}
+
+.payment-gateway-card.is-selected .payment-gateway-action {
+  color: #0d9488;
+}
+
+.payment-gateway-card.is-selected .payment-gateway-action svg {
+  stroke-width: 2.5;
+}
+
+/* Validation / error */
+.onboarding-inline-error {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* Credential fields shown after selecting a provider */
+.payment-credentials {
+  margin-top: 14px;
+  padding: 14px 15px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #f8fafc;
+  box-sizing: border-box;
+}
+
+.payment-credentials-title {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.payment-credentials-title strong {
+  color: #334155;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.payment-credentials-title span {
+  color: #64748b;
+  font-size: 10.5px;
+  line-height: 1.4;
+}
+
+.payment-credentials label {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.payment-credentials input {
+  width: 100%;
+  min-width: 0;
+  height: 38px;
+  box-sizing: border-box;
+  padding: 0 11px;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #0f172a;
+  font: inherit;
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.payment-credentials input::placeholder {
+  color: #94a3b8;
+}
+
+.payment-credentials input:focus {
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.12);
+}
+
+/* Provider setup guide */
+.payment-key-guide {
+  margin-top: 12px;
+  padding: 15px 16px;
+  border: 1px solid #ccfbf1;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #f8fffd 0%, #f0fdfa 100%);
+  box-sizing: border-box;
+}
+
+.payment-key-guide-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.payment-key-guide-icon {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: #ccfbf1;
+  color: #0f766e;
+}
+
+.payment-key-guide-header > div:nth-child(2) {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.payment-key-guide-header strong {
+  font-size: 13px;
+  color: #134e4a;
+}
+
+.payment-key-guide-header span {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.payment-key-guide-link {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  color: #0d9488;
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.payment-key-guide-link:hover {
+  text-decoration: underline;
+}
+
+.payment-key-guide-steps {
+  list-style: none;
+  margin: 13px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.payment-key-guide-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  color: #475569;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.payment-key-guide-number {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #0d9488;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.payment-key-guide-note {
+  margin-top: 12px;
+  padding: 9px 11px;
+  border-radius: 9px;
+  background: #fff;
+  border: 1px solid #dbe3ea;
+  color: #64748b;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.payment-key-guide-note strong {
+  color: #334155;
+}
+
+/* COD information */
+.payment-cod-note {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* Keep the payment step comfortable inside the single-screen onboarding
+   composition without creating a second page-level scrollbar. */
+.ob-single-screen .payment-gateway-grid {
+  padding-bottom: 2px;
+}
+
+.ob-single-screen .payment-gateway-card {
+  min-height: 108px;
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+  .payment-gateway-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Mobile */
+@media (max-width: 620px) {
+  .onboarding-step-heading {
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .onboarding-step-icon {
+    width: 36px;
+    height: 36px;
+    flex-basis: 36px;
+    border-radius: 10px;
+  }
+
+  .onboarding-step-heading h2 {
+    font-size: 19px;
+  }
+
+  .onboarding-step-heading p {
+    font-size: 12px;
+  }
+
+  .payment-gateway-grid {
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+
+  .payment-gateway-card,
+  .ob-single-screen .payment-gateway-card {
+    min-height: 86px;
+    padding: 12px;
+    grid-template-columns: 42px minmax(0, 1fr) 26px;
+    gap: 10px;
+  }
+
+  .payment-gateway-logo,
+  .gateway-logo-svg {
+    width: 42px;
+    height: 42px;
+    max-width: 42px;
+    max-height: 42px;
+    flex-basis: 42px;
+  }
+
+  .payment-credentials {
+    grid-template-columns: 1fr;
+    padding: 12px;
+  }
+
+  .payment-credentials-title {
+    grid-column: auto;
+  }
+
+  .payment-key-guide {
+    padding: 13px;
+  }
+
+  .payment-key-guide-header {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .payment-key-guide-link {
+    margin-left: 44px;
+  }
+}
