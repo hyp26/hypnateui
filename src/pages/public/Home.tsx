@@ -170,14 +170,17 @@ export const Home = () => {
             </h1>
 
             <p className="home-hero-subtitle home-reveal home-delay-3">
-              Turn {PUBLIC_CHANNEL_SUMMARY} conversations into a simpler commerce workflow for products, orders, payments and customers.
+              Turn {PUBLIC_CHANNEL_SUMMARY} conversations into a simpler commerce workflow for products, orders, payments 
+              and customers.
             </p>
 
             <div className="home-hero-actions home-reveal home-delay-4">
-              <Link to="/pricing" className="home-primary-cta rounded-full px-7 inline-flex items-center justify-center font-semibold">
+              <Link to="/signup" className="home-primary-cta rounded-full px-7 inline-flex items-center justify-center 
+              font-semibold">
                 Get Started <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
               </Link>
-              <Link to="/contact" className="home-secondary-cta rounded-full px-7 inline-flex items-center justify-center font-semibold">
+              <Link to="/contact" className="home-secondary-cta rounded-full px-7 inline-flex items-center justify-center 
+              font-semibold">
                 Book a Demo
               </Link>
             </div>
@@ -202,28 +205,32 @@ export const Home = () => {
             <div className="home-hero-glow" aria-hidden="true" />
             <div className="home-dashboard-wrap">
               <div className="home-floating home-floating-wa home-float-delay-1">
-                <div className="home-floating-icon home-floating-green"><MessageCircle className="h-5 w-5" aria-hidden="true" /></div>
+                <div className="home-floating-icon home-floating-green"><MessageCircle className="h-5 w-5" aria-hidden="true" />
+                </div>
                 <div>
                   <strong>Example order</strong>
                   <span>₹2,199</span>
                 </div>
               </div>
               <div className="home-floating home-floating-ig home-float-delay-2">
-                <div className="home-floating-icon home-floating-pink"><Instagram className="h-5 w-5" aria-hidden="true" /></div>
+                <div className="home-floating-icon home-floating-pink"><Instagram className="h-5 w-5" aria-hidden="true" />
+                </div>
                 <div>
                   <strong>Example DM</strong>
                   <span>Product inquiry</span>
                 </div>
               </div>
               <div className="home-floating home-floating-fb home-float-delay-3">
-                <div className="home-floating-icon home-floating-blue"><Users className="h-5 w-5" aria-hidden="true" /></div>
+                <div className="home-floating-icon home-floating-blue"><Users className="h-5 w-5" aria-hidden="true" />
+                </div>
                 <div>
                   <strong>Example message</strong>
                   <span>Can you share the catalog?</span>
                 </div>
               </div>
               <div className="home-floating home-floating-tg home-float-delay-4">
-                <div className="home-floating-icon home-floating-sky"><Send className="h-5 w-5" aria-hidden="true" /></div>
+                <div className="home-floating-icon home-floating-sky"><Send className="h-5 w-5" aria-hidden="true" />
+                </div>
                 <div>
                   <strong>Example Telegram</strong>
                   <span>New conversation</span>
@@ -297,9 +304,11 @@ export const Home = () => {
             <div className="home-eyebrow home-eyebrow-soft">ONE WORKSPACE</div>
             <h2>Connect. Convert. <span>Grow.</span></h2>
             <p>
-              Hypnate brings conversations, orders, payments, products and customers into one place so your team can manage social commerce with less complexity.
+              Hypnate brings conversations, orders, payments, products and customers into one place so your team can manage 
+              social commerce with less complexity.
             </p>
-            <Link to="/features" className="rounded-full px-6 inline-flex items-center justify-center font-semibold bg-primary-500 text-white hover:bg-primary-600">
+            <Link to="/features" className="rounded-full px-6 inline-flex items-center justify-center font-semibold 
+            bg-primary-500 text-white hover:bg-primary-600">
               Explore Features <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
             </Link>
           </div>
@@ -324,13 +333,16 @@ export const Home = () => {
           <div className="home-heading-wrap home-reveal-on-scroll">
             <div className="home-eyebrow home-eyebrow-soft">EARLY STAGE</div>
             <h2>Built for the way <span>social commerce works.</span></h2>
-            <p>Hypnate is being prepared for broader beta testing, with the product shaped around practical commerce workflows.</p>
+            <p>Hypnate is being prepared for broader beta testing, with the product shaped around practical commerce workflows.
+            </p>
           </div>
 
           <div className="home-testimonial-grid">
             {earlyStageCards.map(({ icon: Icon, title, desc }, index) => (
-              <article key={title} className="home-testimonial-card home-reveal-on-scroll home-proof-card" style={{ animationDelay: `${index * 90}ms` }}>
-                <div className="home-proof-icon"><Icon className="h-5 w-5" aria-hidden="true" /></div>
+              <article key={title} className="home-testimonial-card home-reveal-on-scroll home-proof-card" 
+              style={{ animationDelay: `${index * 90}ms` }}>
+                <div className="home-proof-icon"><Icon className="h-5 w-5" aria-hidden="true" />
+                </div>
                 <h3>{title}</h3>
                 <p>{desc}</p>
               </article>
@@ -350,7 +362,8 @@ export const Home = () => {
               <p>Explore a simpler commerce workflow across {PUBLIC_CHANNEL_SUMMARY}.</p>
             </div>
             <div className="home-cta-button-wrap">
-              <Link to="/pricing" className="home-cta-button rounded-full px-7 inline-flex items-center justify-center font-semibold">
+              <Link to="/signup" className="home-cta-button rounded-full px-7 inline-flex items-center justify-center 
+              font-semibold">
                 Get Started <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
               </Link>
               <span>Explore the platform and see how it fits your workflow.</span>

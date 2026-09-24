@@ -307,7 +307,7 @@ export const HypnateDemoPlayer: React.FC = () => {
                 {/* CTA */}
                 <div className="hdp-cta">
                     <span className="hdp-cta-txt">Ready to set this up for your business?</span>
-                    <button type="button" className="hdp-cta-btn" onClick={() => navigate("/pricing")}>Get started →</button>
+                    <button type="button" className="hdp-cta-btn" onClick={() => navigate("/signup")}>Get started →</button>
                 </div>
             </div>
         </>

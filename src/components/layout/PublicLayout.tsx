@@ -107,7 +107,12 @@ export const PublicLayout = () => {
 
   return (
     <div className="min-h-screen bg-white flex flex-col font-sans">
-      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-gray-900 focus:shadow-lg">Skip to main content</a>
+      
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] 
+      focus:rounded-lg focus:bg-white focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-gray-900 
+      focus:shadow-lg">Skip to main content
+      </a>
+
       <OrganizationStructuredData />
       <WebSiteStructuredData />
       {breadcrumbItems.length > 0 && (
@@ -150,7 +155,8 @@ export const PublicLayout = () => {
             <Link to="/login" className="text-sm font-medium text-gray-600 hover:text-primary-600 transition-colors">
               Log In
             </Link>
-            <Link to="/pricing" className="inline-flex h-8 items-center justify-center rounded-full bg-primary-500 px-5 text-xs font-medium text-white shadow-sm transition-colors hover:bg-primary-600">Get Started</Link>
+            <Link to="/signup" className="inline-flex h-8 items-center justify-center rounded-full bg-primary-500 
+            px-5 text-xs font-medium text-white shadow-sm transition-colors hover:bg-primary-600">Get Started</Link>
           </div>
 
           {/* Mobile hamburger */}
@@ -168,7 +174,8 @@ export const PublicLayout = () => {
         </div>
 
         {/* Mobile menu — renders as block/hidden, NOT pointer-events trick */}
-        <div id="public-mobile-menu" ref={mobileMenuRef} role="region" aria-label="Mobile navigation" className="md:hidden bg-white border-t border-gray-100 shadow-lg" hidden={!mobileMenuOpen}>
+        <div id="public-mobile-menu" ref={mobileMenuRef} role="region" aria-label="Mobile navigation" className="md:hidden 
+        bg-white border-t border-gray-100 shadow-lg" hidden={!mobileMenuOpen}>
             <div className="px-4 py-3 space-y-1">
               {navLinks.map((link) => (
                 <Link
@@ -191,8 +198,10 @@ export const PublicLayout = () => {
               ))}
             </div>
             <div className="px-4 pb-5 pt-2 flex flex-col gap-3 border-t border-gray-100">
-              <Link to="/login" className="inline-flex w-full h-10 items-center justify-center rounded-xl border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50">Log In</Link>
-              <Link to="/pricing" className="inline-flex w-full h-10 items-center justify-center rounded-xl bg-primary-500 px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary-600">Get Started</Link>
+              <Link to="/login" className="inline-flex w-full h-10 items-center justify-center rounded-xl border border-gray-300 
+              bg-white px-4 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50">Log In</Link>
+              <Link to="/signup" className="inline-flex w-full h-10 items-center justify-center rounded-xl bg-primary-500 
+              px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary-600">Get Started</Link>
             </div>
           </div>
       </nav>
@@ -208,15 +217,25 @@ export const PublicLayout = () => {
       <footer className="bg-gray-900 text-gray-300 py-12 sm:py-16 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 sm:gap-12 mb-10 sm:mb-12">
           <div className="col-span-2 md:col-span-1">
-            <img src="/assets/hypnate-logo-light.png" alt="Hypnate Logo" className="h-12 sm:h-14 w-auto max-w-[280px] object-contain object-left" />
+            <img src="/assets/hypnate-logo-light.png" alt="Hypnate Logo" className="h-12 sm:h-14 w-auto max-w-[280px] 
+            object-contain object-left" />
             <p className="mt-4 sm:mt-6 text-sm text-gray-400 leading-relaxed">
-              Helping Indian businesses manage commerce workflows across WhatsApp, Instagram, Facebook and Telegram with AI-assisted tools.
+              Helping Indian businesses manage commerce workflows across WhatsApp, Instagram, Facebook and Telegram with 
+              AI-assisted tools.
             </p>
             <div className="flex gap-4 mt-4 sm:mt-6">
-              <a href="https://www.instagram.com/hypnate.app/" target="_blank" rel="noopener noreferrer" aria-label="Hypnate on Instagram" className="hover:text-white transition-colors"><Instagram className="w-5 h-5" aria-hidden="true" /></a>
-              <a href="https://www.facebook.com/Hypnate" target="_blank" rel="noopener noreferrer" aria-label="Hypnate on Facebook" className="hover:text-white transition-colors"><Facebook className="w-5 h-5" aria-hidden="true" /></a>
-              <a href="https://x.com/HypnateIndia" target="_blank" rel="noopener noreferrer" aria-label="Hypnate on X" className="hover:text-white transition-colors"><Twitter className="w-5 h-5" aria-hidden="true" /></a>
-              <a href="https://www.linkedin.com/company/hypnate/" target="_blank" rel="noopener noreferrer" aria-label="Hypnate on LinkedIn" className="hover:text-white transition-colors"><Linkedin className="w-5 h-5" aria-hidden="true" /></a>
+              <a href="https://www.instagram.com/hypnate.app/" target="_blank" rel="noopener noreferrer" aria-label="Hypnate on 
+              Instagram" className="hover:text-white transition-colors"><Instagram className="w-5 h-5" aria-hidden="true" />
+              </a>
+              <a href="https://www.facebook.com/Hypnate" target="_blank" rel="noopener noreferrer" aria-label="Hypnate on 
+              Facebook" className="hover:text-white transition-colors"><Facebook className="w-5 h-5" aria-hidden="true" />
+              </a>
+              <a href="https://x.com/HypnateIndia" target="_blank" rel="noopener noreferrer" aria-label="Hypnate 
+              on X" className="hover:text-white transition-colors"><Twitter className="w-5 h-5" aria-hidden="true" />
+              </a>
+              <a href="https://www.linkedin.com/company/hypnate/" target="_blank" rel="noopener noreferrer" aria-label="Hypnate 
+              on LinkedIn" className="hover:text-white transition-colors"><Linkedin className="w-5 h-5" aria-hidden="true" />
+              </a>
             </div>
           </div>
           <div>
