@@ -150,3 +150,12 @@
         max-width: 420px;
     }
 }
+/* Shared compact spacing inside the fixed onboarding frame. */
+.ob-single-screen .ob-card h2 {
+    font-size: 19px !important;
+}
+
+.ob-single-screen .ob-card [style*="flex-direction: column"] {
+    /* Do not globally change nested cards; the more specific step rules below
+       handle the primary step wrappers. */
+}

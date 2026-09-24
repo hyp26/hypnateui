@@ -11,7 +11,7 @@ interface OnboardingFooterProps {
 }
 
 export const OnboardingFooter: React.FC<OnboardingFooterProps> = ({ onBack, onSkip, onNext, loading, showBack, showSkip }) => (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 28, paddingTop: 20, borderTop: "1px solid #f1f5f9", flexWrap: "wrap", gap: 10 }}>
+    <div className="ob-onboarding-footer" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 14, paddingTop: 14, borderTop: "1px solid #f1f5f9", flexWrap: "wrap", gap: 10 }}>
         <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
             {showBack && (
                 <button onClick={onBack} style={{ fontSize: 14, fontWeight: 500, color: "#64748b", background: "none", border: "none", cursor: "pointer", padding: "8px 4px", fontFamily: "inherit" }}>

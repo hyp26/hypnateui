@@ -193,6 +193,7 @@ export const Onboarding: React.FC = () => {
             <OnboardingStepper current={currentStep} completed={completed} skipped={skipped} />
 
             <div className="ob-card">
+              <div className="ob-step-content">
               {currentStep === 1 && (
                 <BusinessStep form={businessForm} onChange={setBusinessForm} error={error} onClear={() => setError("")} />
               )}
@@ -226,6 +227,7 @@ export const Onboarding: React.FC = () => {
               {currentStep === 5 && (
                 <SummaryStep completed={completed} skipped={skipped} autoProgress={autoProgress} autoTasks={autoTasks} />
               )}
+              </div>
 
               {currentStep < 5 ? (
                 <OnboardingFooter
@@ -237,7 +239,7 @@ export const Onboarding: React.FC = () => {
                   showSkip={currentStep > 1}
                 />
               ) : (
-                <div style={{ display: "flex", justifyContent: "center", marginTop: 28, paddingTop: 20, borderTop: "1px solid #f1f5f9" }}>
+                <div className="ob-launch-footer" style={{ display: "flex", justifyContent: "center", marginTop: 14, paddingTop: 14, borderTop: "1px solid #f1f5f9" }}>
                   <button
                     type="button"
                     onClick={handleNext}

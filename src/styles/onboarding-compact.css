@@ -1,3 +1,5 @@
+/* Desktop onboarding is a single viewport composition. Only the step content
+   becomes scrollable if a particular step genuinely needs more room. */
 html:has(.ob-single-screen),
 body:has(.ob-single-screen) {
   overflow: hidden;
@@ -9,16 +11,21 @@ body:has(.ob-single-screen) {
   overflow: hidden;
 }
 
-.ob-single-screen .ob-wrap,
-.ob-single-screen .ob-inner {
+.ob-single-screen .ob-wrap {
   height: 100%;
+  min-height: 0;
   overflow: hidden;
+  box-sizing: border-box;
+  padding: 10px 20px 12px;
 }
 
 .ob-single-screen .ob-inner {
-  max-width: 980px;
+  width: 100%;
+  max-width: 1180px;
+  height: 100%;
+  min-height: 0;
   margin: 0 auto;
-  padding: 18px 20px 16px;
+  padding: 0;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -26,7 +33,9 @@ body:has(.ob-single-screen) {
 
 .ob-single-screen .ob-page-header {
   flex: 0 0 auto;
-  margin-bottom: 10px !important;
+  margin-bottom: 8px !important;
+  min-height: 48px;
+  align-items: center;
 }
 
 .ob-trial-banner {
@@ -35,8 +44,8 @@ body:has(.ob-single-screen) {
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  padding: 12px 16px;
-  margin-bottom: 10px;
+  padding: 10px 16px;
+  margin-bottom: 8px;
   border: 1px solid #99f6e4;
   border-radius: 14px;
   background: rgba(240, 253, 250, 0.92);
@@ -66,11 +75,52 @@ body:has(.ob-single-screen) {
   letter-spacing: 0.08em;
 }
 
+/* Stepper is deliberately compact so every onboarding step shares the same
+   vertical frame and footer position. */
+.ob-single-screen .ob-stepper {
+  flex: 0 0 auto;
+}
+
 .ob-single-screen .ob-card {
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
   margin-bottom: 0 !important;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.ob-step-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+  padding-right: 3px;
+}
+
+.ob-step-content::-webkit-scrollbar {
+  width: 5px;
+}
+
+.ob-step-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ob-step-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+.ob-single-screen .ob-card > .ob-step-content > * {
+  max-width: 100%;
+}
+
+.ob-single-screen .ob-form-grid {
+  gap: 10px 14px;
 }
 
 .ob-single-screen .ob-modal-overlay {
@@ -82,17 +132,85 @@ body:has(.ob-single-screen) {
   overflow: auto;
 }
 
+.ob-launch-footer {
+  flex: 0 0 auto;
+}
+
 @media (max-width: 900px) {
-  .ob-single-screen {
-    height: auto;
-    min-height: 100dvh !important;
+  html:has(.ob-single-screen),
+  body:has(.ob-single-screen) {
     overflow: auto;
   }
 
+  .ob-single-screen {
+    height: auto;
+    min-height: 100dvh !important;
+    overflow: visible;
+  }
+
   .ob-single-screen .ob-wrap,
-  .ob-single-screen .ob-inner,
+  .ob-single-screen .ob-inner {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
   .ob-single-screen .ob-card {
     height: auto;
     overflow: visible;
+  }
+
+  .ob-step-content {
+    overflow: visible;
+  }
+}
+
+@media (max-width: 640px) {
+  .ob-single-screen .ob-wrap {
+    padding: 8px 12px 12px;
+  }
+
+  .ob-single-screen .ob-card {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .ob-trial-banner {
+    padding: 9px 12px;
+  }
+
+  .ob-trial-banner p {
+    font-size: 11px;
+  }
+}
+
+.ob-onboarding-footer {
+  flex: 0 0 auto;
+}
+
+@media (max-height: 760px) and (min-width: 901px) {
+  .ob-single-screen .ob-wrap {
+    padding-top: 6px;
+    padding-bottom: 8px;
+  }
+
+  .ob-single-screen .ob-page-header {
+    margin-bottom: 5px !important;
+    min-height: 42px;
+  }
+
+  .ob-trial-banner {
+    padding: 8px 14px;
+    margin-bottom: 5px;
+  }
+
+  .ob-single-screen .ob-stepper {
+    padding-top: 7px !important;
+    padding-bottom: 7px !important;
+    margin-bottom: 5px !important;
+  }
+
+  .ob-single-screen .ob-card {
+    padding: 16px 20px;
   }
 }

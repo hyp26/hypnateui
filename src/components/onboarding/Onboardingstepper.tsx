@@ -9,13 +9,13 @@ interface StepperProps {
 }
 
 export const OnboardingStepper: React.FC<StepperProps> = ({ current, completed, skipped }) => (
-    <div style={{ background: "#fff", borderRadius: 18, padding: "16px 12px", border: "1px solid #f1f5f9", boxShadow: "0 2px 12px rgba(0,0,0,0.04)", marginBottom: 16 }}>
+    <div className="ob-stepper" style={{ background: "#fff", borderRadius: 16, padding: "10px 12px", border: "1px solid #f1f5f9", boxShadow: "0 2px 12px rgba(0,0,0,0.04)", marginBottom: 8 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative" }}>
-            <div style={{ position: "absolute", top: 16, left: "9%", right: "9%", height: 2, background: "#f1f5f9", zIndex: 0 }} />
+            <div style={{ position: "absolute", top: 15, left: "9%", right: "9%", height: 2, background: "#f1f5f9", zIndex: 0 }} />
             <div
                 style={{
                     position: "absolute",
-                    top: 16,
+                    top: 15,
                     left: "9%",
                     height: 2,
                     background: "linear-gradient(90deg,#0d9488,#34d399)",
@@ -34,8 +34,8 @@ export const OnboardingStepper: React.FC<StepperProps> = ({ current, completed, 
                     <div key={step.id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, zIndex: 1, flex: 1 }}>
                         <div
                             style={{
-                                width: 32,
-                                height: 32,
+                                width: 30,
+                                height: 30,
                                 borderRadius: "50%",
                                 display: "flex",
                                 alignItems: "center",
