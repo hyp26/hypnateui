@@ -8,6 +8,7 @@ import { RouteSEO } from './components/public/SEO';
 import { PlanRoute } from './components/plan/PlanGate';
 import { normalizePlan } from './config/planEntitlements';
 import { useAuthStore } from './stores/useAuthStore';
+import { AdminApp } from './admin';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
 import { VerifyEmail } from './pages/VerifyEmail';
@@ -167,7 +168,11 @@ function App() {
           <Route path="/payments" element={<Payments />} />
           <Route path="/analytics" element={<PlanRoute feature="advancedAnalytics"><DashboardAnalytics /></PlanRoute>} />
           <Route path="/hypnate-x" element={<PlanRoute feature="hypnateX"><HypnateX /></PlanRoute>} />
+
         </Route>
+
+        {/* Admin authentication is completely separate from seller authentication. */}
+        <Route path="/admin/*" element={<AdminApp />} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>
