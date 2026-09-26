@@ -56,6 +56,7 @@ export const Conversations: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [msgLoading, setMsgLoading] = useState(false);
   const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
   const [online, setOnline] = useState(true);
   const [showChat, setShowChat] = useState(false); // mobile: show chat panel
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -345,6 +346,7 @@ export const Conversations: React.FC = () => {
 
   const selectChat = (id: number) => {
     setActiveChatId(id);
+    setSendError(null); // stale failure notice must not follow the seller into another chat
     fetchMessages(id);
     setShowChat(true); // mobile: switch to chat view
     setTimeout(() => inputRef.current?.focus(), 100);
@@ -353,6 +355,7 @@ export const Conversations: React.FC = () => {
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!msgText.trim() || !activeChatId || sending) return;
+    setSendError(null); // fresh attempt clears the previous failure notice
     const text = msgText.trim();
     setSending(true); // keep the drafted text until the backend accepts the send
     const temp: Message = { id: Date.now(), conversationId: activeChatId, sender: "SELLER", text, type: "text", isRead: true, createdAt: new Date().toISOString() };
@@ -367,7 +370,15 @@ export const Conversations: React.FC = () => {
       setMessages(prev => prev.filter(m => m.id !== temp.id));
       optimisticMessageIdRef.current = null;
       await fetchMessages(activeChatId, true);
-    } catch { setMessages(prev => prev.filter(m => m.id !== temp.id)); optimisticMessageIdRef.current = null; } finally { setSending(false); }
+    } catch (err: any) {
+      /* 3C-2 — surface a concise seller-facing error. Only the
+       * server-controlled `message` string is trusted; raw Axios
+       * errors, headers, or stack traces are never displayed. */
+      const serverMessage = err?.response?.data?.message;
+      setSendError(typeof serverMessage === "string" && serverMessage.trim() ? serverMessage : "Couldn't send the message — please try again.");
+      setMessages(prev => prev.filter(m => m.id !== temp.id));
+      optimisticMessageIdRef.current = null;
+    } finally { setSending(false); }
   };
 
   const activeChat = conversations.find(c => c.id === activeChatId);
@@ -503,6 +514,11 @@ export const Conversations: React.FC = () => {
             </div>
 
             <div style={s.inputBar}>
+              {sendError && (
+                <div role="alert" style={{ padding: "8px 14px", color: "#b91c1c", background: "#fef2f2", borderTop: "1px solid #fecaca", fontSize: 12, fontWeight: 600 }}>
+                  {sendError}
+                </div>
+              )}
               <form onSubmit={handleSend} style={s.inputRow}>
                 <button type="button" style={s.attachBtn}><Paperclip size={16} /></button>
                 <input ref={inputRef} value={msgText} onChange={e => setMsgText(e.target.value)} placeholder="Type a message…" style={s.textInput} className="msg-input" />
