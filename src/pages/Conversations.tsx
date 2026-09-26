@@ -41,6 +41,11 @@ const fmtTime = (iso?: string) => {
   return d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 };
 
+/* Backend conversation-list ordering: lastMessageAt, newest first
+ * (matches GET /api/conversations orderBy). */
+const byLastMessageAtDesc = (a: Conversation, b: Conversation) =>
+  new Date(b.lastMessageAt ?? 0).getTime() - new Date(a.lastMessageAt ?? 0).getTime();
+
 export const Conversations: React.FC = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -109,6 +114,7 @@ export const Conversations: React.FC = () => {
    * source of truth for now.
    */
   const socketRoomRef = useRef<number | null>(null);
+  const optimisticMessageIdRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!activeChatId) return;
@@ -140,6 +146,19 @@ export const Conversations: React.FC = () => {
     activeChatIdRef.current = activeChatId;
   }, [activeChatId]);
 
+  /*
+   * 3B-8 — keeps the latest silent REST fetchers available to
+   * socket lifecycle handlers without re-registering listeners.
+   */
+  const resyncRef = useRef<() => void>(() => {});
+  useEffect(() => {
+    resyncRef.current = () => {
+      fetchConversations(true);
+      const id = activeChatIdRef.current;
+      if (id !== null) fetchMessages(id, true);
+    };
+  }, [fetchConversations, fetchMessages]);
+
   useEffect(() => {
     const socket = getSocket();
 
@@ -158,9 +177,61 @@ export const Conversations: React.FC = () => {
         if (!isPayload(payload)) return;
         const message = payload;
         if (typeof message.id !== "number" || typeof message.conversationId !== "number") return;
-        if (message.conversationId !== activeChatIdRef.current) return;
-        setMessages(prev =>
-          prev.some(m => m.id === message.id) ? prev : [...prev, message]
+        const isActiveConversation = message.conversationId === activeChatIdRef.current;
+        const lastMessageText = typeof message.text === "string" ? message.text : undefined;
+        const lastMessageAt = typeof message.createdAt === "string" ? message.createdAt : undefined;
+
+        /*
+         * 3B-7 — dedup by backend message id. A known message is
+         * replaced by the incoming authoritative backend object;
+         * an unknown one is appended exactly once. A pending
+         * optimistic message for this send is dropped as soon as
+         * its real backend message arrives.
+         */
+        if (isActiveConversation) {
+          const optimisticId = optimisticMessageIdRef.current;
+          setMessages(prev => {
+            const withoutOptimistic =
+              optimisticId !== null ? prev.filter(m => m.id !== optimisticId) : prev;
+            if (withoutOptimistic.some(m => m.id === message.id)) {
+              return withoutOptimistic.map(m =>
+                m.id === message.id ? { ...m, ...message } : m
+              );
+            }
+            return [...withoutOptimistic, message];
+          });
+        }
+
+        /*
+         * 3B-6 — realtime unread counts + ordering, mirroring
+         * the backend: the webhook increments unreadCount only
+         * for inbound CUSTOMER messages, and the open
+         * conversation stays at zero unread (the backend clears
+         * unread state when its messages are fetched). Unknown
+         * conversation ids are ignored — polling/fetch owns
+         * list membership. Ordering follows the backend's
+         * lastMessageAt-desc rule.
+         */
+        setConversations(prev =>
+          prev
+            .map(c => {
+              if (c.id !== message.conversationId) return c;
+              if (isActiveConversation) {
+                return {
+                  ...c,
+                  ...(lastMessageText !== undefined ? { lastMessage: lastMessageText } : {}),
+                  ...(lastMessageAt !== undefined ? { lastMessageAt: lastMessageAt } : {}),
+                  unreadCount: 0,
+                };
+              }
+              return {
+                ...c,
+                ...(lastMessageText !== undefined ? { lastMessage: lastMessageText } : {}),
+                ...(lastMessageAt !== undefined ? { lastMessageAt: lastMessageAt } : {}),
+                unreadCount: message.sender === "CUSTOMER" ? c.unreadCount + 1 : c.unreadCount,
+              };
+            })
+            .sort(byLastMessageAtDesc)
         );
       } catch { /* malformed payload: ignore */ }
     };
@@ -206,20 +277,52 @@ export const Conversations: React.FC = () => {
         if (typeof conversation.id !== "number") return;
         setConversations(prev =>
           prev.some(c => c.id === conversation.id)
-            ? prev.map(c => (c.id === conversation.id ? { ...c, ...conversation } : c))
+            ? prev
+                .map(c => (c.id === conversation.id ? { ...c, ...conversation } : c))
+                .sort(byLastMessageAtDesc)
             : prev
         );
       } catch { /* malformed payload: ignore */ }
     };
 
+    /*
+     * 3B-8 — reconnect/disconnect handling. A reconnect is a
+     * brand-new server connection (rooms do not survive), so the
+     * active conversation room is re-joined and the existing
+     * REST fetches resynchronize anything missed while offline.
+     * Disconnects never clear local state; polling remains the
+     * fallback. Connection errors are swallowed so no internal
+     * details surface in the UI.
+     */
+    const onConnect = () => {
+      const activeId = activeChatIdRef.current;
+      if (activeId !== null) {
+        socket.emit("join_conversation", activeId);
+      }
+      resyncRef.current();
+    };
+    const onDisconnect = () => {
+      /* Keep all local state; the socket manager retries and
+       * the existing polling keeps the screen in sync. */
+    };
+    const onConnectError = () => {
+      /* Silent: never surface raw connection internals. */
+    };
+
     socket.on("new_message", onNewMessage);
     socket.on("message_status_updated", onMessageStatusUpdated);
     socket.on("conversation_updated", onConversationUpdated);
+    socket.on("connect", onConnect);
+    socket.on("disconnect", onDisconnect);
+    socket.on("connect_error", onConnectError);
 
     return () => {
       socket.off("new_message", onNewMessage);
       socket.off("message_status_updated", onMessageStatusUpdated);
       socket.off("conversation_updated", onConversationUpdated);
+      socket.off("connect", onConnect);
+      socket.off("disconnect", onDisconnect);
+      socket.off("connect_error", onConnectError);
     };
   }, []);
 
@@ -238,12 +341,17 @@ export const Conversations: React.FC = () => {
     const text = msgText.trim();
     setMsgText(""); setSending(true);
     const temp: Message = { id: Date.now(), conversationId: activeChatId, sender: "SELLER", text, type: "text", isRead: true, createdAt: new Date().toISOString() };
+    optimisticMessageIdRef.current = temp.id;
     setMessages(prev => [...prev, temp]);
     setConversations(prev => prev.map(c => c.id === activeChatId ? { ...c, lastMessage: text, lastMessageAt: new Date().toISOString() } : c));
     try {
       await api.post(`/api/conversations/${activeChatId}/messages`, { text });
+      /* 3B-7 — remove the optimistic message before the refetch
+       * installs the authoritative backend message list. */
+      setMessages(prev => prev.filter(m => m.id !== temp.id));
+      optimisticMessageIdRef.current = null;
       await fetchMessages(activeChatId, true);
-    } catch { setMessages(prev => prev.filter(m => m.id !== temp.id)); } finally { setSending(false); }
+    } catch { setMessages(prev => prev.filter(m => m.id !== temp.id)); optimisticMessageIdRef.current = null; } finally { setSending(false); }
   };
 
   const activeChat = conversations.find(c => c.id === activeChatId);
