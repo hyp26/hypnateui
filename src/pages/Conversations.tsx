@@ -78,6 +78,11 @@ export const Conversations: React.FC = () => {
     try {
       if (!silent) setMsgLoading(true);
       const res = await api.get(`/api/conversations/${id}/messages`);
+      /* 3D-2 — stale-response guard: a fetch for a conversation the
+       * seller has already switched away from must not replace the
+       * active conversation's messages (including their statuses)
+       * or clear unread state for a conversation that was not viewed. */
+      if (id !== activeChatIdRef.current) return;
       setMessages(res.data);
       setConversations(prev => prev.map(c => c.id === id ? { ...c, unreadCount: 0 } : c));
     } catch { } finally { if (!silent) setMsgLoading(false); }
