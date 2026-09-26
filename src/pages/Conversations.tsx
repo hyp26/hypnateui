@@ -19,6 +19,7 @@ interface Conversation {
 interface Message {
   id: number; conversationId: number; sender: MessageSender;
   text: string; type: string; isRead: boolean; createdAt: string;
+  status?: string;
 }
 
 const PLATFORM = {
@@ -125,6 +126,102 @@ export const Conversations: React.FC = () => {
       }
     };
   }, [activeChatId]);
+
+  /*
+   * Realtime socket events (3B-3 / 3B-4 / 3B-5).
+   * Listeners are registered exactly once for the lifetime of
+   * this screen and removed on unmount. A ref keeps the active
+   * conversation id current without re-registering listeners
+   * when switching conversations (no stale closures, no
+   * duplicates).
+   */
+  const activeChatIdRef = useRef<number | null>(null);
+  useEffect(() => {
+    activeChatIdRef.current = activeChatId;
+  }, [activeChatId]);
+
+  useEffect(() => {
+    const socket = getSocket();
+
+    const isPayload = (value: unknown): value is Record<string, any> =>
+      !!value && typeof value === "object" && !Array.isArray(value);
+
+    /*
+     * 3B-3 — new_message
+     * Backend emits the full persisted message object to
+     * room_<conversationId>. Only messages belonging to the
+     * currently open conversation are appended, deduplicated
+     * by the backend message id.
+     */
+    const onNewMessage = (payload: unknown) => {
+      try {
+        if (!isPayload(payload)) return;
+        const message = payload;
+        if (typeof message.id !== "number" || typeof message.conversationId !== "number") return;
+        if (message.conversationId !== activeChatIdRef.current) return;
+        setMessages(prev =>
+          prev.some(m => m.id === message.id) ? prev : [...prev, message]
+        );
+      } catch { /* malformed payload: ignore */ }
+    };
+
+    /*
+     * 3B-4 — message_status_updated
+     * Backend payload: { conversationId, messageId, status }
+     * with status in SENT | DELIVERED | READ | FAILED. Only the
+     * matching message's status is updated; READ also reflects
+     * on the existing isRead tick. Messages not in local state
+     * are left to polling/fetch.
+     */
+    const onMessageStatusUpdated = (payload: unknown) => {
+      try {
+        if (!isPayload(payload)) return;
+        const { conversationId, messageId, status } = payload;
+        if (typeof conversationId !== "number" || typeof messageId !== "number") return;
+        if (typeof status !== "string") return;
+        if (conversationId !== activeChatIdRef.current) return;
+        setMessages(prev =>
+          prev.map(m =>
+            m.id === messageId
+              ? { ...m, status, isRead: status === "READ" ? true : m.isRead }
+              : m
+          )
+        );
+      } catch { /* malformed payload: ignore */ }
+    };
+
+    /*
+     * 3B-5 — conversation_updated
+     * Backend payload: { conversationId, conversation } where
+     * conversation is the full conversation row (same shape as
+     * GET /api/conversations). Existing entries are merged by
+     * id; unknown conversations are ignored here and picked up
+     * by the existing polling/fetch.
+     */
+    const onConversationUpdated = (payload: unknown) => {
+      try {
+        if (!isPayload(payload)) return;
+        const conversation = payload.conversation;
+        if (!isPayload(conversation)) return;
+        if (typeof conversation.id !== "number") return;
+        setConversations(prev =>
+          prev.some(c => c.id === conversation.id)
+            ? prev.map(c => (c.id === conversation.id ? { ...c, ...conversation } : c))
+            : prev
+        );
+      } catch { /* malformed payload: ignore */ }
+    };
+
+    socket.on("new_message", onNewMessage);
+    socket.on("message_status_updated", onMessageStatusUpdated);
+    socket.on("conversation_updated", onConversationUpdated);
+
+    return () => {
+      socket.off("new_message", onNewMessage);
+      socket.off("message_status_updated", onMessageStatusUpdated);
+      socket.off("conversation_updated", onConversationUpdated);
+    };
+  }, []);
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
