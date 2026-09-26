@@ -363,11 +363,24 @@ export const Conversations: React.FC = () => {
     setMessages(prev => [...prev, temp]);
     setConversations(prev => prev.map(c => c.id === activeChatId ? { ...c, lastMessage: text, lastMessageAt: new Date().toISOString() } : c));
     try {
-      await api.post(`/api/conversations/${activeChatId}/messages`, { text });
+      const res = await api.post(`/api/conversations/${activeChatId}/messages`, { text });
       setMsgText(""); // backend accepted the send; now clear the composer
-      /* 3B-7 — remove the optimistic message before the refetch
-       * installs the authoritative backend message list. */
-      setMessages(prev => prev.filter(m => m.id !== temp.id));
+      /* 3C-3 — reconcile with the authoritative row the POST itself
+       * returned: drop the optimistic entry and install the persisted
+       * backend message by its id (same id-based dedupe as the
+       * new_message handler, no text/timestamp heuristics). This
+       * keeps the sent message on screen even when the silent
+       * refetch below is slow, fails, or the realtime event lags. */
+      const saved = res?.data;
+      setMessages(prev => {
+        const withoutOptimistic = prev.filter(m => m.id !== temp.id);
+        if (saved && typeof saved.id === "number" && saved.conversationId === activeChatId) {
+          return withoutOptimistic.some(m => m.id === saved.id)
+            ? withoutOptimistic.map(m => (m.id === saved.id ? { ...m, ...saved } : m))
+            : [...withoutOptimistic, saved];
+        }
+        return withoutOptimistic;
+      });
       optimisticMessageIdRef.current = null;
       await fetchMessages(activeChatId, true);
     } catch (err: any) {
