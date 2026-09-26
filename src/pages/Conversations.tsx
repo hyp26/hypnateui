@@ -260,16 +260,31 @@ export const Conversations: React.FC = () => {
      * on the existing isRead tick. Messages not in local state
      * are left to polling/fetch.
      */
+    /*
+     * 3D-1 — status progression guard. Mirrors the backend
+     * webhook: SENT < DELIVERED < READ, and FAILED is terminal.
+     * An out-of-order or replayed event never regresses a
+     * status already displayed.
+     */
+    const STATUS_RANK: Record<string, number> = { SENT: 1, DELIVERED: 2, READ: 3 };
+    const isStatusRegression = (current: string | undefined, incoming: string): boolean => {
+      if (current !== "SENT" && current !== "DELIVERED" && current !== "READ" && current !== "FAILED") return false;
+      if (current === "FAILED") return incoming !== "FAILED";
+      if (incoming === "FAILED") return false;
+      return STATUS_RANK[incoming] <= STATUS_RANK[current];
+    };
+
     const onMessageStatusUpdated = (payload: unknown) => {
       try {
         if (!isPayload(payload)) return;
         const { conversationId, messageId, status } = payload;
         if (typeof conversationId !== "number" || typeof messageId !== "number") return;
         if (typeof status !== "string") return;
+        if (status !== "SENT" && status !== "DELIVERED" && status !== "READ" && status !== "FAILED") return;
         if (conversationId !== activeChatIdRef.current) return;
         setMessages(prev =>
           prev.map(m =>
-            m.id === messageId
+            m.id === messageId && !isStatusRegression(m.status, status)
               ? { ...m, status, isRead: status === "READ" ? true : m.isRead }
               : m
           )
@@ -514,7 +529,19 @@ export const Conversations: React.FC = () => {
                             <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5 }}>{msg.text}</p>
                             <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 4, marginTop: 4 }}>
                               <span style={{ fontSize: 10, opacity: 0.7 }}>{new Date(msg.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}</span>
-                              {isSeller && (msg.isRead ? <CheckCheck size={12} style={{ opacity: 0.9 }} /> : <Check size={12} style={{ opacity: 0.7 }} />)}
+                              {isSeller && (
+                                /* 3D-1 — ticks follow the real backend status:
+                                 * SENT = one tick, DELIVERED = two ticks,
+                                 * READ = two ticks in read styling,
+                                 * FAILED = error indicator. Messages without a
+                                 * status (e.g. optimistic) keep the existing
+                                 * isRead-based ticks. */
+                                msg.status === "FAILED" ? <X size={12} color="#fecaca" style={{ opacity: 0.9 }} /> :
+                                msg.status === "READ" ? <CheckCheck size={12} color="#bfdbfe" style={{ opacity: 0.9 }} /> :
+                                msg.status === "DELIVERED" ? <CheckCheck size={12} style={{ opacity: 0.9 }} /> :
+                                msg.status === "SENT" ? <Check size={12} style={{ opacity: 0.7 }} /> :
+                                (msg.isRead ? <CheckCheck size={12} style={{ opacity: 0.9 }} /> : <Check size={12} style={{ opacity: 0.7 }} />)
+                              )}
                             </div>
                           </div>
                         </div>
