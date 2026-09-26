@@ -12,11 +12,10 @@ interface ConnectModalProps {
 
 export const ConnectModal: React.FC<ConnectModalProps> = ({ isOpen, onClose, platform }) => {
   const connectChannel = useIntegrationStore((state) => state.connectChannel);
+  const connectWhatsApp = useIntegrationStore((state) => state.connectWhatsApp);
   const [isLoading, setIsLoading] = useState(false);
   const [connectError, setConnectError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    phoneNumber: '',
-    apiKey: '',
     botToken: '',
   });
 
@@ -75,7 +74,7 @@ export const ConnectModal: React.FC<ConnectModalProps> = ({ isOpen, onClose, pla
         <div className={`p-4 rounded-lg ${config.color} flex items-start gap-3`}>
           <div className="shrink-0 mt-1">{config.icon}</div>
           <div className="text-sm text-gray-700">
-            {platform === 'whatsapp' && "You need a valid Facebook Business Manager account and a phone number not currently registered on WhatsApp personal app."}
+            {platform === 'whatsapp' && "Connecting WhatsApp is done through Meta authorization. You will be redirected to Meta to sign in and approve your WhatsApp Business assets — no API keys or access tokens needed."}
             {platform === 'instagram' && "Ensure your Instagram account is switched to a Business Profile and linked to a Facebook Page."}
             {platform === 'facebook' && "We need permission to manage your Pages and read messages to automate replies."}
             {platform === 'telegram' && "Create a new bot via @BotFather on Telegram and paste the API Token below."}
@@ -87,37 +86,19 @@ export const ConnectModal: React.FC<ConnectModalProps> = ({ isOpen, onClose, pla
             <div role="alert" aria-live="assertive" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{connectError}</div>
           )}
           {platform === 'whatsapp' && (
-            <>
-              <div>
-                <label htmlFor="connect-whatsapp-phone" className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                <input
-                  id="connect-whatsapp-phone"
-                  name="phoneNumber"
-                  type="tel"
-                  autoComplete="tel"
-                  placeholder="+91 98765 43210"
-                  required
-                  value={formData.phoneNumber}
-                  onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 outline-none"
-                />
-              </div>
-              <div>
-                <label htmlFor="connect-whatsapp-api-key" className="block text-sm font-medium text-gray-700 mb-1">WhatsApp Business API Key</label>
-                <input
-                  id="connect-whatsapp-api-key"
-                  name="apiKey"
-                  type="password"
-                  autoComplete="off"
-                  placeholder="EAAG..."
-                  required
-                  value={formData.apiKey}
-                  onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary-500 outline-none font-mono text-sm"
-                />
-                <p className="text-xs text-gray-500 mt-1">Found in your Meta Developer Portal.</p>
-              </div>
-            </>
+            <div className="py-4">
+              <button
+                type="button"
+                onClick={() => connectWhatsApp()}
+                className="w-full bg-[#25D366] hover:bg-[#1ebe57] text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors"
+              >
+                <MessageCircle className="w-5 h-5" aria-hidden="true" />
+                Continue to Meta
+              </button>
+              <p className="text-xs text-gray-500 text-center mt-3">
+                You will be redirected to Meta to authorize Hypnate. Hypnate never asks for your Meta credentials, API keys, or access tokens.
+              </p>
+            </div>
           )}
 
           {platform === 'telegram' && (
@@ -153,9 +134,9 @@ export const ConnectModal: React.FC<ConnectModalProps> = ({ isOpen, onClose, pla
             </div>
           )}
 
-          {(platform === 'whatsapp' || platform === 'telegram') && (
+          {platform === 'telegram' && (
             <Button type="submit" isLoading={isLoading} className="w-full">
-              Connect {platform === 'whatsapp' ? 'WhatsApp' : 'Bot'}
+              Connect Bot
             </Button>
           )}
         </form>

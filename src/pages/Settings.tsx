@@ -591,9 +591,9 @@ export const Settings: React.FC = () => {
                                   {whatsapp.whatsappBusinessName && <span><strong>WhatsApp Business:</strong> {whatsapp.whatsappBusinessName}</span>}
                                   {whatsapp.businessName && <span><strong>Business:</strong> {whatsapp.businessName}</span>}
                                   {(waPhone?.displayPhoneNumber || waPhone?.verifiedName) && (
-                                    <span><strong>Number:</strong> {waPhone?.displayPhoneNumber ?? ""}{waPhone?.verifiedName ? ` · ${waPhone.verifiedName}` : ""}</span>
+                                    <span><strong>Number:</strong> {[waPhone?.displayPhoneNumber, waPhone?.verifiedName].filter(Boolean).join(" · ")}</span>
                                   )}
-                                  <span><strong>Status:</strong> {whatsapp.connectionStatus}</span>
+                                  {whatsapp.connectionStatus && <span><strong>Status:</strong> {whatsapp.connectionStatus}</span>}
                                 </div>
                               )}
                               {isWhatsApp && !waConnected && whatsappLoading && (
