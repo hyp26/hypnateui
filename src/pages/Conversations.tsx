@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import api from "../lib/api";
+import { getSocket, disconnectSocket } from "../lib/socket";
 import {
   Search, Send, Paperclip, MoreVertical, Phone, Video,
   Image as ImageIcon, CreditCard, ShoppingBag, MessageCircle,
@@ -85,6 +86,45 @@ export const Conversations: React.FC = () => {
     }, 3000);
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [fetchConversations, fetchMessages, activeChatId]);
+
+  /* ---------------- Socket.IO foundation ----------------
+   * Establishes the shared Socket.IO connection for the
+   * Conversations screen. The connection is created once per
+   * mount and fully torn down on unmount, so remounting never
+   * leaves duplicate connections behind.
+   */
+  useEffect(() => {
+    getSocket();
+    return () => {
+      disconnectSocket();
+    };
+  }, []);
+
+  /*
+   * Join/leave the backend room for the active conversation.
+   * NOTE: application events (new_message, message_status_updated,
+   * conversation_updated) are intentionally NOT handled yet —
+   * they belong to later tasks. Polling above remains the
+   * source of truth for now.
+   */
+  const socketRoomRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!activeChatId) return;
+    const socket = getSocket();
+    const previousRoomId = socketRoomRef.current;
+    if (previousRoomId !== null && previousRoomId !== activeChatId) {
+      socket.emit("leave_conversation", previousRoomId);
+    }
+    socket.emit("join_conversation", activeChatId);
+    socketRoomRef.current = activeChatId;
+    return () => {
+      socket.emit("leave_conversation", activeChatId);
+      if (socketRoomRef.current === activeChatId) {
+        socketRoomRef.current = null;
+      }
+    };
+  }, [activeChatId]);
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
