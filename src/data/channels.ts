@@ -27,12 +27,13 @@ export const CHANNEL_CFG: Record<string, ChannelConfig> = {
         setupUrl: "https://developers.facebook.com/docs/whatsapp/cloud-api/get-started",
         setupLabel: "Open Meta setup guide",
         setupSteps: [
-            "Create or use a Meta Business Portfolio and open WhatsApp Manager.",
-            "Create a WhatsApp Business Account and add the phone number you want to use.",
-            "Create a Meta app with WhatsApp enabled and generate a permanent access token.",
-            "Copy the token and enter the WhatsApp phone number in the fields above.",
+            "Click Connect WhatsApp in Hypnate to start the connection.",
+            "Continue to Meta and sign in with the Meta account that manages your business.",
+            "Select and authorize the WhatsApp Business assets Hypnate should use.",
+            "Return to Hypnate after you approve the authorization.",
+            "Hypnate completes the connection and shows your connected WhatsApp Business account and phone number.",
         ],
-        setupNote: "The phone number must be eligible for WhatsApp Business API use. Keep access tokens private.",
+        setupNote: "Authorization happens through Meta. Hypnate never asks you to generate or paste access tokens, API keys, or Meta credentials.",
     },
     instagram: {
         name: "Instagram",
