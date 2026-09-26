@@ -650,7 +650,6 @@ export const Settings: React.FC = () => {
                         </div>
                       )}
                     </div>
-                  </div>
                 )}
                 {/* ── PAYMENTS ── */}
                 {activeTab === "payments" && (
