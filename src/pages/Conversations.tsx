@@ -354,13 +354,14 @@ export const Conversations: React.FC = () => {
     e.preventDefault();
     if (!msgText.trim() || !activeChatId || sending) return;
     const text = msgText.trim();
-    setMsgText(""); setSending(true);
+    setSending(true); // keep the drafted text until the backend accepts the send
     const temp: Message = { id: Date.now(), conversationId: activeChatId, sender: "SELLER", text, type: "text", isRead: true, createdAt: new Date().toISOString() };
     optimisticMessageIdRef.current = temp.id;
     setMessages(prev => [...prev, temp]);
     setConversations(prev => prev.map(c => c.id === activeChatId ? { ...c, lastMessage: text, lastMessageAt: new Date().toISOString() } : c));
     try {
       await api.post(`/api/conversations/${activeChatId}/messages`, { text });
+      setMsgText(""); // backend accepted the send; now clear the composer
       /* 3B-7 — remove the optimistic message before the refetch
        * installs the authoritative backend message list. */
       setMessages(prev => prev.filter(m => m.id !== temp.id));
