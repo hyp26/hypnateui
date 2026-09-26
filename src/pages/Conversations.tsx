@@ -166,6 +166,22 @@ export const Conversations: React.FC = () => {
       !!value && typeof value === "object" && !Array.isArray(value);
 
     /*
+     * Type guard for the new_message payload. The backend emits
+     * the full persisted message row (verified in earlier
+     * tasks); this guard proves the required Message fields so
+     * setMessages always receives Message[].
+     */
+    const isSocketMessage = (value: unknown): value is Message =>
+      isPayload(value) &&
+      typeof value.id === "number" &&
+      typeof value.conversationId === "number" &&
+      (value.sender === "CUSTOMER" || value.sender === "SELLER" || value.sender === "BOT") &&
+      typeof value.text === "string" &&
+      typeof value.type === "string" &&
+      typeof value.isRead === "boolean" &&
+      typeof value.createdAt === "string";
+
+    /*
      * 3B-3 — new_message
      * Backend emits the full persisted message object to
      * room_<conversationId>. Only messages belonging to the
@@ -174,9 +190,8 @@ export const Conversations: React.FC = () => {
      */
     const onNewMessage = (payload: unknown) => {
       try {
-        if (!isPayload(payload)) return;
-        const message = payload;
-        if (typeof message.id !== "number" || typeof message.conversationId !== "number") return;
+        if (!isSocketMessage(payload)) return;
+        const message: Message = payload;
         const isActiveConversation = message.conversationId === activeChatIdRef.current;
         const lastMessageText = typeof message.text === "string" ? message.text : undefined;
         const lastMessageAt = typeof message.createdAt === "string" ? message.createdAt : undefined;
