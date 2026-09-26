@@ -12,6 +12,7 @@ import api from "../lib/api";
 import { PlanGate } from "../components/plan/PlanGate";
 import { hasPlanChannel, requiredPlanForChannel, type PlanChannel } from "../config/planEntitlements";
 import { useIntegrationStore } from "../stores/useIntegrationStore";
+import { WhatsAppSetupGuide } from "../components/integrations/WhatsAppSetupGuide";
 
 /* ─── TYPES ─── */
 interface ProfileData { name: string; email: string; phone: string; avatarUrl: string | null }
@@ -640,6 +641,9 @@ export const Settings: React.FC = () => {
                         );
                       })}
                     </div>
+                      {whatsapp && !whatsapp.connected && (
+                        <WhatsAppSetupGuide onConnect={hasPlanChannel(selectedPlan, "whatsapp") ? connectWhatsApp : undefined} />
+                      )}
                       {whatsappError && (
                         <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", borderRadius: 10, border: "1px solid #fecaca", background: "#fef2f2" }}>
                           <AlertCircle size={14} color="#dc2626" style={{ flexShrink: 0 }} />
