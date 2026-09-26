@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../lib/api";
 import { PlanGate } from "../components/plan/PlanGate";
 import { hasPlanChannel, requiredPlanForChannel, type PlanChannel } from "../config/planEntitlements";
+import { useIntegrationStore } from "../stores/useIntegrationStore";
 
 /* ─── TYPES ─── */
 interface ProfileData { name: string; email: string; phone: string; avatarUrl: string | null }
@@ -97,6 +98,22 @@ const CHANNEL_CFG = {
   telegram: { name: "Telegram", icon: Send, gradient: "linear-gradient(135deg,#0284c7,#0369a1)", glow: "rgba(2,132,199,0.15)", desc: "Connect your Telegram Bot for customer support" },
 };
 
+/* User-facing messages for the WhatsApp OAuth callback (/settings?wa=...&reason=...).
+ * Reason codes come from the backend redirect; raw provider payloads are never shown. */
+const WA_CALLBACK_MESSAGES: Record<string, string> = {
+  authorization_denied: "WhatsApp connection was canceled — the Meta permission request was denied. Nothing was connected.",
+  invalid_response: "Meta returned an unexpected response while connecting WhatsApp. Please try again.",
+  session_expired: "Your session expired while connecting WhatsApp. Please sign in again and retry.",
+  state_mismatch: "The WhatsApp connection request could not be verified for security reasons. Please try connecting again.",
+  state_invalid: "The WhatsApp connection request was invalid or expired. Please try connecting again.",
+  authorization_failed: "WhatsApp authorization failed. Please try connecting again.",
+  no_business: "No business was selected while connecting WhatsApp. Please pick your business and try again.",
+  no_whatsapp_account: "No WhatsApp Business account was found. Make sure your WhatsApp Business account is set up in Meta Business Manager.",
+  webhook_subscription_failed: "WhatsApp was connected, but notification setup could not be completed. Please reconnect or try again shortly.",
+  connection_failed: "We could not complete the WhatsApp connection. Please try again.",
+};
+const WA_CALLBACK_FALLBACK = "We could not connect WhatsApp. Please try again.";
+
 const GATEWAYS = [
   { id: "razorpay", name: "Razorpay", logo: "R", gradient: "linear-gradient(135deg,#3b82f6,#1d4ed8)", tagline: "Most popular in India", fees: "2% per transaction", fields: [{ key: "keyId", label: "Key ID", placeholder: "rzp_live_..." }, { key: "keySecret", label: "Key Secret", placeholder: "••••••••" }] },
   { id: "payu", name: "PayU", logo: "P", gradient: "linear-gradient(135deg,#f97316,#ea580c)", tagline: "Trusted by 5M+ businesses", fees: "1.99% per transaction", fields: [{ key: "merchantId", label: "Merchant Key", placeholder: "Your PayU Merchant Key" }, { key: "salt", label: "Salt", placeholder: "Your PayU Salt" }] },
@@ -120,6 +137,18 @@ export const Settings: React.FC = () => {
   const logout = useAuthStore(s => s.logout);
   const navigate = useNavigate();
   const selectedPlan = useAuthStore(s => s.user?.seller?.selectedPlan);
+
+  /* Real WhatsApp connection state — the backend is the source of truth (no local toggle). */
+  const whatsapp = useIntegrationStore(s => s.whatsapp);
+  const whatsappLoading = useIntegrationStore(s => s.whatsappLoading);
+  const whatsappValidating = useIntegrationStore(s => s.whatsappValidating);
+  const whatsappDisconnecting = useIntegrationStore(s => s.whatsappDisconnecting);
+  const whatsappError = useIntegrationStore(s => s.whatsappError);
+  const loadWhatsAppStatus = useIntegrationStore(s => s.loadWhatsAppStatus);
+  const connectWhatsApp = useIntegrationStore(s => s.connectWhatsApp);
+  const validateWhatsApp = useIntegrationStore(s => s.validateWhatsApp);
+  const disconnectWhatsApp = useIntegrationStore(s => s.disconnectWhatsApp);
+  const clearWhatsAppError = useIntegrationStore(s => s.clearWhatsAppError);
 
   const [activeTab, setActiveTab] = useState("profile");
   const [loading, setLoading] = useState(false);
@@ -167,6 +196,25 @@ export const Settings: React.FC = () => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
   };
+
+  /* Load the real WhatsApp connection status from the backend on page load.
+   * If the OAuth callback params are present (?wa=...), show the right message,
+   * strip the params from the URL (history API — routing config untouched),
+   * and refresh so the UI reflects the new backend state. */
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const wa = params.get("wa");
+    if (wa) {
+      const reason = params.get("reason");
+      params.delete("wa");
+      params.delete("reason");
+      const qs = params.toString();
+      window.history.replaceState(null, "", qs ? `${window.location.pathname}?${qs}` : window.location.pathname);
+      if (wa === "connected") showToast("WhatsApp connected successfully.", "success");
+      else showToast(WA_CALLBACK_MESSAGES[reason || ""] || WA_CALLBACK_FALLBACK, "error");
+    }
+    loadWhatsAppStatus();
+  }, []);
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -521,7 +569,7 @@ export const Settings: React.FC = () => {
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                       {(Object.keys(CHANNEL_CFG) as (keyof typeof CHANNEL_CFG)[]).map(key => {
-                        const cfg = CHANNEL_CFG[key]; const connected = channels[key]; const Icon = cfg.icon;
+                        const cfg = CHANNEL_CFG[key]; const isWhatsApp = key === "whatsapp"; const waConnected = isWhatsApp && whatsapp?.connected === true; const connected = isWhatsApp ? waConnected : channels[key]; const waPhone = isWhatsApp && whatsapp ? whatsapp.phoneNumbers[0] : undefined; const Icon = cfg.icon;
                         return (
                           <div key={key} className="channel-card" style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", borderRadius: 14, border: `1.5px solid ${connected ? "#bbf7d0" : "#f1f5f9"}`, background: connected ? "#f0fdf4" : "#fff", transition: "all 0.2s", cursor: "default", flexWrap: "wrap" }}>
                             <div style={{ width: 44, height: 44, borderRadius: 12, background: cfg.gradient, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 4px 14px ${cfg.glow}`, flexShrink: 0 }}>
@@ -537,14 +585,27 @@ export const Settings: React.FC = () => {
                                 )}
                               </div>
                               <p style={{ fontSize: 12, color: "#64748b", margin: "2px 0 0" }}>{cfg.desc}</p>{!hasPlanChannel(selectedPlan, key as PlanChannel) && <span style={{ display: "inline-block", marginTop: 4, fontSize: 10, fontWeight: 700, color: "#7c3aed" }}>Requires Pro</span>}
+                              {isWhatsApp && waConnected && whatsapp && (
+                                <div style={{ marginTop: 6, display: "flex", flexWrap: "wrap", gap: "2px 12px", fontSize: 11, color: "#475569" }}>
+                                  {whatsapp.whatsappBusinessName && <span><strong>WhatsApp Business:</strong> {whatsapp.whatsappBusinessName}</span>}
+                                  {whatsapp.businessName && <span><strong>Business:</strong> {whatsapp.businessName}</span>}
+                                  {(waPhone?.displayPhoneNumber || waPhone?.verifiedName) && (
+                                    <span><strong>Number:</strong> {waPhone?.displayPhoneNumber ?? ""}{waPhone?.verifiedName ? ` · ${waPhone.verifiedName}` : ""}</span>
+                                  )}
+                                  <span><strong>Status:</strong> {whatsapp.connectionStatus}</span>
+                                </div>
+                              )}
+                              {isWhatsApp && !waConnected && whatsappLoading && (
+                                <div style={{ marginTop: 6, fontSize: 11, color: "#94a3b8", display: "flex", alignItems: "center", gap: 6 }}>
+                                  <Loader2 size={11} style={{ animation: "spin 0.7s linear infinite" }} /> Checking connection...
+                                </div>
+                              )}
                             </div>
-                            {connected ? (
-                              <button onClick={() => setChannels(c => ({ ...c, [key]: false }))} style={{ padding: "7px 14px", borderRadius: 8, border: "1.5px solid #fecaca", background: "#fef2f2", color: "#dc2626", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>Disconnect</button>
-                            ) : (() => {
+                            {(() => {
                               const channel = key as PlanChannel;
                               const locked = !hasPlanChannel(selectedPlan, channel);
                               const required = requiredPlanForChannel(channel);
-                              return locked ? (
+                              const upgradeBtn = (
                                 <button
                                   type="button"
                                   onClick={() => navigate(`/pricing`)}
@@ -553,7 +614,25 @@ export const Settings: React.FC = () => {
                                 >
                                   Upgrade · {required}
                                 </button>
-                              ) : (
+                              );
+                              if (isWhatsApp) {
+                                if (waConnected) return (
+                                  <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                                    <button type="button" onClick={() => { validateWhatsApp().then(ok => { if (ok) showToast("WhatsApp connection is valid.", "success"); }); }} disabled={whatsappValidating} style={{ padding: "7px 14px", borderRadius: 8, border: "1.5px solid #bbf7d0", background: "#f0fdf4", color: "#15803d", fontSize: 12, fontWeight: 700, cursor: whatsappValidating ? "not-allowed" : "pointer", fontFamily: "inherit", flexShrink: 0, display: "flex", alignItems: "center", gap: 6 }}>
+                                      {whatsappValidating && <Loader2 size={12} style={{ animation: "spin 0.7s linear infinite" }} />} Revalidate
+                                    </button>
+                                    <button type="button" onClick={() => { disconnectWhatsApp(); }} disabled={whatsappDisconnecting} style={{ padding: "7px 14px", borderRadius: 8, border: "1.5px solid #fecaca", background: "#fef2f2", color: "#dc2626", fontSize: 12, fontWeight: 700, cursor: whatsappDisconnecting ? "not-allowed" : "pointer", fontFamily: "inherit", flexShrink: 0, display: "flex", alignItems: "center", gap: 6 }}>
+                                      {whatsappDisconnecting && <Loader2 size={12} style={{ animation: "spin 0.7s linear infinite" }} />} Disconnect
+                                    </button>
+                                  </div>
+                                );
+                                return locked ? upgradeBtn : (
+                                  <button type="button" onClick={() => { connectWhatsApp(); }} disabled={whatsappLoading} style={{ padding: "7px 14px", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#0d9488,#0f766e)", color: "#fff", fontSize: 12, fontWeight: 700, cursor: whatsappLoading ? "not-allowed" : "pointer", fontFamily: "inherit", boxShadow: "0 3px 10px rgba(13,148,136,0.25)", flexShrink: 0, opacity: whatsappLoading ? 0.7 : 1 }}>Connect WhatsApp</button>
+                                );
+                              }
+                              return connected ? (
+                                <button onClick={() => setChannels(c => ({ ...c, [key]: false }))} style={{ padding: "7px 14px", borderRadius: 8, border: "1.5px solid #fecaca", background: "#fef2f2", color: "#dc2626", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>Disconnect</button>
+                              ) : locked ? upgradeBtn : (
                                 <button type="button" onClick={() => setChannels(c => ({ ...c, [key]: true }))} style={{ padding: "7px 14px", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#0d9488,#0f766e)", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", boxShadow: "0 3px 10px rgba(13,148,136,0.25)", flexShrink: 0 }}>Connect</button>
                               );
                             })()}
@@ -561,9 +640,18 @@ export const Settings: React.FC = () => {
                         );
                       })}
                     </div>
+                      {whatsappError && (
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", borderRadius: 10, border: "1px solid #fecaca", background: "#fef2f2" }}>
+                          <AlertCircle size={14} color="#dc2626" style={{ flexShrink: 0 }} />
+                          <p style={{ fontSize: 12, fontWeight: 500, color: "#dc2626", margin: 0, flex: 1 }}>{whatsappError}</p>
+                          <button type="button" onClick={() => { clearWhatsAppError(); }} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", flexShrink: 0 }} aria-label="Dismiss WhatsApp error">
+                            <X size={13} color="#dc2626" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
-
                 {/* ── PAYMENTS ── */}
                 {activeTab === "payments" && (
                   <div style={{ display: "flex", flexDirection: "column", gap: 32, animation: "slideUp 0.3s ease" }}>
