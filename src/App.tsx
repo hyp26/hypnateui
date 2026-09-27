@@ -37,8 +37,10 @@ import { Features } from './pages/public/Features';
 import { Careers } from './pages/public/Careers';
 import { FAQ } from './pages/public/FAQ';
 import { Terms } from './pages/public/Term';
-import { Privacy } from './pages/public/Privacy';
+import { Privacy } from 
+'./pages/public/Privacy';
 import { Refund } from './pages/public/Refund';
+import { DataDeletion } from './pages/public/DataDeletion';
 import { NotFound } from './pages/NotFound';
 import './i18n/config';
 
@@ -89,7 +91,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   if (!authInitialized) return null;
   if (!isAuthenticated) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
 
-  if (user?.role === 'SELLER' && !user.seller?.onboardedAt && location.pathname !== '/onboarding') {
+  if (user?.role === 'SELLER' && !user.seller?.onb
+oardedAt && location.pathname !== '/onboarding') {
     return <Navigate to="/onboarding" replace />;
   }
 
@@ -143,12 +146,14 @@ function App() {
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/refund" element={<Refund />} />
+          <Route path="/data-deletion" element={<DataDeletion />} />
         </Route>
 
         <Route path="/login" element={<AuthEntryRoute><Login /></AuthEntryRoute>} />
         <Route path="/signup" element={<AuthEntryRoute><Signup /></AuthEntryRoute>} />
         <Route path="/verify-email" element={<VerifyEmail />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/forgot-password" element={<ForgotPa
+ssword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
 
         <Route path="/plan-required" element={<ProtectedRoute><PlanRequired /></ProtectedRoute>} />
