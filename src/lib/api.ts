@@ -60,8 +60,7 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        await api.po
-st("/api/auth/refresh"); // ✅ refresh cookie silently
+        await api.post("/api/auth/refresh"); // ✅ refresh cookie silently
         processQueue(null);
         return api(originalRequest); // ✅ retry original request
       } catch (refreshError) {

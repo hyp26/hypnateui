@@ -91,8 +91,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   if (!authInitialized) return null;
   if (!isAuthenticated) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
 
-  if (user?.role === 'SELLER' && !user.seller?.onb
-oardedAt && location.pathname !== '/onboarding') {
+  if (user?.role === 'SELLER' && !user.seller?.onboardedAt && location.pathname !== '/onboarding') {
     return <Navigate to="/onboarding" replace />;
   }
 
@@ -152,8 +151,7 @@ function App() {
         <Route path="/login" element={<AuthEntryRoute><Login /></AuthEntryRoute>} />
         <Route path="/signup" element={<AuthEntryRoute><Signup /></AuthEntryRoute>} />
         <Route path="/verify-email" element={<VerifyEmail />} />
-        <Route path="/forgot-password" element={<ForgotPa
-ssword />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
 
         <Route path="/plan-required" element={<ProtectedRoute><PlanRequired /></ProtectedRoute>} />

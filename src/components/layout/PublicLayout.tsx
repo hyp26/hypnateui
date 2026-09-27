@@ -56,8 +56,7 @@ export const PublicLayout = () => {
 
       if (event.key !== 'Tab') return;
       const focusable = getFocusable();
-      i
-f (focusable.length === 0) return;
+      if (focusable.length === 0) return;
 
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
@@ -123,8 +122,7 @@ f (focusable.length === 0) return;
 
       {/* Navbar */}
       <nav aria-label="Primary navigation" className={cn(
-        "fixed top-0 left-0 right-0 z
--50 transition-all duration-300 border-b",
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b",
         isScrolled || mobileMenuOpen
           ? "bg-white/95 backdrop-blur-md border-gray-200 shadow-sm"
           : "bg-transparent border-transparent"
