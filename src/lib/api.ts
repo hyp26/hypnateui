@@ -60,7 +60,8 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        await api.post("/api/auth/refresh"); // ✅ refresh cookie silently
+        await api.po
+st("/api/auth/refresh"); // ✅ refresh cookie silently
         processQueue(null);
         return api(originalRequest); // ✅ retry original request
       } catch (refreshError) {
@@ -124,6 +125,14 @@ export const publicApi = {
     return res.data;
   },
 
+  submitDataDeletionRequest: async (payload: {
+    contactEmail: string;
+    details?: string;
+  }) => {
+    const res = await api.post('/api/privacy/data-deletion', payload);
+    return res.data;
+  },
+
   registerCareersInterest: async (email: string) => {
     const normalizedEmail = email.trim().toLowerCase();
     const res = await api.post('/api/contact', {
@@ -131,7 +140,8 @@ export const publicApi = {
       lastName: 'Interest',
       email: normalizedEmail,
       subject: 'Careers notification',
-      message: 'Please notify this email address when Hypnate opens new roles.',
+      message:
+ 'Please notify this email address when Hypnate opens new roles.',
     });
     return res.data;
   },

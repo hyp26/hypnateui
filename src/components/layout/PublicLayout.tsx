@@ -56,7 +56,8 @@ export const PublicLayout = () => {
 
       if (event.key !== 'Tab') return;
       const focusable = getFocusable();
-      if (focusable.length === 0) return;
+      i
+f (focusable.length === 0) return;
 
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
@@ -94,6 +95,7 @@ export const PublicLayout = () => {
     '/terms': 'Terms of Service',
     '/privacy': 'Privacy Policy',
     '/refund': 'Refund Policy',
+    '/data-deletion': 'Data Deletion',
   };
 
   const breadcrumbName = breadcrumbLabels[location.pathname];
@@ -121,7 +123,8 @@ export const PublicLayout = () => {
 
       {/* Navbar */}
       <nav aria-label="Primary navigation" className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b",
+        "fixed top-0 left-0 right-0 z
+-50 transition-all duration-300 border-b",
         isScrolled || mobileMenuOpen
           ? "bg-white/95 backdrop-blur-md border-gray-200 shadow-sm"
           : "bg-transparent border-transparent"
@@ -166,7 +169,8 @@ export const PublicLayout = () => {
             className="md:hidden relative z-50 p-2 -mr-1 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
             onClick={() => setMobileMenuOpen((open) => !open)}
             aria-expanded={mobileMenuOpen}
-            aria-controls="public-mobile-menu"
+   
+         aria-controls="public-mobile-menu"
             aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -201,7 +205,8 @@ export const PublicLayout = () => {
               <Link to="/login" className="inline-flex w-full h-10 items-center justify-center rounded-xl border border-gray-300 
               bg-white px-4 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50">Log In</Link>
               <Link to="/signup" className="inline-flex w-full h-10 items-center justify-center rounded-xl bg-primary-500 
-              px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary-600">Get Started</Link>
+              px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-prim
+ary-600">Get Started</Link>
             </div>
           </div>
       </nav>
@@ -235,7 +240,8 @@ export const PublicLayout = () => {
               </a>
               <a href="https://www.linkedin.com/company/hypnate/" target="_blank" rel="noopener noreferrer" aria-label="Hypnate 
               on LinkedIn" className="hover:text-white transition-colors"><Linkedin className="w-5 h-5" aria-hidden="true" />
-              </a>
+      
+        </a>
             </div>
           </div>
           <div>
@@ -260,12 +266,14 @@ export const PublicLayout = () => {
               <li><Link to="/privacy" className="hover:text-primary-400 transition-colors">Privacy Policy</Link></li>
               <li><Link to="/terms" className="hover:text-primary-400 transition-colors">Terms of Service</Link></li>
               <li><Link to="/refund" className="hover:text-primary-400 transition-colors">Refund Policy</Link></li>
+              <li><Link to="/data-deletion" className="hover:text-primary-400 transition-colors">Data Deletion</Link></li>
             </ul>
           </div>
         </div>
         <div className="max-w-7xl mx-auto pt-6 sm:pt-8 border-t border-gray-800 text-xs sm:text-sm text-center md:text-left flex flex-col md:flex-row justify-between items-center gap-2">
           <p>© 2026 Hypnate Solutions Pvt Ltd. All rights reserved.</p>
-          <p className="text-gray-500">Made with ❤️ in India</p>
+          <p className="text-gray-500">Made wit
+h ❤️ in India</p>
         </div>
       </footer>
     </div>
