@@ -20,19 +20,24 @@ import type {
   AutoTask, BusinessForm, ChannelData, ModalType, PaymentForm, Step,
 } from "../types/onboarding";
 
-/* sessionStorage key marking that WhatsApp OAuth was started from onboarding.
- * It is consumed on the Onboarding mount after the OAuth return trip and
- * cleared on every completion path, so it never leaks into a later
- * Settings-initiated connection. */
-const WHATSAPP_OAUTH_RETURN_KEY = "hypnate_whatsapp_oauth_return";
-
-const clearWhatsAppOAuthReturnMarker = () => {
-  try {
-    window.sessionStorage.removeItem(WHATSAPP_OAUTH_RETURN_KEY);
-  } catch {
-    // Storage unavailable (private mode, etc.) - nothing to clear.
-  }
+/* Safe, user-facing messages for WhatsApp OAuth callback results.
+ * They mirror the fixed reason codes the backend can redirect with; anything
+ * unknown falls back to the generic message. Raw provider errors, tokens, and
+ * internal details are never surfaced. */
+const WA_CALLBACK_MESSAGES: Record<string, string> = {
+  authorization_denied: "WhatsApp authorization was cancelled. You can try again whenever you are ready.",
+  invalid_response: "Meta returned an unexpected response. Please try connecting WhatsApp again.",
+  session_expired: "Your WhatsApp connection session expired. Please try again.",
+  state_mismatch: "We could not verify your WhatsApp session. Please try connecting WhatsApp again.",
+  state_invalid: "We could not verify your WhatsApp session. Please try connecting WhatsApp again.",
+  authorization_failed: "Meta did not grant WhatsApp access. Please try again.",
+  no_business: "No Meta Business Manager was found for your account.",
+  no_whatsapp_account: "No WhatsApp Business Account was found for your Meta Business.",
+  webhook_subscription_failed: "WhatsApp was authorized, but the webhook setup failed. Please reconnect WhatsApp.",
+  connection_failed: "We could not connect WhatsApp. Please try again.",
 };
+
+const WA_CALLBACK_FALLBACK = "We could not connect WhatsApp. Please try again.";
 
 export const Onboarding: React.FC = () => {
   const navigate = useNavigate();
@@ -86,27 +91,35 @@ export const Onboarding: React.FC = () => {
     setError("");
     setCurrentStepRaw(updater);
   };
-  // WhatsApp OAuth started from onboarding Step 4 navigates the browser away
-  // to Meta and back through the backend callback. ProtectedRoute returns the
-  // still-un-onboarded seller to /onboarding, so consume the sessionStorage
-  // marker here, resume on Step 4, and refresh the real WhatsApp connection
-  // state from the backend instead of assuming the connection succeeded.
+  // The backend WhatsApp OAuth callback sends the browser back to
+  // /onboarding?wa=connected or /onboarding?wa=error&reason=<code> when the
+  // flow was started from Step 4 (returnTo=onboarding travels inside the
+  // signed OAuth state). Restore Step 4, refresh the REAL connection status
+  // from the backend, and never assume the connection succeeded.
   useEffect(() => {
-    let returningFromOAuth = false;
-    try {
-      returningFromOAuth =
-        window.sessionStorage.getItem(WHATSAPP_OAUTH_RETURN_KEY) === "onboarding";
-      window.sessionStorage.removeItem(WHATSAPP_OAUTH_RETURN_KEY);
-    } catch {
-      returningFromOAuth = false;
-    }
-    if (!returningFromOAuth) return;
+    const params = new URLSearchParams(window.location.search);
+    const outcome = params.get("wa");
+    if (!outcome) return;
 
+    // Strip the callback parameters so a refresh does not replay them.
+    window.history.replaceState(null, "", window.location.pathname);
+
+    // The person left from the channels step; put them back there.
     setCurrentStepRaw(4);
+
+    if (outcome !== "connected") {
+      const reason = params.get("reason");
+      const message =
+        (reason && WA_CALLBACK_MESSAGES[reason]) || WA_CALLBACK_FALLBACK;
+      setError(message);
+      return;
+    }
+
     void (async () => {
       try {
         await useIntegrationStore.getState().loadWhatsAppStatus();
       } catch {
+        setError("Could not confirm the WhatsApp connection. Please check the channel status and try again.");
         return;
       }
       const status = useIntegrationStore.getState().whatsapp;
@@ -116,7 +129,11 @@ export const Onboarding: React.FC = () => {
         whatsapp: { ...prev.whatsapp, connected },
       }));
       if (connected) {
+        // Mark WhatsApp as already saved so the legacy Step 4 submit never
+        // re-posts WhatsApp credentials to the onboarding API.
         setSavedChannels((current) => new Set(current).add("whatsapp"));
+      } else {
+        setError(WA_CALLBACK_MESSAGES.connection_failed);
       }
     })();
   }, []);
@@ -207,7 +224,6 @@ export const Onboarding: React.FC = () => {
         if (skipped.size > 0) { setShowSkipPopup(true); return; }
         await api.post("/api/onboarding/complete");
         await useAuthStore.getState().loadProfile();
-        clearWhatsAppOAuthReturnMarker();
         navigate("/dashboard", { replace: true });
       }
     } catch (err: any) {
@@ -218,7 +234,7 @@ export const Onboarding: React.FC = () => {
   };
 
   const handleSkip = () => { markSkipped(currentStep); setCurrentStep((c) => Math.min(c + 1, 5) as Step); };
-  const handlePopupContinue = async () => { setShowSkipPopup(false); await api.post("/api/onboarding/complete"); await useAuthStore.getState().loadProfile(); clearWhatsAppOAuthReturnMarker(); navigate("/dashboard", { replace: true }); };
+  const handlePopupContinue = async () => { setShowSkipPopup(false); await api.post("/api/onboarding/complete"); await useAuthStore.getState().loadProfile(); navigate("/dashboard", { replace: true }); };
   const handlePopupComplete = () => {
     setShowSkipPopup(false);
     const first = [1, 2, 3, 4].find((s) => skipped.has(s));

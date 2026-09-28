@@ -89,7 +89,7 @@ export const ConnectModal: React.FC<ConnectModalProps> = ({ isOpen, onClose, pla
             <div className="py-4">
               <button
                 type="button"
-                onClick={() => connectWhatsApp()}
+                onClick={() => connectWhatsApp("settings")}
                 className="w-full bg-[#25D366] hover:bg-[#1ebe57] text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors"
               >
                 <MessageCircle className="w-5 h-5" aria-hidden="true" />

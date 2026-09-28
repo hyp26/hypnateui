@@ -8,6 +8,10 @@ const API = process.env.REACT_APP_API_URL || '';
 
 export type Platform = 'whatsapp' | 'instagram' | 'facebook' | 'telegram';
 
+/* Fixed return destinations for the WhatsApp OAuth flow. The backend accepts
+ * only these two values; anything else falls back to 'settings'. */
+export type WhatsAppOAuthReturnTo = 'onboarding' | 'settings';
+
 export interface ChannelConfig {
   connected: boolean;
   identifier?: string; // Page name, bot name, etc. (never WhatsApp credentials)
@@ -66,7 +70,7 @@ interface IntegrationState {
   lastValidation: WhatsAppValidationResult | null;
 
   loadWhatsAppStatus: () => Promise<void>;
-  connectWhatsApp: () => void;
+  connectWhatsApp: (returnTo?: WhatsAppOAuthReturnTo) => void;
   validateWhatsApp: () => Promise<boolean>;
   disconnectWhatsApp: () => Promise<void>;
   clearWhatsAppError: () => void;
@@ -141,10 +145,17 @@ export const useIntegrationStore = create<IntegrationState>()(
        * to Meta, so this MUST be a full browser navigation — never an
        * axios call. Authentication rides the existing httpOnly cookies.
        * No WhatsApp/Meta credentials exist in frontend code.
+       *
+       * The optional returnTo is a fixed enum ('onboarding' | 'settings')
+       * that the backend embeds into the signed OAuth state. It decides
+       * where the browser lands after the Meta callback and defaults to
+       * 'settings', preserving the existing Settings behaviour.
        * ---------------------------------------------------------------- */
-      connectWhatsApp: () => {
+      connectWhatsApp: (returnTo?: WhatsAppOAuthReturnTo) => {
         set({ whatsappError: null });
-        window.location.href = `${API}/api/channels/whatsapp/connect`;
+        // Fixed enum only - the backend falls back to 'settings' otherwise.
+        const target = returnTo === 'onboarding' ? 'onboarding' : 'settings';
+        window.location.href = `${API}/api/channels/whatsapp/connect?returnTo=${target}`;
       },
 
       /* Ask the backend to re-check the stored connection. */

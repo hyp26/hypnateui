@@ -2,17 +2,16 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ChannelModal } from './ChannelModal';
 
-const connectWhatsAppMock = jest.fn();
+const mockConnectWhatsApp = jest.fn();
 
 jest.mock('../../stores/useIntegrationStore', () => ({
   useIntegrationStore: (selector: any) =>
-    selector({ connectWhatsApp: () => connectWhatsAppMock() }),
+    selector({ connectWhatsApp: (...args: any[]) => mockConnectWhatsApp(...args) }),
 }));
 
 describe('ChannelModal — WhatsApp OAuth-only flow', () => {
   beforeEach(() => {
-    connectWhatsAppMock.mockClear();
-    window.sessionStorage.clear();
+    mockConnectWhatsApp.mockClear();
   });
 
   const renderWhatsAppModal = (onConnect = jest.fn()) =>
@@ -42,15 +41,15 @@ describe('ChannelModal — WhatsApp OAuth-only flow', () => {
     expect(screen.getByRole('button', { name: /connect with meta/i })).toBeInTheDocument();
   });
 
-  it('starts the real OAuth flow from onboarding and marks the return context', () => {
+  it('starts the real OAuth flow from onboarding with the onboarding return context', () => {
     const onConnect = jest.fn();
     renderWhatsAppModal(onConnect);
 
     fireEvent.click(screen.getByRole('button', { name: /connect with meta/i }));
 
-    expect(connectWhatsAppMock).toHaveBeenCalledTimes(1);
+    expect(mockConnectWhatsApp).toHaveBeenCalledTimes(1);
+    expect(mockConnectWhatsApp).toHaveBeenCalledWith('onboarding');
     expect(onConnect).not.toHaveBeenCalled();
-    expect(window.sessionStorage.getItem('hypnate_whatsapp_oauth_return')).toBe('onboarding');
   });
 
   it('keeps the Telegram bot-token flow unchanged', () => {

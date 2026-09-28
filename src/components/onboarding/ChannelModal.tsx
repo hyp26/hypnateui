@@ -12,19 +12,6 @@ interface ChannelModalProps {
     onConnect: (type: string, data: any) => Promise<void>;
 }
 
-/* Marks that the WhatsApp OAuth flow was started from onboarding so the return
- * trip can resume onboarding Step 4 instead of landing on /settings. */
-const WHATSAPP_OAUTH_RETURN_KEY = "hypnate_whatsapp_oauth_return";
-
-const startWhatsAppOAuthFromOnboarding = (connect: () => void) => {
-    try {
-        window.sessionStorage.setItem(WHATSAPP_OAUTH_RETURN_KEY, "onboarding");
-    } catch {
-        // Storage unavailable (private mode, etc.) - continue with OAuth anyway.
-    }
-    connect();
-};
-
 export const ChannelModal: React.FC<ChannelModalProps> = ({ type, onClose, onConnect }) => {
     const connectWhatsApp = useIntegrationStore((s) => s.connectWhatsApp);
     const [botToken, setBotToken] = useState("");
@@ -162,7 +149,7 @@ export const ChannelModal: React.FC<ChannelModalProps> = ({ type, onClose, onCon
                 </button>
                 <button
                     type="button"
-                    onClick={type === "whatsapp" ? () => startWhatsAppOAuthFromOnboarding(connectWhatsApp) : handleConnect}
+                    onClick={type === "whatsapp" ? () => connectWhatsApp("onboarding") : handleConnect}
                     disabled={loading}
                     style={{ flex: 2, padding: "11px 12px", borderRadius: 12, fontSize: 13, fontWeight: 700, color: "#fff", border: "none", cursor: loading ? "not-allowed" : "pointer", background: cfg.gradient, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: `0 4px 16px ${cfg.glow}`, fontFamily: "inherit", opacity: loading ? 0.75 : 1 }}
                 >
