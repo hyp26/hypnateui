@@ -12,6 +12,7 @@ jest.mock('../../stores/useIntegrationStore', () => ({
 describe('ChannelModal — WhatsApp OAuth-only flow', () => {
   beforeEach(() => {
     connectWhatsAppMock.mockClear();
+    window.sessionStorage.clear();
   });
 
   const renderWhatsAppModal = (onConnect = jest.fn()) =>
@@ -41,7 +42,7 @@ describe('ChannelModal — WhatsApp OAuth-only flow', () => {
     expect(screen.getByRole('button', { name: /connect with meta/i })).toBeInTheDocument();
   });
 
-  it('starts the real OAuth flow when Connect with Meta is clicked', () => {
+  it('starts the real OAuth flow from onboarding and marks the return context', () => {
     const onConnect = jest.fn();
     renderWhatsAppModal(onConnect);
 
@@ -49,6 +50,7 @@ describe('ChannelModal — WhatsApp OAuth-only flow', () => {
 
     expect(connectWhatsAppMock).toHaveBeenCalledTimes(1);
     expect(onConnect).not.toHaveBeenCalled();
+    expect(window.sessionStorage.getItem('hypnate_whatsapp_oauth_return')).toBe('onboarding');
   });
 
   it('keeps the Telegram bot-token flow unchanged', () => {
