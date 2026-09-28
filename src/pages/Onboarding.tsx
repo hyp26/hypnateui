@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Loader2, Sparkles } from "lucide-react";
 import api from "../lib/api";
 import { useAuthStore } from "../stores/useAuthStore";
+import { useIntegrationStore } from "../stores/useIntegrationStore";
 import { hasPlanChannel, type PlanChannel } from "../config/planEntitlements";
 import { OnboardingStepper } from "../components/onboarding/Onboardingstepper";
 import { OnboardingFooter } from "../components/onboarding/OnboardingFooter";
@@ -18,6 +19,20 @@ import "../styles/onboarding-compact.css";
 import type {
   AutoTask, BusinessForm, ChannelData, ModalType, PaymentForm, Step,
 } from "../types/onboarding";
+
+/* sessionStorage key marking that WhatsApp OAuth was started from onboarding.
+ * It is consumed on the Onboarding mount after the OAuth return trip and
+ * cleared on every completion path, so it never leaks into a later
+ * Settings-initiated connection. */
+const WHATSAPP_OAUTH_RETURN_KEY = "hypnate_whatsapp_oauth_return";
+
+const clearWhatsAppOAuthReturnMarker = () => {
+  try {
+    window.sessionStorage.removeItem(WHATSAPP_OAUTH_RETURN_KEY);
+  } catch {
+    // Storage unavailable (private mode, etc.) - nothing to clear.
+  }
+};
 
 export const Onboarding: React.FC = () => {
   const navigate = useNavigate();
@@ -71,6 +86,40 @@ export const Onboarding: React.FC = () => {
     setError("");
     setCurrentStepRaw(updater);
   };
+  // WhatsApp OAuth started from onboarding Step 4 navigates the browser away
+  // to Meta and back through the backend callback. ProtectedRoute returns the
+  // still-un-onboarded seller to /onboarding, so consume the sessionStorage
+  // marker here, resume on Step 4, and refresh the real WhatsApp connection
+  // state from the backend instead of assuming the connection succeeded.
+  useEffect(() => {
+    let returningFromOAuth = false;
+    try {
+      returningFromOAuth =
+        window.sessionStorage.getItem(WHATSAPP_OAUTH_RETURN_KEY) === "onboarding";
+      window.sessionStorage.removeItem(WHATSAPP_OAUTH_RETURN_KEY);
+    } catch {
+      returningFromOAuth = false;
+    }
+    if (!returningFromOAuth) return;
+
+    setCurrentStepRaw(4);
+    void (async () => {
+      try {
+        await useIntegrationStore.getState().loadWhatsAppStatus();
+      } catch {
+        return;
+      }
+      const status = useIntegrationStore.getState().whatsapp;
+      const connected = Boolean(status?.connected);
+      setChannels((prev) => ({
+        ...prev,
+        whatsapp: { ...prev.whatsapp, connected },
+      }));
+      if (connected) {
+        setSavedChannels((current) => new Set(current).add("whatsapp"));
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     if (currentStep !== 5) return;
@@ -158,6 +207,7 @@ export const Onboarding: React.FC = () => {
         if (skipped.size > 0) { setShowSkipPopup(true); return; }
         await api.post("/api/onboarding/complete");
         await useAuthStore.getState().loadProfile();
+        clearWhatsAppOAuthReturnMarker();
         navigate("/dashboard", { replace: true });
       }
     } catch (err: any) {
@@ -168,7 +218,7 @@ export const Onboarding: React.FC = () => {
   };
 
   const handleSkip = () => { markSkipped(currentStep); setCurrentStep((c) => Math.min(c + 1, 5) as Step); };
-  const handlePopupContinue = async () => { setShowSkipPopup(false); await api.post("/api/onboarding/complete"); await useAuthStore.getState().loadProfile(); navigate("/dashboard", { replace: true }); };
+  const handlePopupContinue = async () => { setShowSkipPopup(false); await api.post("/api/onboarding/complete"); await useAuthStore.getState().loadProfile(); clearWhatsAppOAuthReturnMarker(); navigate("/dashboard", { replace: true }); };
   const handlePopupComplete = () => {
     setShowSkipPopup(false);
     const first = [1, 2, 3, 4].find((s) => skipped.has(s));
