@@ -24,16 +24,14 @@ export const CHANNEL_CFG: Record<string, ChannelConfig> = {
         gradient: "linear-gradient(135deg,#16a34a,#15803d)",
         glow: "rgba(22,163,74,0.2)",
         badge: "Most popular",
-        setupUrl: "https://developers.facebook.com/docs/whatsapp/cloud-api/get-started",
-        setupLabel: "Open Meta setup guide",
         setupSteps: [
-            "Click Connect WhatsApp in Hypnate to start the connection.",
-            "Continue to Meta and sign in with the Meta account that manages your business.",
-            "Select and authorize the WhatsApp Business assets Hypnate should use.",
-            "Return to Hypnate after you approve the authorization.",
-            "Hypnate completes the connection and shows your connected WhatsApp Business account and phone number.",
+            "Click \"Connect with Meta\" to start the connection.",
+            "Sign in to the Meta account that manages your business.",
+            "Select the WhatsApp Business account and phone number you want to connect.",
+            "Review and approve the requested permissions.",
+            "Meta will return you to Hypnate and complete the connection automatically.",
         ],
-        setupNote: "Authorization happens through Meta. Hypnate never asks you to generate or paste access tokens, API keys, or Meta credentials.",
+        setupNote: "Your Meta credentials and access tokens are handled through Meta's authorization flow. Hypnate does not ask you to paste them into this form.",
     },
     instagram: {
         name: "Instagram",
@@ -42,7 +40,8 @@ export const CHANNEL_CFG: Record<string, ChannelConfig> = {
         gradient: "linear-gradient(135deg,#db2777,#9333ea)",
         glow: "rgba(219,39,119,0.2)",
         badge: "High engagement",
-        setupUrl: "https://developers.facebook.com/docs/instagram-platform/instagram-api-with-instagram-login/",
+        setupUrl: "https://developers.face
+book.com/docs/instagram-platform/instagram-api-with-instagram-login/",
         setupLabel: "Open Instagram setup guide",
         setupSteps: [
             "Switch the Instagram account to a professional account.",
@@ -81,7 +80,8 @@ export const CHANNEL_CFG: Record<string, ChannelConfig> = {
         setupSteps: [
             "Open @BotFather in Telegram and send /newbot.",
             "Choose a display name and a unique username ending in bot.",
-            "BotFather will generate an API token. Copy the complete token.",
+            "BotFather will generate an API token. Copy the complete 
+token.",
             "Paste the token below and select Connect. Hypnate will verify it before marking the bot connected.",
         ],
         setupNote: "Treat the bot token like a password. Anyone with it can control the bot.",

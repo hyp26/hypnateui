@@ -3,6 +3,7 @@ import { AlertCircle, CheckCircle2, ExternalLink, HelpCircle, Loader2, X } from 
 import { StepField } from "./StepField";
 import { inputStyle, fi, fo } from "./formStyles";
 import { CHANNEL_CFG } from "../../data/channels";
+import { useIntegrationStore } from "../../stores/useIntegrationStore";
 import type { ModalType } from "../../types/onboarding";
 
 interface ChannelModalProps {
@@ -12,8 +13,7 @@ interface ChannelModalProps {
 }
 
 export const ChannelModal: React.FC<ChannelModalProps> = ({ type, onClose, onConnect }) => {
-    const [phone, setPhone] = useState("");
-    const [apiKey, setApiKey] = useState("");
+    const connectWhatsApp = useIntegrationStore((s) => s.connectWhatsApp);
     const [botToken, setBotToken] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -23,11 +23,6 @@ export const ChannelModal: React.FC<ChannelModalProps> = ({ type, onClose, onCon
 
     const handleConnect = async () => {
         setError("");
-
-        if (type === "whatsapp" && (!phone.trim() || !apiKey.trim())) {
-            setError("Phone number and API key are required.");
-            return;
-        }
 
         if (type === "telegram") {
             const token = botToken.trim();
@@ -43,15 +38,14 @@ export const ChannelModal: React.FC<ChannelModalProps> = ({ type, onClose, onCon
 
         setLoading(true);
         try {
-            await onConnect(type, type === "whatsapp"
-                ? { phone: phone.trim(), apiKey: apiKey.trim() }
-                : type === "telegram"
-                    ? { botToken: botToken.trim() }
-                    : {}
+            await onConnect(type, type === "telegram"
+                ? { botToken: botToken.trim() }
+                : {}
             );
             onClose();
         } catch (err: any) {
-            setError(err?.response?.data?.message || err?.message || `Could not connect ${cfg.name}. Please check the details and try again.`);
+            setError(err?.response?.data?.message || err?.message || `Could not connect ${cfg.name}. Please check the details and t
+ry again.`);
         } finally {
             setLoading(false);
         }
@@ -94,7 +88,8 @@ export const ChannelModal: React.FC<ChannelModalProps> = ({ type, onClose, onCon
 
             <div className="ob-channel-guide">
                 <div className="ob-channel-guide-header">
-                    <div className="ob-channel-guide-icon"><HelpCircle size={17} /></div>
+                    <div className="ob-channel-guide-icon"><H
+elpCircle size={17} /></div>
                     <div style={{ minWidth: 0, flex: 1 }}>
                         <strong>How to connect {cfg.name}</strong>
                         <span>Follow these steps to get the required account or credentials.</span>
@@ -128,14 +123,9 @@ export const ChannelModal: React.FC<ChannelModalProps> = ({ type, onClose, onCon
             )}
 
             {type === "whatsapp" && (
-                <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                    <StepField label="Phone Number" required>
-                        <input value={phone} onChange={(e) => setPhone(e.target.value)} style={inputStyle} placeholder="+91 98765 43210" autoComplete="tel" onFocus={fi} onBlur={fo} />
-                    </StepField>
-                    <StepField label="WhatsApp Business API Key" required>
-                        <input value={apiKey} onChange={(e) => setApiKey(e.target.value)} type="password" style={{ ...inputStyle, fontFamily: "monospace" }} placeholder="EAAG..." autoComplete="off" onFocus={fi} onBlur={fo} />
-                        <p style={{ fontSize: 11, color: "#94a3b8", margin: "5px 0 0" }}>Use the access token from your Meta Developer setup.</p>
-                    </StepField>
+                <div style={{ display: "flex", gap: 9, padding: "11px 12px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 10, fontSize: 12, color: "#14532d", lineHeight: 1.5 }}>
+                    <CheckCircle2 size={14} style={{ flexShrink: 0, marginTop: 1 }} />
+                    <span>Hypnate connects securely through Meta. You don&rsquo;t need to copy API keys, access tokens, or developer credentials. Your Meta credentials and access tokens are handled through Meta&rsquo;s authorization flow — Hypnate does not ask you to paste them into this form.</span>
                 </div>
             )}
 
@@ -156,17 +146,18 @@ export const ChannelModal: React.FC<ChannelModalProps> = ({ type, onClose, onCon
             )}
 
             <div style={{ display: "flex", gap: 10, marginTop: 18 }}>
-                <button type="button" onClick={onClose} disabled={loading} style={{ flex: 1, padding: "11px 12px", border: "1.5px solid #e2e8f0", borderRadius: 12, fontSize: 13, fontWeight: 600, color: "#374151", background: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "inherit" }}>
+                <button type="button" onClick={onClose} disabled={loading} style={{ flex: 1, padding: "11px 12px", border: "1.5px solid #e2e8f0", borderRadius: 12, fontSize: 13, fontWeight: 600, color: "#374151", background: "#fff
+", cursor: loading ? "not-allowed" : "pointer", fontFamily: "inherit" }}>
                     Cancel
                 </button>
                 <button
                     type="button"
-                    onClick={handleConnect}
+                    onClick={type === "whatsapp" ? connectWhatsApp : handleConnect}
                     disabled={loading}
                     style={{ flex: 2, padding: "11px 12px", borderRadius: 12, fontSize: 13, fontWeight: 700, color: "#fff", border: "none", cursor: loading ? "not-allowed" : "pointer", background: cfg.gradient, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: `0 4px 16px ${cfg.glow}`, fontFamily: "inherit", opacity: loading ? 0.75 : 1 }}
                 >
                     {loading ? <Loader2 size={14} style={{ animation: "spin 0.7s linear infinite" }} /> : null}
-                    {loading ? "Connecting..." : type === "instagram" || type === "facebook" ? "Continue with Meta" : `Connect ${cfg.name}`}
+                    {loading ? "Connecting..." : type === "whatsapp" || type === "instagram" || type === "facebook" ? "Connect with Meta" : `Connect ${cfg.name}`}
                 </button>
             </div>
         </div>
