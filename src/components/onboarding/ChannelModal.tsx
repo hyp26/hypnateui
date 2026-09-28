@@ -44,8 +44,7 @@ export const ChannelModal: React.FC<ChannelModalProps> = ({ type, onClose, onCon
             );
             onClose();
         } catch (err: any) {
-            setError(err?.response?.data?.message || err?.message || `Could not connect ${cfg.name}. Please check the details and t
-ry again.`);
+            setError(err?.response?.data?.message || err?.message || `Could not connect ${cfg.name}. Please check the details and try again.`);
         } finally {
             setLoading(false);
         }
@@ -88,8 +87,7 @@ ry again.`);
 
             <div className="ob-channel-guide">
                 <div className="ob-channel-guide-header">
-                    <div className="ob-channel-guide-icon"><H
-elpCircle size={17} /></div>
+                    <div className="ob-channel-guide-icon"><HelpCircle size={17} /></div>
                     <div style={{ minWidth: 0, flex: 1 }}>
                         <strong>How to connect {cfg.name}</strong>
                         <span>Follow these steps to get the required account or credentials.</span>
@@ -146,8 +144,7 @@ elpCircle size={17} /></div>
             )}
 
             <div style={{ display: "flex", gap: 10, marginTop: 18 }}>
-                <button type="button" onClick={onClose} disabled={loading} style={{ flex: 1, padding: "11px 12px", border: "1.5px solid #e2e8f0", borderRadius: 12, fontSize: 13, fontWeight: 600, color: "#374151", background: "#fff
-", cursor: loading ? "not-allowed" : "pointer", fontFamily: "inherit" }}>
+                <button type="button" onClick={onClose} disabled={loading} style={{ flex: 1, padding: "11px 12px", border: "1.5px solid #e2e8f0", borderRadius: 12, fontSize: 13, fontWeight: 600, color: "#374151", background: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "inherit" }}>
                     Cancel
                 </button>
                 <button

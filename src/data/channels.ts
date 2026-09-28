@@ -40,8 +40,7 @@ export const CHANNEL_CFG: Record<string, ChannelConfig> = {
         gradient: "linear-gradient(135deg,#db2777,#9333ea)",
         glow: "rgba(219,39,119,0.2)",
         badge: "High engagement",
-        setupUrl: "https://developers.face
-book.com/docs/instagram-platform/instagram-api-with-instagram-login/",
+        setupUrl: "https://developers.facebook.com/docs/instagram-platform/instagram-api-with-instagram-login/",
         setupLabel: "Open Instagram setup guide",
         setupSteps: [
             "Switch the Instagram account to a professional account.",
@@ -80,8 +79,7 @@ book.com/docs/instagram-platform/instagram-api-with-instagram-login/",
         setupSteps: [
             "Open @BotFather in Telegram and send /newbot.",
             "Choose a display name and a unique username ending in bot.",
-            "BotFather will generate an API token. Copy the complete 
-token.",
+            "BotFather will generate an API token. Copy the complete token.",
             "Paste the token below and select Connect. Hypnate will verify it before marking the bot connected.",
         ],
         setupNote: "Treat the bot token like a password. Anyone with it can control the bot.",
