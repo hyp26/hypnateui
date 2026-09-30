@@ -2,52 +2,15 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { useAdminStore } from '../stores/useAdminStore';
+import { adminSellersApi, getApiErrorMessage } from '../lib/adminApi';
 import type { Seller } from '../types';
 import SellersStats from '../components/Sellers/SellersStats';
 import SellersFilters from '../components/Sellers/SellersFilters';
 import SellersTable from '../components/Sellers/SellersTable';
 import '../styles/Sellers.css';
 
-const mockSellers: Seller[] = [
-  {
-    id: 1, businessName: 'Rahul Fashion House', email: 'rahul@fashionhouse.in',
-    firstName: 'Rahul', lastName: 'Sharma', phone: '+91 98765 43210',
-    plan: 'PRO', status: 'ACTIVE', onboardedAt: '2024-01-15T10:30:00Z',
-    trialEndsAt: '', totalProducts: 145, totalOrders: 892, totalRevenue: 1245678,
-    createdAt: '2024-01-10T08:00:00Z',
-  },
-  {
-    id: 2, businessName: 'Priya Boutique', email: 'priya@boutique.in',
-    firstName: 'Priya', lastName: 'Patel', phone: '+91 98765 12345',
-    plan: 'BUSINESS', status: 'ACTIVE', onboardedAt: '2024-01-20T14:00:00Z',
-    trialEndsAt: '', totalProducts: 321, totalOrders: 2156, totalRevenue: 3456789,
-    createdAt: '2024-01-12T09:30:00Z',
-  },
-  {
-    id: 3, businessName: 'Tech Gadgets', email: 'contact@techgadgets.in',
-    firstName: 'Amit', lastName: 'Kumar', phone: '+91 98765 54321',
-    plan: 'STARTER', status: 'TRIALING', onboardedAt: '',
-    trialEndsAt: '2024-02-15T00:00:00Z', totalProducts: 45, totalOrders: 123,
-    totalRevenue: 234567, createdAt: '2024-01-25T11:00:00Z',
-  },
-  {
-    id: 4, businessName: 'Green Groceries', email: 'info@greengroceries.in',
-    firstName: 'Sneha', lastName: 'Singh', phone: '+91 98765 67890',
-    plan: 'PRO', status: 'INACTIVE', onboardedAt: '2024-01-18T16:45:00Z',
-    trialEndsAt: '', totalProducts: 89, totalOrders: 456, totalRevenue: 567890,
-    createdAt: '2024-01-14T10:15:00Z',
-  },
-  {
-    id: 5, businessName: 'Furniture World', email: 'sales@furnitureworld.in',
-    firstName: 'Vikram', lastName: 'Rathod', phone: '+91 98765 78901',
-    plan: 'BUSINESS', status: 'SUSPENDED', onboardedAt: '2024-01-05T12:00:00Z',
-    trialEndsAt: '', totalProducts: 67, totalOrders: 345, totalRevenue: 890123,
-    createdAt: '2024-01-01T09:00:00Z',
-  },
-];
-
 const statusOptions = ['All', 'Active', 'Inactive', 'Suspended', 'Trialing'];
-const planOptions = ['All', 'Starter', 'Pro', 'Business'];
+const planOptions = ['All', 'Free', 'Starter', 'Pro', 'Business'];
 const sortOptions = [
   { label: 'Newest', value: 'newest' },
   { label: 'Oldest', value: 'oldest' },
@@ -66,7 +29,9 @@ const formatRevenue = (amount: number) =>
 export const Sellers: React.FC = () => {
   const adminUser = useAdminStore((state) => state.adminUser);
   const [sellers, setSellers] = useState<Seller[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [planFilter, setPlanFilter] = useState('All');
@@ -74,11 +39,25 @@ export const Sellers: React.FC = () => {
   const [selectedSellers, setSelectedSellers] = useState<Array<string | number>>([]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setSellers(mockSellers);
-      setIsLoading(false);
-    }, 300);
-    return () => window.clearTimeout(timer);
+    let cancelled = false;
+
+    adminSellersApi
+      .list({ limit: 100 })
+      .then((response) => {
+        if (cancelled) return;
+        setSellers(response.data as unknown as Seller[]);
+        setTotalCount(response.total);
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        setLoadError(getApiErrorMessage(error));
+        setIsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const filteredSellers = useMemo(() => {
@@ -171,6 +150,12 @@ export const Sellers: React.FC = () => {
         revenue={formatRevenue(totalRevenue)}
       />
 
+      {loadError && (
+        <div className="sellers-page__error" role="alert">
+          {loadError}
+        </div>
+      )}
+
       <SellersFilters
         searchQuery={searchQuery}
         statusFilter={statusFilter}
@@ -188,7 +173,7 @@ export const Sellers: React.FC = () => {
 
       <SellersTable
         sellers={filteredSellers}
-        allSellersCount={sellers.length}
+        allSellersCount={totalCount || sellers.length}
         isLoading={isLoading}
         selectedSellers={selectedSellers}
         selectedVisibleCount={selectedVisibleCount}
@@ -199,7 +184,7 @@ export const Sellers: React.FC = () => {
 
       <div className="sellers-page__footer">
         <span>
-          Showing {filteredSellers.length} of {sellers.length} sellers
+          Showing {filteredSellers.length} of {totalCount || sellers.length} sellers
         </span>
         <div className="sellers-page__pagination">
           <button type="button" className="sellers-secondary-button" disabled>Previous</button>

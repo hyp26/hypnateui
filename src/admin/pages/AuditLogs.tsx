@@ -1,106 +1,30 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Calendar, Download, Search } from 'lucide-react';
+import { Download } from 'lucide-react';
+import { adminAuditLogsApi, getApiErrorMessage, type AdminAuditLog } from '../lib/adminApi';
 import type { AuditLog } from '../types';
 import AuditLogStats from '../components/AuditLogs/AuditLogStats';
 import AuditLogFilters from '../components/AuditLogs/AuditLogFilters';
 import AuditLogTable from '../components/AuditLogs/AuditLogTable';
 import '../styles/AuditLogs.css';
 
-const mockAuditLogs: AuditLog[] = [
-  {
-    id: 1,
-    action: 'CREATE',
-    entity: 'SELLER',
-    entityId: 123,
-    userId: 1,
-    userEmail: 'admin@hypnate.in',
-    oldValue: null,
-    newValue: { businessName: 'Rahul Fashion House', plan: 'pro' },
-    ipAddress: '192.168.1.100',
-    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
-    createdAt: '2024-01-28T14:30:00Z',
-  },
-  {
-    id: 2,
-    action: 'UPDATE',
-    entity: 'SUBSCRIPTION',
-    entityId: 'sub_123456789',
-    userId: 123,
-    userEmail: 'rahul@fashionhouse.in',
-    oldValue: { plan: 'starter' },
-    newValue: { plan: 'pro' },
-    ipAddress: '192.168.1.101',
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-    createdAt: '2024-01-28T10:15:00Z',
-  },
-  {
-    id: 3,
-    action: 'DELETE',
-    entity: 'PRODUCT',
-    entityId: 456,
-    userId: 123,
-    userEmail: 'rahul@fashionhouse.in',
-    oldValue: { name: 'Old Product', price: 999 },
-    newValue: null,
-    ipAddress: '192.168.1.102',
-    userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X)',
-    createdAt: '2024-01-27T16:45:00Z',
-  },
-  {
-    id: 4,
-    action: 'CREATE',
-    entity: 'ORDER',
-    entityId: 'ORD-2024-001234',
-    userId: 789,
-    userEmail: 'customer@example.com',
-    oldValue: null,
-    newValue: { totalAmount: 2499, items: 3 },
-    ipAddress: '192.168.1.103',
-    userAgent: 'Mozilla/5.0 (Android 12; Mobile)',
-    createdAt: '2024-01-27T14:20:00Z',
-  },
-  {
-    id: 5,
-    action: 'UPDATE',
-    entity: 'SETTINGS',
-    entityId: 1,
-    userId: 1,
-    userEmail: 'admin@hypnate.in',
-    oldValue: { theme: 'light' },
-    newValue: { theme: 'dark' },
-    ipAddress: '192.168.1.104',
-    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
-    createdAt: '2024-01-26T11:00:00Z',
-  },
-  {
-    id: 6,
-    action: 'LOGIN',
-    entity: 'USER',
-    entityId: 123,
-    userId: 123,
-    userEmail: 'rahul@fashionhouse.in',
-    oldValue: null,
-    newValue: null,
-    ipAddress: '192.168.1.105',
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-    createdAt: '2024-01-25T09:30:00Z',
-  },
-  {
-    id: 7,
-    action: 'LOGOUT',
-    entity: 'USER',
-    entityId: 123,
-    userId: 123,
-    userEmail: 'rahul@fashionhouse.in',
-    oldValue: null,
-    newValue: null,
-    ipAddress: '192.168.1.106',
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-    createdAt: '2024-01-25T18:00:00Z',
-  },
-];
+// Maps a backend audit log row onto the frontend AuditLog shape.
+const mapApiLog = (log: AdminAuditLog): AuditLog => ({
+  id: log.id,
+  adminUserId: log.adminUserId,
+  action: (log.action || 'UPDATE') as AuditLog['action'],
+  entityType: log.entityType,
+  entity: log.entityType,
+  entityId: log.entityId ?? '',
+  userId: log.adminUserId,
+  userEmail: log.adminUser?.email,
+  oldValue: log.oldValue ?? null,
+  newValue: log.newValue ?? null,
+  ipAddress: log.ipAddress,
+  userAgent: log.userAgent,
+  createdAt: log.createdAt,
+});
 
-const actionOptions = ['All', 'CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT'];
+const actionOptions = ['All', 'CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT', 'SETTINGS'];
 const entityOptions = [
   'All',
   'SELLER',
@@ -108,6 +32,9 @@ const entityOptions = [
   'ORDER',
   'PRODUCT',
   'SUBSCRIPTION',
+  'TICKET',
+  'ANNOUNCEMENT',
+  'FAQ',
   'SETTINGS',
   'USER',
 ];
@@ -115,18 +42,31 @@ const entityOptions = [
 export const AuditLogs: React.FC = () => {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [actionFilter, setActionFilter] = useState('All');
   const [entityFilter, setEntityFilter] = useState('All');
   const [dateRange, setDateRange] = useState('All');
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setAuditLogs(mockAuditLogs);
-      setIsLoading(false);
-    }, 250);
+    let cancelled = false;
 
-    return () => window.clearTimeout(timer);
+    adminAuditLogsApi
+      .list({ limit: 100 })
+      .then((response) => {
+        if (cancelled) return;
+        setAuditLogs(response.data.map(mapApiLog));
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        setLoadError(getApiErrorMessage(error));
+        setIsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const filteredLogs = useMemo(() => {
@@ -239,6 +179,12 @@ export const AuditLogs: React.FC = () => {
           Export
         </button>
       </header>
+
+      {loadError && (
+        <div className="auditlogs-card auditlogs-card--filters">
+          <span role="alert">{loadError}</span>
+        </div>
+      )}
 
       <AuditLogStats logs={auditLogs} />
 

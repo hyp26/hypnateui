@@ -1,93 +1,17 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus } from 'lucide-react';
+import {
+  adminAnnouncementsApi,
+  adminFaqApi,
+  getApiErrorMessage,
+} from '../lib/adminApi';
 import ContentTabs from '../components/Content/ContentTabs';
 import ContentFilters from '../components/Content/ContentFilters';
 import AnnouncementsTable from '../components/Content/AnnouncementsTable';
 import FAQTable from '../components/Content/FAQTable';
 import '../styles/Content.css';
 import type { Announcement, FAQItem } from '../types';
-
-const mockAnnouncements: Announcement[] = [
-  {
-    id: 1,
-    title: 'New Feature: Hypnate X',
-    content:
-      'We are excited to announce the launch of Hypnate X, our advanced AI-powered features for business plan users.',
-    type: 'FEATURE',
-    status: 'PUBLISHED',
-    createdAt: '2024-01-20T10:00:00Z',
-    expiresAt: '2024-02-20T00:00:00Z',
-  },
-  {
-    id: 2,
-    title: 'Scheduled Maintenance',
-    content:
-      'We will be performing maintenance on our servers this weekend. Expect brief downtime.',
-    type: 'MAINTENANCE',
-    status: 'PUBLISHED',
-    createdAt: '2024-01-25T14:00:00Z',
-    expiresAt: '2024-01-28T00:00:00Z',
-  },
-  {
-    id: 3,
-    title: 'Holiday Hours',
-    content:
-      'Our support team will have reduced hours during the Republic Day holiday.',
-    type: 'GENERAL',
-    status: 'DRAFT',
-    createdAt: '2024-01-15T09:00:00Z',
-    expiresAt: '2024-01-27T00:00:00Z',
-  },
-];
-
-const mockFAQs: FAQItem[] = [
-  {
-    id: 1,
-    question: 'How do I get started with Hypnate?',
-    answer:
-      'Sign up for a free 7-day trial, complete the onboarding process, and start managing your D2C business.',
-    category: 'Getting Started',
-    order: 1,
-    isPublished: true,
-  },
-  {
-    id: 2,
-    question: 'What payment methods are supported?',
-    answer:
-      'We support Razorpay, Stripe, and Cash on Delivery (COD) payment gateways.',
-    category: 'Payments',
-    order: 2,
-    isPublished: true,
-  },
-  {
-    id: 3,
-    question: 'Can I upgrade my plan later?',
-    answer:
-      'Yes, you can upgrade your plan at any time from your dashboard. The new plan will be prorated.',
-    category: 'Billing',
-    order: 3,
-    isPublished: true,
-  },
-  {
-    id: 4,
-    question: 'How do I connect WhatsApp?',
-    answer:
-      'Go to Settings > Channels and follow the WhatsApp Business API integration steps.',
-    category: 'Integrations',
-    order: 4,
-    isPublished: true,
-  },
-  {
-    id: 5,
-    question: 'Is there a mobile app?',
-    answer:
-      'Currently, Hypnate is web-only. We are working on mobile apps for iOS and Android.',
-    category: 'General',
-    order: 5,
-    isPublished: false,
-  },
-];
 
 const announcementTypeOptions = [
   'All',
@@ -115,19 +39,40 @@ export const Content: React.FC = () => {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [faqs, setFaqs] = useState<FAQItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
   const [categoryFilter, setCategoryFilter] = useState('All');
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setAnnouncements(mockAnnouncements);
-      setFaqs(mockFAQs);
-      setIsLoading(false);
-    }, 300);
+    let cancelled = false;
 
-    return () => window.clearTimeout(timer);
+    Promise.allSettled([
+      adminAnnouncementsApi.list({ limit: 100 }),
+      adminFaqApi.list({ limit: 100 }),
+    ]).then(([announcementsResult, faqsResult]) => {
+      if (cancelled) return;
+
+      if (announcementsResult.status === 'fulfilled') {
+        setAnnouncements(announcementsResult.value.data);
+      } else {
+        setLoadError(getApiErrorMessage(announcementsResult.reason));
+      }
+
+      if (faqsResult.status === 'fulfilled') {
+        setFaqs(faqsResult.value.data);
+      } else if (!loadError) {
+        setLoadError(getApiErrorMessage(faqsResult.reason));
+      }
+
+      setIsLoading(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -193,13 +138,19 @@ export const Content: React.FC = () => {
         </div>
 
         <Link
-          to={`/admin/${isAnnouncements ? 'announcements' : 'faq'}/new`}
+          to={isAnnouncements ? '/admin/announcements' : '/admin/faq'}
           className="content-primary-button"
         >
           <Plus size={17} />
           Add {isAnnouncements ? 'Announcement' : 'FAQ'}
         </Link>
       </header>
+
+      {loadError && (
+        <div className="content-page__error" role="alert">
+          {loadError}
+        </div>
+      )}
 
       <section className="content-card">
         <ContentTabs activeTab={activeTab} onChange={setActiveTab} />

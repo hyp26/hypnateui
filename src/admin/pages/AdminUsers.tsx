@@ -1,18 +1,18 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   UserPlus,
-  Search,
-  MoreVertical,
-  Trash2,
-  X,
   Shield,
   Users,
-  Headset,
+  X,
   CheckCircle2,
   AlertCircle,
 } from 'lucide-react';
 import { useAdminStore } from '../stores/useAdminStore';
-import type { AdminUserRole, UserStatus } from '../types';
+import {
+  adminUsersApi,
+  getApiErrorMessage,
+} from '../lib/adminApi';
+import type { AdminUser, AdminUserRole, UserStatus } from '../types';
 import { AdminUserStats } from '../components/AdminUsers/AdminUserStats';
 import { AdminUserFilters } from '../components/AdminUsers/AdminUserFilters';
 import { AdminUserTable } from '../components/AdminUsers/AdminUserTable';
@@ -38,13 +38,10 @@ const statusLabel: Record<UserStatus, string> = {
 
 export const AdminUsers: React.FC = () => {
   const currentUser = useAdminStore((s) => s.adminUser);
-  const accounts = useAdminStore((s) => s.adminAccounts);
   const hasPermission = useAdminStore((s) => s.hasPermission);
-  const createAdminAccount = useAdminStore((s) => s.createAdminAccount);
-  const deleteAdminAccount = useAdminStore((s) => s.deleteAdminAccount);
-  const updateAdminRole = useAdminStore((s) => s.updateAdminRole);
-  const updateAdminStatus = useAdminStore((s) => s.updateAdminStatus);
 
+  const [accounts, setAccounts] = useState<AdminUser[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<'ALL' | AdminUserRole>('ALL');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE' | 'SUSPENDED'>('ALL');
@@ -60,6 +57,21 @@ export const AdminUsers: React.FC = () => {
 
   const canCreateAdmin = hasPermission('CREATE_ADMIN');
   const canCreateSupport = hasPermission('CREATE_SUPPORT');
+
+  const fetchAccounts = useCallback(async () => {
+    try {
+      const response = await adminUsersApi.list({ limit: 100 });
+      setAccounts(response.data);
+    } catch (err) {
+      setError(getApiErrorMessage(err));
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void fetchAccounts();
+  }, [fetchAccounts]);
 
   const filteredUsers = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -97,10 +109,10 @@ export const AdminUsers: React.FC = () => {
     setSuccess(null);
 
     try {
-      await createAdminAccount({
+      await adminUsersApi.create({
         firstName,
         lastName,
-        email,
+        email: email.trim(),
         password,
         role: createRole,
       });
@@ -110,54 +122,58 @@ export const AdminUsers: React.FC = () => {
       );
       setShowCreate(false);
       resetForm();
+      await fetchAccounts();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to create account.');
+      setError(getApiErrorMessage(err));
     }
   };
 
-  const handleDelete = (id: string | number) => {
+  const handleDelete = async (id: string | number) => {
     const target = accounts.find((account) => account.id === id);
     if (!target) return;
 
     setError(null);
     setSuccess(null);
-
-    if (deleteAdminAccount(id)) {
-      setSuccess(`${roleLabel[target.role]} account deleted.`);
-    } else {
-      setError('You do not have permission to delete this account.');
-    }
-
     setOpenMenu(null);
+
+    try {
+      await adminUsersApi.remove(id);
+      setSuccess(`${roleLabel[target.role]} account deleted.`);
+      await fetchAccounts();
+    } catch (err) {
+      setError(getApiErrorMessage(err));
+    }
   };
 
-  const handleRoleChange = (id: string | number, role: ManagedRole) => {
+  const handleRoleChange = async (id: string | number, role: ManagedRole) => {
     setError(null);
     setSuccess(null);
-
-    if (updateAdminRole(id, role)) {
-      setSuccess('Account role updated.');
-    } else {
-      setError('You do not have permission to change this account role.');
-    }
-
     setOpenMenu(null);
+
+    try {
+      await adminUsersApi.updateRole(id, role);
+      setSuccess('Account role updated.');
+      await fetchAccounts();
+    } catch (err) {
+      setError(getApiErrorMessage(err));
+    }
   };
 
-  const handleStatusChange = (
+  const handleStatusChange = async (
     id: string | number,
     status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED',
   ) => {
     setError(null);
     setSuccess(null);
-
-    if (updateAdminStatus(id, status)) {
-      setSuccess(`Account marked ${statusLabel[status].toLowerCase()}.`);
-    } else {
-      setError('You do not have permission to change this account status.');
-    }
-
     setOpenMenu(null);
+
+    try {
+      await adminUsersApi.updateStatus(id, status);
+      setSuccess(`Account marked ${statusLabel[status].toLowerCase()}.`);
+      await fetchAccounts();
+    } catch (err) {
+      setError(getApiErrorMessage(err));
+    }
   };
 
   const clearFilters = () => {
@@ -241,16 +257,25 @@ export const AdminUsers: React.FC = () => {
           onClear={clearFilters}
         />
 
-        <AdminUserTable
-          accounts={filteredUsers}
-          currentUserId={currentUser?.id}
-          currentUserRole={currentUser?.role}
-          openMenu={openMenu}
-          onMenuToggle={(id) => setOpenMenu(openMenu === id ? null : id)}
-          onRoleChange={handleRoleChange}
-          onStatusChange={handleStatusChange}
-          onDelete={handleDelete}
-        />
+        {isLoading ? (
+          <div className="adminusers-empty">
+            <div className="adminusers-empty-icon">
+              <Users size={22} />
+            </div>
+            <strong>Loading admin accounts...</strong>
+          </div>
+        ) : (
+          <AdminUserTable
+            accounts={filteredUsers}
+            currentUserId={currentUser?.id}
+            currentUserRole={currentUser?.role}
+            openMenu={openMenu}
+            onMenuToggle={(id) => setOpenMenu(openMenu === id ? null : id)}
+            onRoleChange={handleRoleChange}
+            onStatusChange={handleStatusChange}
+            onDelete={handleDelete}
+          />
+        )}
       </section>
 
       {showCreate && (

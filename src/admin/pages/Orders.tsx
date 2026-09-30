@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ShoppingCart } from 'lucide-react';
+import { adminOrdersApi, getApiErrorMessage, type AdminOrder } from '../lib/adminApi';
 import OrdersStats from '../components/Orders/OrdersStats';
 import OrdersFilters from '../components/Orders/OrdersFilters';
 import OrdersTable from '../components/Orders/OrdersTable';
@@ -7,8 +7,8 @@ import '../styles/Orders.css';
 
 export interface Order {
   id: string;
-  sellerId: number;
-  customerId: number;
+  sellerId: string | number;
+  customerId: string | number;
   customerName: string;
   totalAmount: number;
   status:
@@ -25,73 +25,25 @@ export interface Order {
   updatedAt: string;
 }
 
-const mockOrders: Order[] = [
-  {
-    id: 'ORD-2024-001234',
-    sellerId: 1,
-    customerId: 1,
-    customerName: 'Rahul Sharma',
-    totalAmount: 2499,
-    status: 'delivered',
-    paymentStatus: 'paid',
-    items: 3,
-    createdAt: '2024-01-25T14:30:00Z',
-    updatedAt: '2024-01-28T10:15:00Z',
-  },
-  {
-    id: 'ORD-2024-001235',
-    sellerId: 2,
-    customerId: 2,
-    customerName: 'Priya Patel',
-    totalAmount: 4599,
-    status: 'shipped',
-    paymentStatus: 'paid',
-    items: 5,
-    createdAt: '2024-01-28T10:15:00Z',
-    updatedAt: '2024-01-28T14:20:00Z',
-  },
-  {
-    id: 'ORD-2024-001236',
-    sellerId: 3,
-    customerId: 3,
-    customerName: 'Amit Kumar',
-    totalAmount: 1299,
-    status: 'processing',
-    paymentStatus: 'paid',
-    items: 2,
-    createdAt: '2024-01-27T09:30:00Z',
-    updatedAt: '2024-01-27T11:45:00Z',
-  },
-  {
-    id: 'ORD-2024-001237',
-    sellerId: 1,
-    customerId: 4,
-    customerName: 'Sneha Singh',
-    totalAmount: 3499,
-    status: 'confirmed',
-    paymentStatus: 'pending',
-    items: 4,
-    createdAt: '2024-01-26T16:45:00Z',
-    updatedAt: '2024-01-26T18:00:00Z',
-  },
-  {
-    id: 'ORD-2024-001238',
-    sellerId: 2,
-    customerId: 5,
-    customerName: 'Vikram Rathod',
-    totalAmount: 5699,
-    status: 'cancelled',
-    paymentStatus: 'refunded',
-    items: 6,
-    createdAt: '2024-01-25T11:00:00Z',
-    updatedAt: '2024-01-25T12:30:00Z',
-  },
-];
+const mapApiOrder = (order: AdminOrder): Order => ({
+  id: order.orderNumber || order.id,
+  sellerId: order.sellerId,
+  customerId: order.customerId,
+  customerName:
+    order.customer && (order.customer.firstName || order.customer.lastName)
+      ? `${order.customer.firstName ?? ''} ${order.customer.lastName ?? ''}`.trim()
+      : `Customer #${order.customerId}`,
+  totalAmount: order.total,
+  status: (order.status || 'pending').toLowerCase() as Order['status'],
+  paymentStatus: (order.paymentStatus || 'pending').toLowerCase() as Order['paymentStatus'],
+  items: Array.isArray(order.items) ? order.items.length : 0,
+  createdAt: order.createdAt,
+  updatedAt: order.updatedAt,
+});
 
 const statusOptions = [
   'All',
   'Pending',
-  'Confirmed',
   'Processing',
   'Shipped',
   'Delivered',
@@ -111,17 +63,30 @@ const formatCurrency = (amount: number) =>
 export const Orders: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [paymentFilter, setPaymentFilter] = useState('All');
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setOrders(mockOrders);
-      setIsLoading(false);
-    }, 300);
+    let cancelled = false;
 
-    return () => window.clearTimeout(timer);
+    adminOrdersApi
+      .list({ limit: 100 })
+      .then((response) => {
+        if (cancelled) return;
+        setOrders(response.data.map(mapApiOrder));
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        setLoadError(getApiErrorMessage(error));
+        setIsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const filteredOrders = useMemo(() => {
@@ -172,6 +137,12 @@ export const Orders: React.FC = () => {
         totalRevenue={formatCurrency(totalRevenue)}
         averageOrderValue={formatCurrency(averageOrderValue)}
       />
+
+      {loadError && (
+        <div className="orders-page__error" role="alert">
+          {loadError}
+        </div>
+      )}
 
       <OrdersFilters
         searchQuery={searchQuery}

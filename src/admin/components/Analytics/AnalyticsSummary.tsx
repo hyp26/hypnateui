@@ -1,25 +1,34 @@
 import React from 'react';
 import { CreditCard, ShoppingCart, Store, Truck } from 'lucide-react';
 
-interface AnalyticsSummaryProps {
-  formatCurrency: (amount: number) => string;
+export interface TopSeller {
+  name: string;
+  revenue: number;
+  orders: number;
 }
 
-const sellers = [
-  { name: 'Priya Boutique', revenue: 3456789, orders: 2156 },
-  { name: 'Rahul Fashion House', revenue: 1245678, orders: 892 },
-  { name: 'Furniture World', revenue: 890123, orders: 345 },
-];
+export type SummaryActivityType = 'order' | 'payment' | 'seller' | 'shipping';
 
-const activities = [
-  { action: 'New order', entity: '#ORD-2024-001239', time: '2 min ago', type: 'order' },
-  { action: 'Payment received', entity: '₹2,499', time: '15 min ago', type: 'payment' },
-  { action: 'Seller registered', entity: 'New Boutique', time: '1 hour ago', type: 'seller' },
-  { action: 'Order shipped', entity: '#ORD-2024-001238', time: '3 hours ago', type: 'shipping' },
-];
+export interface SummaryActivity {
+  id: string | number;
+  action: string;
+  entity: string;
+  time: string;
+  type: SummaryActivityType;
+}
 
-const AnalyticsSummary: React.FC<AnalyticsSummaryProps> = ({ formatCurrency }) => {
-  const icons: Record<string, React.ReactNode> = {
+interface AnalyticsSummaryProps {
+  formatCurrency: (amount: number) => string;
+  topSellers: TopSeller[];
+  activities: SummaryActivity[];
+}
+
+const AnalyticsSummary: React.FC<AnalyticsSummaryProps> = ({
+  formatCurrency,
+  topSellers,
+  activities,
+}) => {
+  const icons: Record<SummaryActivityType, React.ReactNode> = {
     order: <ShoppingCart size={16} />,
     payment: <CreditCard size={16} />,
     seller: <Store size={16} />,
@@ -34,8 +43,16 @@ const AnalyticsSummary: React.FC<AnalyticsSummaryProps> = ({ formatCurrency }) =
         </div>
 
         <div className="analytics-summary__list">
-          {sellers.map((seller, index) => (
-            <div className="analytics-summary__row" key={seller.name}>
+          {topSellers.length === 0 && (
+            <div className="analytics-summary__row">
+              <div className="analytics-summary__identity">
+                <strong>No seller data yet</strong>
+                <span>Revenue leaders will appear here.</span>
+              </div>
+            </div>
+          )}
+          {topSellers.map((seller, index) => (
+            <div className="analytics-summary__row" key={`${seller.name}-${index}`}>
               <div className="analytics-summary__rank">{index + 1}</div>
 
               <div className="analytics-summary__identity">
@@ -57,8 +74,16 @@ const AnalyticsSummary: React.FC<AnalyticsSummaryProps> = ({ formatCurrency }) =
         </div>
 
         <div className="analytics-summary__list">
+          {activities.length === 0 && (
+            <div className="analytics-summary__row">
+              <div className="analytics-summary__identity">
+                <strong>No recent activity</strong>
+                <span>Platform activity will appear here.</span>
+              </div>
+            </div>
+          )}
           {activities.map((activity) => (
-            <div className="analytics-summary__row" key={`${activity.action}-${activity.entity}`}>
+            <div className="analytics-summary__row" key={activity.id}>
               <div className={`analytics-activity-icon analytics-activity-icon--${activity.type}`}>
                 {icons[activity.type]}
               </div>

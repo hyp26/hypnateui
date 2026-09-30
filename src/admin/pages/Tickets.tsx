@@ -1,88 +1,61 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus } from 'lucide-react';
+import { adminTicketsApi, getApiErrorMessage, type AdminTicket } from '../lib/adminApi';
 import type { Ticket } from '../types';
 import TicketStats from '../components/Tickets/TicketStats';
 import TicketFilters from '../components/Tickets/TicketFilters';
 import TicketTable from '../components/Tickets/TicketTable';
 import '../styles/Tickets.css';
 
-const mockTickets: Ticket[] = [
-  {
-    id: 'TKT-2024-001234',
-    subject: 'Payment not processing',
-    status: 'OPEN',
-    priority: 'HIGH',
-    sellerId: 1,
-    customerId: 1,
-    assignedTo: 1,
-    createdAt: '2024-01-28T10:30:00Z',
-    updatedAt: '2024-01-28T14:00:00Z',
-  },
-  {
-    id: 'TKT-2024-001235',
-    subject: 'How to connect Instagram?',
-    status: 'PENDING',
-    priority: 'MEDIUM',
-    sellerId: 2,
-    customerId: undefined,
-    assignedTo: 2,
-    createdAt: '2024-01-27T16:45:00Z',
-    updatedAt: '2024-01-27T18:00:00Z',
-  },
-  {
-    id: 'TKT-2024-001236',
-    subject: 'Order not delivered',
-    status: 'RESOLVED',
-    priority: 'HIGH',
-    sellerId: 3,
-    customerId: 3,
-    assignedTo: 1,
-    createdAt: '2024-01-26T14:20:00Z',
-    updatedAt: '2024-01-27T11:30:00Z',
-  },
-  {
-    id: 'TKT-2024-001237',
-    subject: 'Feature request: Bulk import',
-    status: 'OPEN',
-    priority: 'LOW',
-    sellerId: 4,
-    customerId: undefined,
-    assignedTo: undefined,
-    createdAt: '2024-01-25T11:00:00Z',
-    updatedAt: '2024-01-25T12:00:00Z',
-  },
-  {
-    id: 'TKT-2024-001238',
-    subject: 'Bug: Dashboard not loading',
-    status: 'CLOSED',
-    priority: 'CRITICAL',
-    sellerId: 5,
-    customerId: 5,
-    assignedTo: 1,
-    createdAt: '2024-01-24T09:15:00Z',
-    updatedAt: '2024-01-25T10:30:00Z',
-  },
-];
+const mapApiTicket = (ticket: AdminTicket): Ticket => ({
+  id: ticket.ticketNumber || ticket.id,
+  ticketNumber: ticket.ticketNumber || ticket.id,
+  subject: ticket.subject,
+  description: ticket.description,
+  status: ticket.status as Ticket['status'],
+  priority: ticket.priority as Ticket['priority'],
+  category: ticket.category,
+  sellerId: ticket.sellerId,
+  customerId: ticket.customerId,
+  assignedToId: ticket.assignedToId,
+  assignedTo: ticket.assignedTo ? ticket.assignedTo.id : undefined,
+  tags: ticket.tags,
+  createdAt: ticket.createdAt,
+  updatedAt: ticket.updatedAt,
+});
 
-const statusOptions = ['All', 'Open', 'Pending', 'Resolved', 'Closed'];
+const statusOptions = ['All', 'Open', 'Pending', 'In Progress', 'Resolved', 'Closed'];
 const priorityOptions = ['All', 'Critical', 'High', 'Medium', 'Low'];
 
 export const Tickets: React.FC = () => {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [priorityFilter, setPriorityFilter] = useState('All');
   const [selectedTickets, setSelectedTickets] = useState<string[]>([]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setTickets(mockTickets);
-      setIsLoading(false);
-    }, 300);
+    let cancelled = false;
 
-    return () => window.clearTimeout(timer);
+    adminTicketsApi
+      .list({ limit: 100 })
+      .then((response) => {
+        if (cancelled) return;
+        setTickets(response.data.map(mapApiTicket));
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        setLoadError(getApiErrorMessage(error));
+        setIsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const filteredTickets = useMemo(() => {
@@ -96,7 +69,7 @@ export const Tickets: React.FC = () => {
 
       const matchesStatus =
         statusFilter === 'All' ||
-        ticket.status.toLowerCase() === statusFilter.toLowerCase();
+        ticket.status.toLowerCase() === statusFilter.toLowerCase().replace(' ', '_');
 
       const matchesPriority =
         priorityFilter === 'All' ||
@@ -149,13 +122,19 @@ export const Tickets: React.FC = () => {
           </p>
         </div>
 
-        <Link to="/admin/tickets/new" className="tickets-primary-button">
+        <Link to="/admin/tickets" className="tickets-primary-button">
           <Plus size={17} />
           Create Ticket
         </Link>
       </header>
 
       <TicketStats tickets={tickets} />
+
+      {loadError && (
+        <div className="tickets-card tickets-card--filters">
+          <span role="alert">{loadError}</span>
+        </div>
+      )}
 
       <section className="tickets-card tickets-card--filters">
         <TicketFilters
