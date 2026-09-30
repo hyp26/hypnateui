@@ -12,7 +12,10 @@ import BillingSettings from '../components/Settings/BillingSettings';
 import NotificationSettings from '../components/Settings/NotificationSettings';
 import EmailSettings from '../components/Settings/EmailSettings';
 import SecuritySettings from '../components/Settings/SecuritySettings';
-import type { FeatureFlagConfig, Settings } from '../types';
+import type {
+  FeatureFlagConfig,
+  Settings as SettingsConfig,
+} from '../types';
 import '../styles/Settings.css';
 
 export interface FeatureFlag {
@@ -57,7 +60,7 @@ const toDisplayFlags = (flags: FeatureFlagConfig): FeatureFlag[] =>
     targetUsers: [],
   }));
 
-const defaultSettings: Settings = {
+const defaultSettings: SettingsConfig = {
   siteName: 'Hypnate',
   siteDescription: 'Internal administration panel for Hypnate',
   logoUrl: '',
@@ -84,7 +87,7 @@ export type SettingsSection =
 
 export const Settings: React.FC = () => {
   const [activeSection, setActiveSection] = useState<SettingsSection>('general');
-  const [settings, setSettings] = useState<Settings>(defaultSettings);
+  const [settings, setSettings] = useState<SettingsConfig>(defaultSettings);
   const [featureFlags, setFeatureFlags] = useState<FeatureFlagConfig>(
     defaultSettings.featureFlags
   );

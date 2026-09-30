@@ -200,10 +200,25 @@ export interface Stats {
 export interface ChartData {
   labels: string[];
   datasets: {
-    label: string;
+    label?: string;
     data: number[];
     backgroundColor?: string | string[];
     borderColor?: string | string[];
+
+    // Common Chart.js dataset options used by the admin dashboard
+    borderWidth?: number;
+    borderRadius?: number;
+    maxBarThickness?: number;
+    hoverOffset?: number;
+
+    // Line chart options
+    tension?: number;
+    pointBackgroundColor?: string;
+    pointBorderColor?: string;
+    pointBorderWidth?: number;
+    pointRadius?: number;
+    pointHoverRadius?: number;
+    fill?: boolean;
   }[];
 }
 
