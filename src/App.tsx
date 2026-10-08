@@ -29,6 +29,7 @@ import { ProductView } from './pages/ProductView';
 import Customers from './pages/Customers';
 import { HypnateX } from './pages/HypnateX';
 import { PlanRequired } from './pages/PlanRequired';
+import { billingApi } from './lib/billingApi';
 import { Home } from './pages/public/Home';
 import { About } from './pages/public/About';
 import { Pricing } from './pages/public/Pricing';
@@ -77,16 +78,52 @@ const AuthEntryRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const [, setTrialClock] = React.useState(() => Date.now());
-  React.useEffect(() => {
-    const timer = window.setInterval(() => setTrialClock(Date.now()), 30_000);
-    return () => window.clearInterval(timer);
-  }, []);
-
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const authInitialized = useAuthStore((state) => state.authInitialized);
   const user = useAuthStore((state) => state.user);
   const location = useLocation();
+
+  /*
+   * Workspace billing access is decided by the authoritative
+   * backend billing status (GET /api/billing/status), never by
+   * the persisted auth-store seller fields (activePlan /
+   * trialPlan / trialEndsAt), which can be stale.
+   */
+  const [billingAccess, setBillingAccess] = React.useState<
+    'checking' | 'allowed' | 'blocked'
+  >('checking');
+
+  const sellerNeedsBillingCheck =
+    user?.role === 'SELLER' &&
+    Boolean(user.seller?.onboardedAt) &&
+    location.pathname !== '/plan-required' &&
+    location.pathname !== '/onboarding';
+
+  React.useEffect(() => {
+    if (!sellerNeedsBillingCheck) {
+      return;
+    }
+
+    let cancelled = false;
+    setBillingAccess('checking');
+
+    billingApi
+      .status()
+      .then((status) => {
+        if (cancelled) return;
+        setBillingAccess(status?.access?.hasAccess ? 'allowed' : 'blocked');
+      })
+      .catch(() => {
+        if (cancelled) return;
+        // Fail closed: never grant workspace access from stale
+        // persisted billing data when the authoritative check failed.
+        setBillingAccess('blocked');
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [sellerNeedsBillingCheck]);
 
   if (!authInitialized) return null;
   if (!isAuthenticated) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
@@ -95,13 +132,13 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/onboarding" replace />;
   }
 
-  if (
-    user?.role === 'SELLER' &&
-    user.seller?.onboardedAt &&
-    !hasTrialAccess(user.seller) &&
-    location.pathname !== '/plan-required'
-  ) {
-    return <Navigate to="/plan-required" replace />;
+  if (sellerNeedsBillingCheck) {
+    // Do not render the protected workspace while the authoritative
+    // billing check is in flight or says the seller has no access.
+    if (billingAccess === 'checking') return null;
+    if (billingAccess === 'blocked') {
+      return <Navigate to="/plan-required" replace />;
+    }
   }
 
   return <>{children}</>;
