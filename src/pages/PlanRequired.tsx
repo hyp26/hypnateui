@@ -256,7 +256,7 @@ export const PlanRequired: React.FC = () => {
               <button
                 className="billing-buy"
                 onClick={retryStatusCheck}
-                disabled={accessState === "checking"}
+              
               >
                 Retry verification
                 <ArrowRight size={14} />
