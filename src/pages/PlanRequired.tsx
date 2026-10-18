@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
   Check,
@@ -41,6 +41,24 @@ const loadCheckout = () =>
     document.body.appendChild(script);
   });
 
+/*
+ * The paywall copy must reflect the AUTHORITATIVE backend decision
+ * from GET /api/billing/status — never a local guess:
+ *
+ * - "no-access":     the backend confirmed the seller has neither an
+ *                    active paid plan nor a valid trial. Only then may
+ *                    the page claim the trial has ended.
+ * - "has-access":    the backend says the seller DOES have access
+ *                    (trial or paid). The seller most likely landed
+ *                    here through a stale redirect; show the way back
+ *                    to the workspace instead of a false paywall.
+ * - "unknown":       the billing-status request failed. This must NOT
+ *                    be presented as a confirmed trial expiry — show a
+ *                    distinct, honest verification-failure notice with
+ *                    a retry.
+ */
+type AccessState = "checking" | "no-access" | "has-access" | "unknown";
+
 export const PlanRequired: React.FC = () => {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
@@ -51,6 +69,48 @@ export const PlanRequired: React.FC = () => {
   );
   const [loading, setLoading] = useState<PlanId | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [accessState, setAccessState] = useState<AccessState>("checking");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    billingApi
+      .status()
+      .then((status) => {
+        if (cancelled) return;
+        if (status?.access?.hasAccess === true) {
+          setAccessState("has-access");
+        } else if (status?.access && status.access.hasAccess === false) {
+          setAccessState("no-access");
+        } else {
+          // Malformed response — treat exactly like a failed request.
+          setAccessState("unknown");
+        }
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setAccessState("unknown");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const retryStatusCheck = () => {
+    setAccessState("checking");
+    setMessage(null);
+
+    billingApi
+      .status()
+      .then((status) => {
+        if (status?.access?.hasAccess === true) setAccessState("has-access");
+        else if (status?.access && status.access.hasAccess === false)
+          setAccessState("no-access");
+        else setAccessState("unknown");
+      })
+      .catch(() => setAccessState("unknown"));
+  };
 
   const selectedPlan = useMemo(
     () => PLAN_OPTIONS.find((plan) => plan.id === selected)!,
@@ -148,21 +208,65 @@ export const PlanRequired: React.FC = () => {
 
           <h1>Choose a plan to continue</h1>
 
-          <p>
-            Your 7-day free trial has ended. No plan is currently active on your
-            merchant account.
-          </p>
+          {accessState === "no-access" && (
+            <>
+              <p>
+                Your 7-day free trial has ended. No plan is currently active on
+                your merchant account.
+              </p>
 
-          <div className="billing-trial">
-            <ShieldCheck size={16} />
-            <div>
-              <strong>Trial ended • no card was required</strong>
-              <span>
-                Your trial never charged you. Choose a paid plan to restore
-                workspace access.
-              </span>
-            </div>
-          </div>
+              <div className="billing-trial">
+                <ShieldCheck size={16} />
+                <div>
+                  <strong>Trial ended • no card was required</strong>
+                  <span>
+                    Your trial never charged you. Choose a paid plan to restore
+                    workspace access.
+                  </span>
+                </div>
+              </div>
+            </>
+          )}
+
+          {accessState === "has-access" && (
+            <>
+              <p>
+                Your workspace access is active. You don't need to choose a plan
+                right now — you can return to your workspace.
+              </p>
+
+              <button
+                className="billing-buy"
+                onClick={() => navigate("/dashboard", { replace: true })}
+              >
+                Go to workspace
+                <ArrowRight size={14} />
+              </button>
+            </>
+          )}
+
+          {accessState === "unknown" && (
+            <>
+              <p>
+                We couldn't verify your plan status right now. This doesn't
+                mean your trial has ended — please check your connection and
+                try again.
+              </p>
+
+              <button
+                className="billing-buy"
+                onClick={retryStatusCheck}
+                disabled={accessState === "checking"}
+              >
+                Retry verification
+                <ArrowRight size={14} />
+              </button>
+            </>
+          )}
+
+          {accessState === "checking" && (
+            <p>Checking your plan status…</p>
+          )}
 
           <div className="billing-cycle">
             <button

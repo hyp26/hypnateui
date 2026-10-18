@@ -6,7 +6,6 @@ import { Layout } from './components/layout/layout';
 import { PublicLayout } from './components/layout/PublicLayout';
 import { RouteSEO } from './components/public/SEO';
 import { PlanRoute } from './components/plan/PlanGate';
-import { normalizePlan } from './config/planEntitlements';
 import { useAuthStore } from './stores/useAuthStore';
 import { AdminApp } from './admin';
 import { Login } from './pages/Login';
@@ -45,14 +44,19 @@ import { DataDeletion } from './pages/public/DataDeletion';
 import { NotFound } from './pages/NotFound';
 import './i18n/config';
 
-const hasTrialAccess = (seller: any) => {
-  const activePlan = normalizePlan(seller?.activePlan);
-  if (activePlan) return true;
-  const trialPlan = normalizePlan(seller?.trialPlan);
-  const trialEndsAt = seller?.trialEndsAt ? new Date(seller.trialEndsAt) : null;
-  return Boolean(trialPlan && trialEndsAt && trialEndsAt.getTime() > Date.now());
-};
-
+/*
+ * Billing/plan access is decided ONLY by ProtectedRoute through the
+ * authoritative backend billing status (GET /api/billing/status).
+ *
+ * AuthEntryRoute must not compute a second, conflicting trial-access
+ * decision from the persisted auth-store seller fields (activePlan /
+ * trialPlan / trialEndsAt): those fields can be stale or missing on
+ * the login/entry path, which bounced mid-trial sellers to
+ * /plan-required before the authoritative check ever ran.
+ * AuthEntryRoute therefore only enforces onboarding completion; every
+ * onboarded seller is routed to /dashboard, where ProtectedRoute
+ * performs the single authoritative access decision.
+ */
 const AuthEntryRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const authInitialized = useAuthStore((state) => state.authInitialized);
@@ -62,15 +66,7 @@ const AuthEntryRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (isAuthenticated) {
     const sellerNeedsSetup = user?.role === 'SELLER' && !user.seller?.onboardedAt;
-    const sellerNeedsPlan =
-      user?.role === 'SELLER' &&
-      Boolean(user.seller?.onboardedAt) &&
-      !hasTrialAccess(user.seller);
-    const destination = sellerNeedsSetup
-      ? '/onboarding'
-      : sellerNeedsPlan
-        ? '/plan-required'
-        : '/dashboard';
+    const destination = sellerNeedsSetup ? '/onboarding' : '/dashboard';
     return <Navigate to={destination} replace />;
   }
 

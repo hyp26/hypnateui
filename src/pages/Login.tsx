@@ -46,10 +46,22 @@ export const Login: React.FC = () => {
 
     try {
       const user = await login(email.trim(), password);
+
+      /*
+       * Plan/billing access is decided exclusively by ProtectedRoute
+       * through the authoritative GET /api/billing/status
+       * (status.access.hasAccess). Do NOT redirect to /plan-required
+       * from the persisted activePlan here: sellers on the 7-day
+       * trial have no activePlan yet, and the login response's
+       * seller fields can be stale. Redirecting them here put
+       * mid-trial sellers behind the paywall.
+       *
+       * Onboarding completion is still enforced locally — it is not
+       * a billing decision.
+       */
       let destination = "/dashboard";
-      if (user.role === "SELLER") {
-        if (!user.seller?.onboardedAt) destination = "/onboarding";
-        else if (!user.seller?.activePlan) destination = "/plan-required";
+      if (user.role === "SELLER" && !user.seller?.onboardedAt) {
+        destination = "/onboarding";
       }
       navigate(destination, { replace: true });
     } catch (err: any) {
@@ -99,7 +111,7 @@ export const Login: React.FC = () => {
           <label htmlFor="login-email">Email address</label>
           <input
             id="login-email"
-            name="email"
+            name="login-email"
             type="email"
             autoComplete="email"
             value={email}
@@ -122,7 +134,7 @@ export const Login: React.FC = () => {
           <div className="auth-password-wrap">
             <input
               id="login-password"
-              name="password"
+              name="login-password"
               type={showPassword ? "text" : "password"}
               autoComplete="current-password"
               value={password}
