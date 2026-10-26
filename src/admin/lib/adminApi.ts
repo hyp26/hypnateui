@@ -174,6 +174,19 @@ export const adminUsersApi = {
 /* ------------------------------------------------------------------
  * Sellers
  * ------------------------------------------------------------------ */
+
+/**
+ * Active SUPER_ADMIN free-access grant shown on a seller row.
+ * An administrative grant is NOT a paid subscription.
+ */
+export interface AdminSellerGrant {
+  id: string | number;
+  plan: string;
+  expiresAt: string | null;
+  reason?: string;
+  grantedAt?: string;
+}
+
 export interface AdminSeller {
   id: string | number;
   email: string;
@@ -183,6 +196,10 @@ export interface AdminSeller {
   status: string;
   phone?: string;
   plan: string;
+  /** Effective entitlement source: paid | admin_grant | trial | null. */
+  accessSource?: 'paid' | 'admin_grant' | 'trial' | null;
+  /** Active administrative free-access grant, if any. */
+  adminGrant?: AdminSellerGrant | null;
   subscriptionStatus?: string;
   trialStart?: string;
   trialEndsAt?: string;
@@ -212,6 +229,55 @@ export const adminSellersApi = {
   updateStatus: async (id: string | number, status: string) => {
     const res = await adminApi.patch(`/api/admin/sellers/${id}/status`, { status });
     return res.data;
+  },
+};
+
+/* ------------------------------------------------------------------
+ * Seller free-access grants (SUPER_ADMIN only)
+ *
+ * The backend independently rejects these calls with 403 for
+ * ADMIN / SUPPORT users; hiding the UI is a convenience only.
+ * ------------------------------------------------------------------ */
+export interface FreeAccessPayload {
+  plan: 'starter' | 'pro' | 'business';
+  /** ISO timestamp; omit for an indefinite grant. */
+  expiresAt?: string;
+  reason: string;
+}
+
+export interface FreeAccessResponse {
+  message: string;
+  grant: {
+    id: number;
+    plan: string;
+    expiresAt: string | null;
+    reason: string;
+    revokedAt: string | null;
+  } | null;
+  access: { hasAccess: boolean; source: string | null; plan: string | null };
+  effectivePlan: string | null;
+  accessSource: 'paid' | 'admin_grant' | 'trial' | null;
+  adminGrant: AdminSellerGrant | null;
+  seller: { id: number; businessName: string; status: string };
+}
+
+export const adminFreeAccessApi = {
+  grant: async (sellerId: string | number, payload: FreeAccessPayload) => {
+    const res = await adminApi.post(`/api/admin/sellers/${sellerId}/free-access`, payload);
+    return res.data as FreeAccessResponse;
+  },
+  update: async (
+    sellerId: string | number,
+    payload: Partial<Omit<FreeAccessPayload, 'reason'>> & { reason: string }
+  ) => {
+    const res = await adminApi.patch(`/api/admin/sellers/${sellerId}/free-access`, payload);
+    return res.data as FreeAccessResponse;
+  },
+  revoke: async (sellerId: string | number, reason: string) => {
+    const res = await adminApi.delete(`/api/admin/sellers/${sellerId}/free-access`, {
+      data: { reason },
+    });
+    return res.data as FreeAccessResponse;
   },
 };
 

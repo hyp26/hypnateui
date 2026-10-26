@@ -11,6 +11,29 @@ export type ContentType = 'FAQ' | 'ANNOUNCEMENT' | 'PAGE';
 export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'LOGIN' | 'LOGOUT' | 'SETTINGS';
 export type FeatureFlagKey = 'maintenanceMode' | 'newUserRegistration' | 'emailNotifications' | 'analyticsDashboard' | 'subscriptionUpgrades';
 
+/**
+ * Effective access source for a seller, mirroring the backend's
+ * centralized getPlanAccess() decision:
+ * - 'paid': an active paid subscription
+ * - 'admin_grant': free access granted by a SUPER_ADMIN
+ * - 'trial': the standard 7-day free trial
+ * - null: no current entitlement (access required)
+ */
+export type SellerAccessSource = 'paid' | 'admin_grant' | 'trial' | null;
+
+/**
+ * Active SUPER_ADMIN free-access grant on a seller.
+ * An administrative grant is NOT a paid subscription and never
+ * touches billing or Razorpay records.
+ */
+export interface SellerAccessGrant {
+  id: string | number;
+  plan: string;
+  expiresAt: string | null;
+  reason?: string;
+  grantedAt?: string;
+}
+
 export interface FeatureFlag {
   id: string;
   name: string;
@@ -42,7 +65,12 @@ export interface Seller {
   status: UserStatus;
   avatar?: string;
   phone?: string;
+  /** Effective plan (paid subscription, trial, or admin grant). */
   plan: PlanType;
+  /** Effective entitlement source from getPlanAccess(). */
+  accessSource?: SellerAccessSource;
+  /** Active administrative free-access grant, if any. */
+  adminGrant?: SellerAccessGrant | null;
   subscriptionStatus?: SubscriptionStatus;
   trialEndsAt?: string;
   totalRevenue: number;
