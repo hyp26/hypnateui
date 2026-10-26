@@ -129,7 +129,7 @@ export const FreeAccessModal: React.FC<FreeAccessModalProps> = ({
         // a valid timestamp sets it, null makes the grant indefinite.
         await adminFreeAccessApi.update(seller.id, {
           plan: payload.plan,
-          expiresAt: payload.expiresAt ?? null,
+          expiresAt: payload.expiresAt ?? undefined,
           reason: payload.reason,
         });
       } else {
