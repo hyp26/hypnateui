@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Lock, ArrowUpRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
@@ -21,8 +21,70 @@ interface PlanRouteProps {
   children: React.ReactNode;
 }
 
+/**
+ * Effective entitlement from the backend's centralized
+ * getPlanAccess() decision (billing-status endpoint). This includes
+ * administrative free-access grants, so a seller whose plan access
+ * is provided by a SUPER_ADMIN grant passes PlanGate even when
+ * activePlan / trial fields carry no paid plan.
+ *
+ * The backend remains the authority: PlanGate is a UX convenience and
+ * every server-side feature/channel check enforces the same decision.
+ */
+interface BillingStatusAccess {
+  hasAccess: boolean;
+  source: string | null;
+  plan: string | null;
+}
+
+interface BillingStatus {
+  access: BillingStatusAccess;
+  effectivePlan?: string | null;
+  accessSource?: string | null;
+}
+
+const API = process.env.REACT_APP_API_URL || "";
+
+let billingStatusPromise: Promise<BillingStatus | null> | null = null;
+
+const fetchBillingStatus = (): Promise<BillingStatus | null> => {
+  if (!billingStatusPromise) {
+    billingStatusPromise = fetch(`${API}/api/billing/status`, {
+      credentials: "include",
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          return null;
+        }
+        const data = (await res.json()) as BillingStatus;
+        return data;
+      })
+      .catch(() => null);
+  }
+  return billingStatusPromise;
+};
+
 export const PlanGate: React.FC<PlanGateProps> = ({ feature, children, compact = false }) => {
-  const plan = useAuthStore((state) => state.user?.seller?.activePlan);
+  const fallbackPlan = useAuthStore((state) => state.user?.seller?.activePlan);
+
+  // undefined = still resolving the effective entitlement.
+  const [effectivePlan, setEffectivePlan] = useState<string | null | undefined>(undefined);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchBillingStatus().then((status) => {
+      if (cancelled) return;
+      setEffectivePlan(status?.access?.plan ?? status?.effectivePlan ?? null);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // While the effective entitlement is loading, fall back to the
+  // profile's activePlan so the UI does not flicker to the locked
+  // state for sellers whose access comes from a grant.
+  const plan = effectivePlan === undefined ? fallbackPlan : effectivePlan;
 
   if (hasPlanFeature(plan, feature)) {
     return <>{children}</>;

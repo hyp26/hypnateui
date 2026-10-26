@@ -7,6 +7,7 @@ import type { Seller } from '../types';
 import SellersStats from '../components/Sellers/SellersStats';
 import SellersFilters from '../components/Sellers/SellersFilters';
 import SellersTable from '../components/Sellers/SellersTable';
+import FreeAccessModal from '../components/Sellers/FreeAccessModal';
 import '../styles/Sellers.css';
 
 const statusOptions = ['All', 'Active', 'Inactive', 'Suspended', 'Trialing'];
@@ -37,6 +38,27 @@ export const Sellers: React.FC = () => {
   const [planFilter, setPlanFilter] = useState('All');
   const [sortBy, setSortBy] = useState('newest');
   const [selectedSellers, setSelectedSellers] = useState<Array<string | number>>([]);
+  const [freeAccessSeller, setFreeAccessSeller] = useState<Seller | null>(null);
+
+  // Free-access management is a SUPER_ADMIN-only capability.
+  // This is a UI convenience only: the backend independently
+  // rejects grant/change/revoke requests from ADMIN and SUPPORT
+  // users with HTTP 403.
+  const canManageFreeAccess = adminUser?.role === 'SUPER_ADMIN';
+
+  const loadSellers = () => {
+    adminSellersApi
+      .list({ limit: 100 })
+      .then((response) => {
+        setSellers(response.data as unknown as Seller[]);
+        setTotalCount(response.total);
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        setLoadError(getApiErrorMessage(error));
+        setIsLoading(false);
+      });
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -180,6 +202,8 @@ export const Sellers: React.FC = () => {
         onToggle={toggleSellerSelection}
         onSelectAll={selectAllVisible}
         formatRevenue={formatRevenue}
+        canManageFreeAccess={canManageFreeAccess}
+        onManageFreeAccess={setFreeAccessSeller}
       />
 
       <div className="sellers-page__footer">
@@ -195,6 +219,19 @@ export const Sellers: React.FC = () => {
       <span className="sellers-page__admin-user" aria-hidden="true">
         {adminUser?.role ?? ''}
       </span>
+
+      {canManageFreeAccess && freeAccessSeller && (
+        <FreeAccessModal
+          seller={freeAccessSeller}
+          onClose={() => setFreeAccessSeller(null)}
+          onSuccess={() => {
+            setFreeAccessSeller(null);
+            // Refresh the seller list so the effective access
+            // state (accessSource / adminGrant) is up to date.
+            loadSellers();
+          }}
+        />
+      )}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { MoreVertical, Plus, Store, Trash2 } from 'lucide-react';
+import { Gift, MoreVertical, Plus, Store, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { Seller } from '../../types';
 
@@ -12,6 +12,10 @@ interface SellersTableProps {
   onToggle: (id: string | number) => void;
   onSelectAll: () => void;
   formatRevenue: (amount: number) => string;
+  /** True only for SUPER_ADMIN users (backend still enforces 403). */
+  canManageFreeAccess: boolean;
+  /** Opens the Grant/Change Free Access modal for a seller. */
+  onManageFreeAccess: (seller: Seller) => void;
 }
 
 const getStatusClass = (status: string) => {
@@ -33,6 +37,28 @@ const getPlanClass = (plan: string) => {
   }
 };
 
+/**
+ * Effective access state for the Access column.
+ * Mirrors the backend's getPlanAccess decision, which is the
+ * single source of truth shared with billing-status and the
+ * seller-facing plan guards.
+ */
+const getAccessState = (seller: Seller) => {
+  if (seller.status === 'SUSPENDED' || seller.status === 'INACTIVE') {
+    return { label: seller.status === 'SUSPENDED' ? 'Suspended' : 'Inactive', className: 'sellers-badge sellers-badge--inactive' };
+  }
+  if (seller.adminGrant && seller.accessSource === 'admin_grant') {
+    return { label: 'ADMIN-GRANTED · FREE', className: 'sellers-badge sellers-badge--trialing' };
+  }
+  if (seller.accessSource === 'paid') {
+    return { label: 'Paid subscription', className: 'sellers-badge sellers-badge--active' };
+  }
+  if (seller.accessSource === 'trial' || seller.status === 'TRIALING') {
+    return { label: 'Trial active', className: 'sellers-badge sellers-badge--trialing' };
+  }
+  return { label: 'Access required', className: 'sellers-badge sellers-badge--inactive' };
+};
+
 const SellersTable: React.FC<SellersTableProps> = ({
   sellers,
   isLoading,
@@ -41,6 +67,8 @@ const SellersTable: React.FC<SellersTableProps> = ({
   onToggle,
   onSelectAll,
   formatRevenue,
+  canManageFreeAccess,
+  onManageFreeAccess,
 }) => {
   const allVisibleSelected = sellers.length > 0 && selectedVisibleCount === sellers.length;
 
@@ -83,6 +111,7 @@ const SellersTable: React.FC<SellersTableProps> = ({
                   <th>Seller</th>
                   <th>Contact</th>
                   <th>Plan</th>
+                  <th>Access</th>
                   <th>Status</th>
                   <th>Products</th>
                   <th>Orders</th>
@@ -92,36 +121,59 @@ const SellersTable: React.FC<SellersTableProps> = ({
                 </tr>
               </thead>
               <tbody>
-                {sellers.map((seller) => (
-                  <tr key={seller.id}>
-                    <td className="sellers-table__check">
-                      <input
-                        type="checkbox"
-                        checked={selectedSellers.includes(seller.id)}
-                        onChange={() => onToggle(seller.id)}
-                      />
-                    </td>
-                    <td>
-                      <div className="sellers-table__primary">{seller.businessName}</div>
-                      <div className="sellers-table__secondary">ID: {seller.id}</div>
-                    </td>
-                    <td>
-                      <div className="sellers-table__primary sellers-table__primary--normal">{seller.email}</div>
-                      <div className="sellers-table__secondary">{seller.phone || '—'}</div>
-                    </td>
-                    <td><span className={getPlanClass(seller.plan)}>{seller.plan}</span></td>
-                    <td><span className={getStatusClass(seller.status)}>{seller.status.charAt(0) + seller.status.slice(1).toLowerCase()}</span></td>
-                    <td className="sellers-table__number">{seller.totalProducts}</td>
-                    <td className="sellers-table__number">{seller.totalOrders}</td>
-                    <td className="sellers-table__revenue">{formatRevenue(seller.totalRevenue)}</td>
-                    <td className="sellers-table__date">{new Date(seller.createdAt).toLocaleDateString('en-GB')}</td>
-                    <td className="sellers-table__actions">
-                      <button type="button" className="sellers-icon-button" aria-label={`Actions for ${seller.businessName}`}>
-                        <MoreVertical size={18} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {sellers.map((seller) => {
+                  const access = getAccessState(seller);
+
+                  return (
+                    <tr key={seller.id}>
+                      <td className="sellers-table__check">
+                        <input
+                          type="checkbox"
+                          checked={selectedSellers.includes(seller.id)}
+                          onChange={() => onToggle(seller.id)}
+                        />
+                      </td>
+                      <td>
+                        <div className="sellers-table__primary">{seller.businessName}</div>
+                        <div className="sellers-table__secondary">ID: {seller.id}</div>
+                      </td>
+                      <td>
+                        <div className="sellers-table__primary sellers-table__primary--normal">{seller.email}</div>
+                        <div className="sellers-table__secondary">{seller.phone || '—'}</div>
+                      </td>
+                      <td><span className={getPlanClass(seller.plan)}>{seller.plan}</span></td>
+                      <td>
+                        <span className={access.className}>{access.label}</span>
+                        {seller.adminGrant && seller.adminGrant.expiresAt && (
+                          <div className="sellers-table__secondary">
+                            until {new Date(seller.adminGrant.expiresAt).toLocaleDateString('en-GB')}
+                          </div>
+                        )}
+                      </td>
+                      <td><span className={getStatusClass(seller.status)}>{seller.status.charAt(0) + seller.status.slice(1).toLowerCase()}</span></td>
+                      <td className="sellers-table__number">{seller.totalProducts}</td>
+                      <td className="sellers-table__number">{seller.totalOrders}</td>
+                      <td className="sellers-table__revenue">{formatRevenue(seller.totalRevenue)}</td>
+                      <td className="sellers-table__date">{new Date(seller.createdAt).toLocaleDateString('en-GB')}</td>
+                      <td className="sellers-table__actions">
+                        {canManageFreeAccess && (
+                          <button
+                            type="button"
+                            className="sellers-icon-button"
+                            aria-label={`Manage free access for ${seller.businessName}`}
+                            title={seller.adminGrant ? 'Change or revoke free access' : 'Grant free access'}
+                            onClick={() => onManageFreeAccess(seller)}
+                          >
+                            <Gift size={18} />
+                          </button>
+                        )}
+                        <button type="button" className="sellers-icon-button" aria-label={`Actions for ${seller.businessName}`}>
+                          <MoreVertical size={18} />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
