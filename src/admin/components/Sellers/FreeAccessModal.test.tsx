@@ -5,8 +5,10 @@ import FreeAccessModal from './FreeAccessModal';
 /* ------------------------------------------------------------------
  * FreeAccessModal (SUPER_ADMIN free-access grants)
  *
- * Verifies the client-side validation and that the correct API
- * call (grant / update / revoke) is made with the right payload.
+ * Verifies the client-side validation, the grant/update/revoke API
+ * calls with the right payload (including PATCH expiration
+ * semantics: null = indefinite, ISO string = new expiry), the
+ * review summary, and the two-step revocation confirmation.
  * The backend independently enforces SUPER_ADMIN authorization.
  * ------------------------------------------------------------------ */
 
@@ -94,6 +96,15 @@ describe('FreeAccessModal validation', () => {
     expect(screen.getByRole('alert')).toHaveTextContent(/expiration must be in the future/i);
     expect(adminFreeAccessApi.grant).not.toHaveBeenCalled();
   });
+
+  it('shows a review summary of the exact grant that will be submitted', () => {
+    renderModal();
+
+    const review = screen.getByLabelText('Review grant details');
+    expect(review).toHaveTextContent('Test Store');
+    expect(review).toHaveTextContent('ID 42');
+    expect(review).toHaveTextContent(/indefinite until revoked/i);
+  });
 });
 
 describe('FreeAccessModal submissions', () => {
@@ -125,6 +136,29 @@ describe('FreeAccessModal submissions', () => {
     expect(payload.expiresAt).toBeUndefined();
   });
 
+  it('sends an ISO expiresAt when granting time-limited access', async () => {
+    const onSuccess = jest.fn();
+    adminFreeAccessApi.grant.mockResolvedValue({});
+    render(
+      <FreeAccessModal seller={{ ...baseSeller }} onClose={jest.fn()} onSuccess={onSuccess} />
+    );
+
+    fillReason('Q4 promotion');
+    confirmFreeOfCharge();
+    fireEvent.click(screen.getByLabelText(/Expires at a specific date and time/));
+    fireEvent.change(screen.getByLabelText('Grant expiration'), {
+      target: { value: '2031-01-15T09:30' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Grant free access' }));
+
+    await waitFor(() => expect(onSuccess).toHaveBeenCalled());
+    const payload = adminFreeAccessApi.grant.mock.calls[0][1] as {
+      expiresAt?: string;
+    };
+    expect(payload.expiresAt).toEqual(new Date('2031-01-15T09:30').toISOString());
+  });
+
   it('updates an existing grant instead of creating a duplicate', async () => {
     adminFreeAccessApi.update.mockResolvedValue({});
     renderModal({
@@ -141,14 +175,35 @@ describe('FreeAccessModal submissions', () => {
     await waitFor(() => expect(adminFreeAccessApi.update).toHaveBeenCalledTimes(1));
     expect(adminFreeAccessApi.update).toHaveBeenCalledWith(42, {
       plan: 'pro',
-      // Sending null keeps the grant indefinite.
+      // "Indefinite" was explicitly chosen: null clears the expiry.
       expiresAt: null,
       reason: 'Extend to Pro',
     });
     expect(adminFreeAccessApi.grant).not.toHaveBeenCalled();
   });
 
-  it('revokes an existing grant with a reason', async () => {
+  it('keeps an existing dated grant expiring when the date is unchanged', async () => {
+    const existingExpiry = '2031-06-01T12:00:00.000Z';
+    adminFreeAccessApi.update.mockResolvedValue({});
+    renderModal({
+      adminGrant: { id: 7, plan: 'pro', expiresAt: existingExpiry, reason: 'initial' },
+    });
+
+    fillReason('Renew justification');
+    confirmFreeOfCharge();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
+
+    await waitFor(() => expect(adminFreeAccessApi.update).toHaveBeenCalledTimes(1));
+    const payload = adminFreeAccessApi.update.mock.calls[0][1] as {
+      expiresAt?: string | null;
+    };
+    // The form was pre-filled with the existing expiry: the same
+    // instant must be sent, not null and not a stale value.
+    expect(payload.expiresAt).toEqual(new Date('2031-06-01T12:00').toISOString());
+  });
+
+  it('requires a confirmation step before revoking', async () => {
     const onSuccess = jest.fn();
     adminFreeAccessApi.revoke.mockResolvedValue({});
     render(
@@ -162,15 +217,29 @@ describe('FreeAccessModal submissions', () => {
       />
     );
 
+    fillReason('No longer eligible');
+
+    // First click arms the confirmation; nothing is revoked yet.
     fireEvent.click(screen.getByRole('button', { name: 'Revoke free access' }));
-    expect(screen.getByRole('alert')).toHaveTextContent(/reason is required/i);
+    expect(screen.getByRole('alertdialog', { name: 'Confirm revocation' })).toBeInTheDocument();
     expect(adminFreeAccessApi.revoke).not.toHaveBeenCalled();
 
-    fillReason('No longer eligible');
+    // Confirm the explicit second step.
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, revoke now' }));
+
+    await waitFor(() => expect(adminFreeAccessApi.revoke).toHaveBeenCalledWith(42, 'No longer eligible'));
+    await waitFor(() => expect(onSuccess).toHaveBeenCalled());
+  });
+
+  it('blocks revocation without a reason', () => {
+    renderModal({
+      adminGrant: { id: 7, plan: 'starter', expiresAt: null, reason: 'initial' },
+    });
+
     fireEvent.click(screen.getByRole('button', { name: 'Revoke free access' }));
 
-    await waitFor(() => expect(onSuccess).toHaveBeenCalled());
-    expect(adminFreeAccessApi.revoke).toHaveBeenCalledWith(42, 'No longer eligible');
+    expect(screen.getByRole('alert')).toHaveTextContent(/reason is required/i);
+    expect(adminFreeAccessApi.revoke).not.toHaveBeenCalled();
   });
 
   it('shows the API error message when the backend rejects the request', async () => {

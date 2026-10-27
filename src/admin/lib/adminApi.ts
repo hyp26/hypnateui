@@ -245,6 +245,20 @@ export interface FreeAccessPayload {
   reason: string;
 }
 
+/**
+ * PATCH /api/admin/sellers/:id/free-access payload.
+ *
+ * Expiration semantics (mirrors the backend updateFreeAccessSchema):
+ * - ISO timestamp string: set/replace the expiry (must be future).
+ * - null: make the grant INDEFINITE (explicitly clears the expiry).
+ * - undefined: leave the current expiry unchanged.
+ */
+export interface FreeAccessUpdatePayload {
+  plan?: 'starter' | 'pro' | 'business';
+  expiresAt?: string | null;
+  reason: string;
+}
+
 export interface FreeAccessResponse {
   message: string;
   grant: {
@@ -266,10 +280,7 @@ export const adminFreeAccessApi = {
     const res = await adminApi.post(`/api/admin/sellers/${sellerId}/free-access`, payload);
     return res.data as FreeAccessResponse;
   },
-  update: async (
-    sellerId: string | number,
-    payload: Partial<Omit<FreeAccessPayload, 'reason'>> & { reason: string }
-  ) => {
+  update: async (sellerId: string | number, payload: FreeAccessUpdatePayload) => {
     const res = await adminApi.patch(`/api/admin/sellers/${sellerId}/free-access`, payload);
     return res.data as FreeAccessResponse;
   },
