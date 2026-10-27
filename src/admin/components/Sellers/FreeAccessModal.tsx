@@ -83,6 +83,9 @@ export const FreeAccessModal: React.FC<FreeAccessModalProps> = ({
   const [confirmed, setConfirmed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Two-step revocation: the first click only arms the
+  // confirmation; an explicit second click performs it.
+  const [confirmRevoke, setConfirmRevoke] = useState(false);
 
   const expiryDate = useMemo(() => {
     if (duration !== 'expires' || !expiresAt) return null;
@@ -125,8 +128,10 @@ export const FreeAccessModal: React.FC<FreeAccessModalProps> = ({
 
     try {
       if (activeGrant) {
-        // Change plan / expiration. expiresAt is always sent:
-        // a valid timestamp sets it, null makes the grant indefinite.
+        // Change plan / expiration. expiresAt is always sent on
+        // PATCH with explicit semantics: a valid timestamp sets a
+        // new expiry, null makes the grant indefinite. It is
+        // null only when "Indefinite" was explicitly selected.
         await adminFreeAccessApi.update(seller.id, {
           plan: payload.plan,
           expiresAt: payload.expiresAt ?? null,
@@ -150,6 +155,13 @@ export const FreeAccessModal: React.FC<FreeAccessModalProps> = ({
       return;
     }
 
+    if (!confirmRevoke) {
+      // First click: arm the confirmation instead of revoking.
+      setConfirmRevoke(true);
+      setError(null);
+      return;
+    }
+
     setIsSubmitting(true);
     setError(null);
 
@@ -162,6 +174,11 @@ export const FreeAccessModal: React.FC<FreeAccessModalProps> = ({
       setIsSubmitting(false);
     }
   };
+
+  const expirySummary =
+    duration === 'expires' && expiryDate
+      ? `expires ${expiryDate.toLocaleString()}`
+      : 'indefinite until revoked';
 
   return (
     <div
@@ -347,6 +364,28 @@ export const FreeAccessModal: React.FC<FreeAccessModalProps> = ({
           </span>
         </label>
 
+        {/* Review summary: the exact state that will be submitted. */}
+        <div
+          aria-label="Review grant details"
+          style={{
+            border: '1px solid #dfe7ef',
+            background: '#f8fafc',
+            borderRadius: 8,
+            padding: '10px 12px',
+            fontSize: 12,
+            color: '#33465f',
+            marginBottom: 14,
+          }}
+        >
+          <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: 4 }}>
+            Review
+          </div>
+          <div>Seller: {seller.businessName} (ID {seller.id})</div>
+          <div>
+            Plan: {plan} — no charge, {expirySummary}
+          </div>
+        </div>
+
         {error && (
           <div
             role="alert"
@@ -361,6 +400,66 @@ export const FreeAccessModal: React.FC<FreeAccessModalProps> = ({
             }}
           >
             {error}
+          </div>
+        )}
+
+        {confirmRevoke && activeGrant && (
+          <div
+            role="alertdialog"
+            aria-label="Confirm revocation"
+            style={{
+              border: '1px solid #fecaca',
+              background: '#fef2f2',
+              color: '#991b1b',
+              borderRadius: 8,
+              padding: '10px 12px',
+              fontSize: 12,
+              marginBottom: 14,
+            }}
+          >
+            <div style={{ fontWeight: 700, marginBottom: 6 }}>
+              Revoke free access for {seller.businessName}?
+            </div>
+            <div style={{ marginBottom: 10 }}>
+              The seller immediately loses the granted plan capabilities.
+              This cannot be undone — a new grant can be created later.
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                type="button"
+                onClick={revoke}
+                disabled={isSubmitting}
+                style={{
+                  padding: '7px 12px',
+                  borderRadius: 8,
+                  border: '1px solid #fca5a5',
+                  background: '#dc2626',
+                  color: '#fff',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {isSubmitting ? 'Revoking…' : 'Yes, revoke now'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmRevoke(false)}
+                disabled={isSubmitting}
+                style={{
+                  padding: '7px 12px',
+                  borderRadius: 8,
+                  border: '1px solid #cbd5e1',
+                  background: '#fff',
+                  color: '#0f172a',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         )}
 
@@ -382,7 +481,7 @@ export const FreeAccessModal: React.FC<FreeAccessModalProps> = ({
                 cursor: isSubmitting ? 'not-allowed' : 'pointer',
               }}
             >
-              Revoke free access
+              {confirmRevoke ? 'Revoke free access…' : 'Revoke free access'}
             </button>
           )}
           <button
