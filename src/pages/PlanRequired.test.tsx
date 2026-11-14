@@ -46,7 +46,12 @@ const mockUseAuthStore: any = (selector: any) =>
 mockUseAuthStore.getState = () => ({ loadProfile: jest.fn() });
 
 jest.mock('../stores/useAuthStore', () => ({
-  useAuthStore: mockUseAuthStore,
+  useAuthStore: Object.assign(
+    (...args: any[]) => mockUseAuthStore(...args),
+    {
+      getState: (...args: any[]) => mockUseAuthStore.getState(...args),
+    }
+  ),
 }));
 
 jest.mock('../config/planEntitlements', () => ({

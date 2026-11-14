@@ -88,7 +88,7 @@ describe('SellersTable Access column', () => {
     renderTable(
       [
         makeSeller({ plan: 'PRO', accessSource: 'paid' }),
-        makeSeller({ plan: 'FREE', accessSource: null }),
+        makeSeller({ id: 2, plan: 'FREE', accessSource: null }),
       ],
       false
     );
@@ -109,6 +109,7 @@ describe('SellersTable Access column', () => {
       false
     );
 
+    expect(screen.getByText('Access suspended')).toBeInTheDocument();
     expect(screen.getByText('Suspended')).toBeInTheDocument();
     expect(screen.queryByText('ADMIN-GRANTED · FREE')).not.toBeInTheDocument();
   });

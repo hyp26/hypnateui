@@ -134,7 +134,7 @@ export const FreeAccessModal: React.FC<FreeAccessModalProps> = ({
         // null only when "Indefinite" was explicitly selected.
         await adminFreeAccessApi.update(seller.id, {
           plan: payload.plan,
-          expiresAt: payload.expiresAt ?? undefined,
+          expiresAt: payload.expiresAt ?? null,
           reason: payload.reason,
         });
       } else {

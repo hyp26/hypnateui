@@ -1,7 +1,5 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { Analytics } from '@vercel/analytics/react';
-import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Layout } from './components/layout/layout';
 import { PublicLayout } from './components/layout/PublicLayout';
 import { RouteSEO } from './components/public/SEO';
@@ -212,8 +210,6 @@ function App() {
 
         <Route path="*" element={<NotFound />} />
       </Routes>
-      <Analytics />
-      <SpeedInsights />
     </Router>
   );
 }

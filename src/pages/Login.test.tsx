@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { Login } from './Login';
 
@@ -8,8 +9,7 @@ import { Login } from './Login';
  *
  * The old login handler routed every onboarded seller WITHOUT an
  * activePlan to /plan-required. Sellers inside their 7-day trial
- * have no activePlan yet, so mid-trial sellers (e.g. account created
- * Oct 13, login Oct 18) hit the paywall on day 5 of 7.
+ * have no activePlan yet, so mid-trial sellers hit the paywall early.
  *
  * The fix: login only enforces onboarding completion; billing access
  * is decided exclusively by ProtectedRoute via the authoritative
@@ -34,20 +34,29 @@ jest.mock('../components/auth/AuthLayout', () => ({
 let mockLoginResult: any;
 
 const mockUseAuthStore: any = (selector: any) =>
-  selector({ login: (...args: any[]) => mockLoginResult.promise(...args) });
+  selector({
+    login: (...args: any[]) => mockLoginResult.promise(...args),
+  });
 
 jest.mock('../stores/useAuthStore', () => ({
-  useAuthStore: mockUseAuthStore,
+  useAuthStore: Object.assign(
+    (...args: any[]) => mockUseAuthStore(...args),
+    {
+      getState: (...args: any[]) => mockUseAuthStore.getState(...args),
+    }
+  ),
 }));
 
 const seller = (overrides: Record<string, unknown> = {}) => ({
   businessName: 'Aisha Threads',
   onboardedAt: '2026-10-13T10:00:00.000Z',
-  // Mid-trial seller: has a valid trial but NO activePlan.
+
+  // Mid-trial seller: valid trial, but NO activePlan.
   trialPlan: 'starter',
   trialStartedAt: '2026-10-13T10:00:00.000Z',
   trialEndsAt: '2026-10-20T10:00:00.000Z',
   activePlan: null,
+
   ...overrides,
 });
 
@@ -66,18 +75,22 @@ const renderLoginAtEntry = () =>
     <MemoryRouter initialEntries={['/login']}>
       <Routes>
         <Route path="/login" element={<Login />} />
+
         <Route
           path="/dashboard"
           element={<div data-testid="workspace-dashboard" />}
         />
+
         <Route
           path="/onboarding"
           element={<div data-testid="onboarding-page" />}
         />
+
         <Route
           path="/plan-required"
           element={<div data-testid="plan-required-page" />}
         />
+
         <Route
           path="/verify-email"
           element={<div data-testid="verify-email-page" />}
@@ -86,38 +99,39 @@ const renderLoginAtEntry = () =>
     </MemoryRouter>
   );
 
-const submitLoginForm = async () => {
+const submitLoginForm = () => {
   fireEvent.change(screen.getByLabelText('Email address'), {
     target: { value: 'aisha@example.com' },
   });
+
   fireEvent.change(screen.getByLabelText('Password'), {
     target: { value: 'Str0ng!pass' },
   });
-  fireEvent.submit(screen.getByRole('button', { name: /log in/i }));
 
-  await waitFor(() =>
-    expect(
-      screen.queryByRole('button', { name: /signing in/i })
-    ).toBeNull()
-  );
+  fireEvent.submit(screen.getByRole('button', { name: /log in/i }));
 };
 
 beforeEach(() => {
-  mockLoginResult = { promise: () => Promise.resolve(makeUser()) };
+  mockLoginResult = {
+    promise: () => Promise.resolve(makeUser()),
+  };
 });
 
 describe('Login routing after authentication', () => {
   it('routes an onboarded, mid-trial seller WITHOUT an activePlan to the workspace, not the paywall', async () => {
-    // Deterministic scenario: account created Oct 13, trial ends Oct 20,
-    // logging in "Oct 18" — well inside the 7-day trial, no activePlan.
+    // Account created October 13; trial ends October 20.
+    // Seller is still within the trial and has no activePlan.
     mockLoginResult = {
       promise: () => Promise.resolve(makeUser()),
     };
 
     renderLoginAtEntry();
-    await submitLoginForm();
+    submitLoginForm();
 
-    expect(screen.getByTestId('workspace-dashboard')).toBeInTheDocument();
+    expect(
+      await screen.findByTestId('workspace-dashboard')
+    ).toBeInTheDocument();
+
     expect(screen.queryByTestId('plan-required-page')).toBeNull();
   });
 
@@ -133,22 +147,34 @@ describe('Login routing after authentication', () => {
     };
 
     renderLoginAtEntry();
-    await submitLoginForm();
+    submitLoginForm();
 
-    expect(screen.getByTestId('workspace-dashboard')).toBeInTheDocument();
+    expect(
+      await screen.findByTestId('workspace-dashboard')
+    ).toBeInTheDocument();
+
     expect(screen.queryByTestId('plan-required-page')).toBeNull();
   });
 
   it('routes a seller who has not completed onboarding to onboarding', async () => {
     mockLoginResult = {
       promise: () =>
-        Promise.resolve(makeUser({ onboardedAt: null, trialStartedAt: null, trialEndsAt: null })),
+        Promise.resolve(
+          makeUser({
+            onboardedAt: null,
+            trialStartedAt: null,
+            trialEndsAt: null,
+          })
+        ),
     };
 
     renderLoginAtEntry();
-    await submitLoginForm();
+    submitLoginForm();
 
-    expect(screen.getByTestId('onboarding-page')).toBeInTheDocument();
+    expect(
+      await screen.findByTestId('onboarding-page')
+    ).toBeInTheDocument();
+
     expect(screen.queryByTestId('plan-required-page')).toBeNull();
     expect(screen.queryByTestId('workspace-dashboard')).toBeNull();
   });
@@ -167,9 +193,12 @@ describe('Login routing after authentication', () => {
     };
 
     renderLoginAtEntry();
-    await submitLoginForm();
+    submitLoginForm();
 
-    expect(screen.getByTestId('workspace-dashboard')).toBeInTheDocument();
+    expect(
+      await screen.findByTestId('workspace-dashboard')
+    ).toBeInTheDocument();
+
     expect(screen.queryByTestId('plan-required-page')).toBeNull();
   });
 
@@ -184,9 +213,12 @@ describe('Login routing after authentication', () => {
     };
 
     renderLoginAtEntry();
-    await submitLoginForm();
+    submitLoginForm();
 
-    expect(screen.getByTestId('verify-email-page')).toBeInTheDocument();
+    expect(
+      await screen.findByTestId('verify-email-page')
+    ).toBeInTheDocument();
+
     expect(screen.queryByTestId('plan-required-page')).toBeNull();
   });
 });

@@ -209,9 +209,6 @@ export const Onboarding: React.FC = () => {
         if (channels.whatsapp.connected && !savedChannels.has("whatsapp")) {
           connected.whatsapp = { phone: channels.whatsapp.phone, apiKey: channels.whatsapp.apiKey };
         }
-        if (channels.telegram.connected && !savedChannels.has("telegram")) {
-          connected.telegram = { botToken: channels.telegram.botToken };
-        }
         if (channels.instagram.connected && hasPlanChannel(effectivePlan, "instagram") && !savedChannels.has("instagram")) connected.instagram = {};
         if (channels.facebook.connected && hasPlanChannel(effectivePlan, "facebook") && !savedChannels.has("facebook")) connected.facebook = {};
         if (Object.keys(connected).length > 0) {
@@ -358,7 +355,21 @@ export const Onboarding: React.FC = () => {
               // before the UI is allowed to show them as connected. This prevents
               // a false green/blue "Connected" state when Telegram or WhatsApp
               // rejects the credentials.
-              if (type === "telegram" || type === "whatsapp") {
+              if (type === "telegram") {
+                await api.post("/api/channels/telegram", {
+                  botToken: data.botToken,
+                });
+                setSavedChannels((current) => new Set(current).add(type));
+                // The token is sent directly to the backend and is not
+                // retained in onboarding state or browser persistence.
+                setChannels((prev) => ({
+                  ...prev,
+                  telegram: { ...prev.telegram, connected: true, botToken: "" },
+                }));
+                return;
+              }
+
+              if (type === "whatsapp") {
                 await api.post("/api/onboarding/channels", {
                   channels: { [type]: data },
                 });
