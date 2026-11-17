@@ -13,6 +13,7 @@ import { PlanGate } from "../components/plan/PlanGate";
 import { hasPlanChannel, requiredPlanForChannel, type PlanChannel } from "../config/planEntitlements";
 import { useIntegrationStore } from "../stores/useIntegrationStore";
 import { WhatsAppSetupGuide } from "../components/integrations/WhatsAppSetupGuide";
+import { ConnectModal } from "../components/integrations/ConnectModal";
 
 /* ─── TYPES ─── */
 interface ProfileData { name: string; email: string; phone: string; avatarUrl: string | null }
@@ -141,6 +142,7 @@ export const Settings: React.FC = () => {
 
   /* Real WhatsApp connection state — the backend is the source of truth (no local toggle). */
   const whatsapp = useIntegrationStore(s => s.whatsapp);
+  const telegramConnected = useIntegrationStore(s => s.channels.telegram.connected === true);
   const whatsappLoading = useIntegrationStore(s => s.whatsappLoading);
   const whatsappValidating = useIntegrationStore(s => s.whatsappValidating);
   const whatsappDisconnecting = useIntegrationStore(s => s.whatsappDisconnecting);
@@ -152,6 +154,7 @@ export const Settings: React.FC = () => {
   const clearWhatsAppError = useIntegrationStore(s => s.clearWhatsAppError);
 
   const [activeTab, setActiveTab] = useState("profile");
+  const [connectModalPlatform, setConnectModalPlatform] = useState<"telegram" | null>(null);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
@@ -570,7 +573,7 @@ export const Settings: React.FC = () => {
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                       {(Object.keys(CHANNEL_CFG) as (keyof typeof CHANNEL_CFG)[]).map(key => {
-                        const cfg = CHANNEL_CFG[key]; const isWhatsApp = key === "whatsapp"; const waConnected = isWhatsApp && whatsapp?.connected === true; const connected = isWhatsApp ? waConnected : channels[key]; const waPhone = isWhatsApp && whatsapp ? whatsapp.phoneNumbers[0] : undefined; const Icon = cfg.icon;
+                        const cfg = CHANNEL_CFG[key]; const isWhatsApp = key === "whatsapp"; const waConnected = isWhatsApp && whatsapp?.connected === true; const connected = isWhatsApp ? waConnected : key === "telegram" ? telegramConnected : channels[key]; const waPhone = isWhatsApp && whatsapp ? whatsapp.phoneNumbers[0] : undefined; const Icon = cfg.icon;
                         return (
                           <div key={key} className="channel-card" style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", borderRadius: 14, border: `1.5px solid ${connected ? "#bbf7d0" : "#f1f5f9"}`, background: connected ? "#f0fdf4" : "#fff", transition: "all 0.2s", cursor: "default", flexWrap: "wrap" }}>
                             <div style={{ width: 44, height: 44, borderRadius: 12, background: cfg.gradient, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 4px 14px ${cfg.glow}`, flexShrink: 0 }}>
@@ -631,6 +634,45 @@ export const Settings: React.FC = () => {
                                   <button type="button" onClick={() => { connectWhatsApp(); }} disabled={whatsappLoading} style={{ padding: "7px 14px", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#0d9488,#0f766e)", color: "#fff", fontSize: 12, fontWeight: 700, cursor: whatsappLoading ? "not-allowed" : "pointer", fontFamily: "inherit", boxShadow: "0 3px 10px rgba(13,148,136,0.25)", flexShrink: 0, opacity: whatsappLoading ? 0.7 : 1 }}>Connect WhatsApp</button>
                                 );
                               }
+                              if (key === "telegram") {
+                                return connected ? (
+                                  <span
+                                    style={{
+                                      padding: "7px 14px",
+                                      borderRadius: 8,
+                                      border: "1px solid #bbf7d0",
+                                      background: "#f0fdf4",
+                                      color: "#15803d",
+                                      fontSize: 12,
+                                      fontWeight: 700,
+                                      flexShrink: 0,
+                                    }}
+                                  >
+                                    Connected
+                                  </span>
+                                ) : locked ? upgradeBtn : (
+                                  <button
+                                    type="button"
+                                    onClick={() => setConnectModalPlatform("telegram")}
+                                    style={{
+                                      padding: "7px 14px",
+                                      borderRadius: 8,
+                                      border: "none",
+                                      background: "linear-gradient(135deg,#0d9488,#0f766e)",
+                                      color: "#fff",
+                                      fontSize: 12,
+                                      fontWeight: 700,
+                                      cursor: "pointer",
+                                      fontFamily: "inherit",
+                                      boxShadow: "0 3px 10px rgba(13,148,136,0.25)",
+                                      flexShrink: 0,
+                                    }}
+                                  >
+                                    Connect
+                                  </button>
+                                );
+                              }
+
                               return connected ? (
                                 <button onClick={() => setChannels(c => ({ ...c, [key]: false }))} style={{ padding: "7px 14px", borderRadius: 8, border: "1.5px solid #fecaca", background: "#fef2f2", color: "#dc2626", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>Disconnect</button>
                               ) : locked ? upgradeBtn : (
@@ -907,6 +949,11 @@ export const Settings: React.FC = () => {
         </div>
       </div>
 
+      <ConnectModal
+        isOpen={connectModalPlatform === "telegram"}
+        platform={connectModalPlatform}
+        onClose={() => setConnectModalPlatform(null)}
+      />
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </>
   );
