@@ -37,11 +37,32 @@ export interface ChartsResponse {
 }
 
 export const getApiErrorMessage = (error: unknown): string => {
-  if (axios.isAxiosError(error)) {
-    const data = error.response?.data as { message?: string } | undefined;
-    return data?.message || error.message || 'Request failed. Please try again.';
+  if (typeof error === 'object' && error !== null) {
+    const response = (
+      error as {
+        response?: {
+          data?: {
+            message?: unknown;
+          };
+        };
+      }
+    ).response;
+
+    const backendMessage = response?.data?.message;
+
+    if (typeof backendMessage === 'string' && backendMessage.trim()) {
+      return backendMessage;
+    }
   }
-  if (error instanceof Error) return error.message;
+
+  if (axios.isAxiosError(error)) {
+    return error.message || 'Request failed. Please try again.';
+  }
+
+  if (error instanceof Error) {
+    return error.message;
+  }
+
   return 'Request failed. Please try again.';
 };
 

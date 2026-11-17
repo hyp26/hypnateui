@@ -60,6 +60,7 @@ interface IntegrationState {
   channels: Record<Platform, ChannelConfig>;
   connectChannel: (platform: Platform, data: any) => Promise<void>;
   disconnectChannel: (platform: Platform) => void;
+  markTelegramConnected: (identifier?: string) => void;
 
   /* ---- Real WhatsApp state (backend is the source of truth) ---- */
   whatsapp: WhatsAppStatus | null;
@@ -208,6 +209,11 @@ export const useIntegrationStore = create<IntegrationState>()(
           get().connectWhatsApp();
           return;
         }
+        if (platform === 'telegram') {
+          throw new Error(
+            'Telegram connections must use the authenticated Telegram API.'
+          );
+        }
 
         // Simulate API Latency (non-WhatsApp channels only)
         await new Promise(resolve => setTimeout(resolve, 1500));
@@ -222,9 +228,6 @@ export const useIntegrationStore = create<IntegrationState>()(
           case 'facebook':
             identifier = 'Hypnate Store Page';
             break;
-          case 'telegram':
-            identifier = data?.botToken ? 'Telegram Bot' : 'hypnate_bot';
-            break;
         }
 
         set((state) => ({
@@ -234,11 +237,24 @@ export const useIntegrationStore = create<IntegrationState>()(
               connected: true,
               identifier,
               lastSynced: now,
+              // Telegram credentials must never be persisted in browser storage.
               metadata: data,
             },
           },
         }));
       },
+
+      markTelegramConnected: (identifier) =>
+        set((state) => ({
+          channels: {
+            ...state.channels,
+            telegram: {
+              connected: true,
+              identifier: identifier || 'Telegram Bot',
+              lastSynced: new Date().toISOString(),
+            },
+          },
+        })),
 
       disconnectChannel: (platform) => {
         if (platform === 'whatsapp') {
@@ -257,6 +273,20 @@ export const useIntegrationStore = create<IntegrationState>()(
     }),
     {
       name: 'integration-storage',
+      version: 2,
+      migrate: (persistedState: any) => {
+        const channels = persistedState?.channels ?? {};
+        return {
+          ...persistedState,
+          channels: {
+            ...channels,
+            // Remove bot tokens written by older versions of this store.
+            // Old Telegram connection state came from the simulated flow.
+            // Require a fresh backend-confirmed connection.
+            telegram: { connected: false },
+          },
+        };
+      },
       /* Persist only the non-WhatsApp channel cards.
        * WhatsApp connection state is never persisted — the backend
        * status endpoint is the single source of truth and is loaded
@@ -266,7 +296,11 @@ export const useIntegrationStore = create<IntegrationState>()(
           whatsapp: { connected: false },
           instagram: state.channels.instagram,
           facebook: state.channels.facebook,
-          telegram: state.channels.telegram,
+          telegram: {
+            connected: state.channels.telegram.connected,
+            identifier: state.channels.telegram.identifier,
+            lastSynced: state.channels.telegram.lastSynced,
+          },
         },
       }),
     }

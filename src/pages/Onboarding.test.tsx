@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import api from '../lib/api';
 import { MemoryRouter } from 'react-router-dom';
 import { Onboarding } from './Onboarding';
 
@@ -23,11 +24,21 @@ jest.mock('../lib/api', () => ({
 }));
 
 jest.mock('../stores/useAuthStore', () => ({
-  useAuthStore: mockUseAuthStore,
+  useAuthStore: Object.assign(
+    (...args: any[]) => mockUseAuthStore(...args),
+    {
+      getState: (...args: any[]) => mockUseAuthStore.getState(...args),
+    }
+  ),
 }));
 
 jest.mock('../stores/useIntegrationStore', () => ({
-  useIntegrationStore: mockUseIntegrationStore,
+  useIntegrationStore: Object.assign(
+    (...args: any[]) => mockUseIntegrationStore(...args),
+    {
+      getState: (...args: any[]) => mockUseIntegrationStore.getState(...args),
+    }
+  ),
 }));
 
 jest.mock('../config/planEntitlements', () => ({
@@ -61,15 +72,61 @@ jest.mock('../components/onboarding/SkipConfirmPopup', () => ({
   SkipConfirmPopup: () => null,
 }));
 jest.mock('../components/onboarding/ChannelModal', () => ({
-  ChannelModal: () => null,
+  ChannelModal: ({ type, onConnect, onClose }: any) => {
+    const React = require('react');
+    const [error, setError] = React.useState('');
+
+    if (type !== 'telegram') return null;
+
+    const submit = async () => {
+      try {
+        await onConnect(type, {
+          botToken: '123456:ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        });
+        onClose();
+      } catch (err: any) {
+        setError(
+          err?.response?.data?.message ||
+          err?.message ||
+          'Could not connect Telegram.'
+        );
+      }
+    };
+
+    return (
+      <div>
+        <button type="button" onClick={submit}>
+          Submit Telegram
+        </button>
+        {error && <div role="alert">{error}</div>}
+      </div>
+    );
+  },
 }));
+
 jest.mock('../components/onboarding/ChannelsStep', () => ({
-  ChannelsStep: ({ channels, error }: any) => (
+  ChannelsStep: ({ channels, error, onOpenChannel }: any) => (
     <div>
       <span data-testid="wa-connected">
         {String(channels?.whatsapp?.connected)}
       </span>
+
+      <span data-testid="telegram-connected">
+        {String(channels?.telegram?.connected)}
+      </span>
+
+      <span data-testid="telegram-token">
+        {channels?.telegram?.botToken || ''}
+      </span>
+
       {error && <div role="alert">{error}</div>}
+
+      <button
+        type="button"
+        onClick={() => onOpenChannel('telegram')}
+      >
+        Open Telegram
+      </button>
     </div>
   ),
 }));
@@ -87,6 +144,8 @@ describe('Onboarding - WhatsApp OAuth return', () => {
     mockLoadWhatsAppStatus.mockResolvedValue(undefined);
     mockWhatsAppStatus = { connected: true };
     window.history.replaceState(null, '', '/onboarding');
+    (api.post as jest.Mock).mockReset();
+    (api.post as jest.Mock).mockResolvedValue({ data: {} });
   });
 
   it('restores Step 4 and fetches the real status after wa=connected', async () => {
@@ -98,12 +157,12 @@ describe('Onboarding - WhatsApp OAuth return', () => {
     expect(mockLoadWhatsAppStatus).toHaveBeenCalledTimes(1);
     expect(window.location.search).toBe('');
 
-    await waitFor(() =>
-      expect(screen.getByTestId('wa-connected').textContent).toBe('true')
-    );
-    expect(screen.queryByRole('alert')).toBeNull();
-  });
+    await waitFor(() => {
+      expect(screen.getByTestId('wa-connected').textContent).toBe('true');
+    });
 
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
   it('keeps WhatsApp disconnected when the backend reports connected=false', async () => {
     mockWhatsAppStatus = { connected: false };
     window.history.replaceState(null, '', '/onboarding?wa=connected');
@@ -113,12 +172,12 @@ describe('Onboarding - WhatsApp OAuth return', () => {
     expect(screen.getByText(/Step 4 of 5/i)).toBeInTheDocument();
     expect(mockLoadWhatsAppStatus).toHaveBeenCalledTimes(1);
 
-    await waitFor(() =>
-      expect(screen.getByTestId('wa-connected').textContent).toBe('false')
-    );
-    expect(screen.getByRole('alert').textContent).toMatch(
-      /could not connect whatsapp/i
-    );
+    await waitFor(() => {
+      expect(screen.getByTestId('wa-connected').textContent).toBe('false');
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        /could not connect whatsapp/i
+      );
+    });
   });
 
   it('stays on Step 4 with a safe error after wa=error', () => {
@@ -136,5 +195,90 @@ describe('Onboarding - WhatsApp OAuth return', () => {
       /could not verify your whatsapp session/i
     );
     expect(window.location.search).toBe('');
+  });
+});
+
+describe('Onboarding - Telegram API connection', () => {
+  beforeEach(() => {
+    window.history.replaceState(null, '', '/onboarding?wa=connected');
+    mockWhatsAppStatus = { connected: true };
+
+    (api.post as jest.Mock).mockReset();
+    (api.post as jest.Mock).mockResolvedValue({ data: {} });
+  });
+
+  it('connects Telegram through the backend API and clears the token', async () => {
+    renderOnboarding();
+
+    fireEvent.click(await screen.findByRole('button', {
+      name: /open telegram/i,
+    }));
+
+    fireEvent.click(screen.getByRole('button', {
+      name: /submit telegram/i,
+    }));
+
+    await waitFor(() => {
+      expect(api.post).toHaveBeenCalledWith(
+        '/api/channels/telegram',
+        {
+          botToken: '123456:ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        }
+      );
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('telegram-connected'))
+        .toHaveTextContent('true');
+
+      expect(screen.getByTestId('telegram-token'))
+        .toBeEmptyDOMElement();
+    });
+  });
+
+  it('does not mark Telegram connected when the backend rejects the token', async () => {
+    (api.post as jest.Mock).mockRejectedValueOnce(
+      new Error('Invalid Telegram bot token')
+    );
+
+    renderOnboarding();
+
+    fireEvent.click(await screen.findByRole('button', {
+      name: /open telegram/i,
+    }));
+
+    fireEvent.click(screen.getByRole('button', {
+      name: /submit telegram/i,
+    }));
+
+    expect(await screen.findByRole('alert'))
+      .toHaveTextContent(/invalid telegram bot token/i);
+
+    expect(screen.getByTestId('telegram-connected'))
+      .toHaveTextContent('false');
+
+    expect(api.post).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not mark Telegram connected when the backend is unavailable', async () => {
+    (api.post as jest.Mock).mockRejectedValueOnce(
+      new Error('Network Error')
+    );
+
+    renderOnboarding();
+
+    fireEvent.click(await screen.findByRole('button', {
+      name: /open telegram/i,
+    }));
+
+    fireEvent.click(screen.getByRole('button', {
+      name: /submit telegram/i,
+    }));
+
+    expect(await screen.findByRole('alert'))
+      .toHaveTextContent(/network error/i);
+
+    expect(screen.getByTestId('telegram-connected'))
+      .toHaveTextContent('false');
   });
 });

@@ -45,7 +45,10 @@ const getPlanClass = (plan: string) => {
  */
 const getAccessState = (seller: Seller) => {
   if (seller.status === 'SUSPENDED' || seller.status === 'INACTIVE') {
-    return { label: seller.status === 'SUSPENDED' ? 'Suspended' : 'Inactive', className: 'sellers-badge sellers-badge--inactive' };
+  return {
+    label: seller.status === 'SUSPENDED' ? 'Access suspended' : 'Inactive',
+    className: 'sellers-badge sellers-badge--inactive',
+    };
   }
   if (seller.adminGrant && seller.accessSource === 'admin_grant') {
     return { label: 'ADMIN-GRANTED · FREE', className: 'sellers-badge sellers-badge--trialing' };
